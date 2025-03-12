@@ -1,5 +1,5 @@
 import {MapBackground} from './background.js'
-import { handleAutoCamera } from './camera.js';
+import { handleAutoCamera, setAutoCamera } from './camera.js';
 import { mouseDragged, mousePressed, mouseReleased, mouseWheel } from './controls.js';
 import { MapStars } from './map-stars.js'
 import { Spaceship } from './spaceship.js';
@@ -45,6 +45,7 @@ var mapSketch = function(sketch) {
         sketch.pop();
 
         spaceship.setOrbitStar(mapStars.getRandomStar(), false);
+        setAutoCamera(autoCamera, spaceship.orbitStar.baseX, spaceship.orbitStar.baseY, 1.0);
     }
 
     sketch.draw = function() {

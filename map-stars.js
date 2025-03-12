@@ -66,12 +66,19 @@ export class MapStars {
     handleMouseReleasedMapStars(sketch, camera, spaceship){
         let mouseXTransformed = (sketch.mouseX - camera.panX) / camera.scaleFactor;
         let mouseYTransformed = (sketch.mouseY - camera.panY) / camera.scaleFactor;
+        let nearest = null;
+        let nearest_dist = null
         for (let mapStar of this.mapStars) {
-            if (sketch.dist(mouseXTransformed, mouseYTransformed, mapStar.baseX, mapStar.baseY) < 20) {
-                spaceship.setOrbitStar(mapStar);
-                break;
+            let dist = sketch.dist(mouseXTransformed, mouseYTransformed, mapStar.baseX, mapStar.baseY);
+            if (dist < 20) {
+                if (nearest_dist == null || dist < nearest_dist){
+                    nearest = mapStar;
+                    nearest_dist = dist;
+                }
             }
         }
+        if (nearest != null)
+            spaceship.setOrbitStar(nearest);
     }
 
 }

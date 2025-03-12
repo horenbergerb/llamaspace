@@ -9,7 +9,9 @@ export class Spaceship {
         this.transitY = 0;
         this.inTransit = false;
         this.transitAngle = 0;
-        this.transitSpeed = 2; // Pixels per frame while traveling
+        this.transitSpeed = 0; // Start at 0 velocity
+        this.maxTransitSpeed = 4; // Maximum travel speed
+        this.transitAcceleration = 0.05; // Acceleration per frame
         this.newOrbitStar = null;
     }
 
@@ -31,22 +33,23 @@ export class Spaceship {
         // Set transit destination
         this.transitX = this.orbitStar.baseX;
         this.transitY = this.orbitStar.baseY;
+        this.transitSpeed = 0; // Reset speed at start
 
         // Enable transit mode
         this.inTransit = true;
         this.newOrbitStar = newOrbitStar;
     }
 
-    orbitSpaceShip(sketch) {
+    orbitSpaceShip() {
         if (!this.orbitStar) return [0, 0, 0];
 
         // Update orbit angle
         this.angle += 0.02;
         while (this.angle >= Math.PI){
-            this.angle = this.angle - 2*Math.PI;
+            this.angle -= 2 * Math.PI;
         }
         while (this.angle < -Math.PI){
-            this.angle = this.angle + Math.PI;
+            this.angle += Math.PI;
         }
 
         // Calculate spaceship position in orbit
@@ -64,15 +67,26 @@ export class Spaceship {
 
         let spaceshipX, spaceshipY, spaceshipAngle;
 
-        let angle = this.angle + Math.PI/2;
+        let angle = this.angle + Math.PI / 2;
         while (angle >= Math.PI){
-            angle = angle - 2*Math.PI;
+            angle -= 2 * Math.PI;
         }
         while (angle < -Math.PI){
-            angle = angle + Math.PI;
+            angle += Math.PI;
         }
 
         if (this.inTransit && Math.abs(angle - this.transitAngle) <= 0.02) {
+            // Distance to target
+            let distToTarget = Math.hypot(this.transitX - this.newOrbitStar.baseX, this.transitY - this.newOrbitStar.baseY);
+
+            // Acceleration logic
+            if (distToTarget > 100) {
+                // Speed up until max speed
+                this.transitSpeed = Math.min(this.transitSpeed + this.transitAcceleration, this.maxTransitSpeed);
+            } else {
+                // Slow down when close to target
+                this.transitSpeed = Math.max(this.transitSpeed - this.transitAcceleration, 0.7);
+            }
 
             // Move towards the new orbit star using transitAngle
             let speedX = this.transitSpeed * Math.cos(this.transitAngle);
@@ -81,18 +95,16 @@ export class Spaceship {
             this.transitX += speedX;
             this.transitY += speedY;
 
-
             // Check if spaceship has reached new orbit star
-            let distToTarget = Math.hypot(this.transitX - this.newOrbitStar.baseX, this.transitY - this.newOrbitStar.baseY);
-            if (distToTarget <= this.orbitRadius + 3) {
+            if (distToTarget <= this.orbitRadius + 1) {
                 this.inTransit = false;
                 this.orbitStar = this.newOrbitStar;
-                //this.angle = Math.PI - this.angle;
+                this.transitSpeed = 0; // Reset speed
             }
 
             spaceshipX = this.transitX;
             spaceshipY = this.transitY;
-            spaceshipAngle = this.transitAngle + Math.PI/2; // Face movement direction
+            spaceshipAngle = this.transitAngle + Math.PI / 2; // Face movement direction
         } else {
             // Normal orbit
             [spaceshipX, spaceshipY, spaceshipAngle] = this.orbitSpaceShip(sketch);
