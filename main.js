@@ -6,16 +6,13 @@ import { Spaceship } from './spaceship.js';
 
 let mapBackground = null;
 let mapStars = null;
-
 let spaceship = null;
-
 let camera = null;
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
         mapBackground = new MapBackground();
         mapStars = new MapStars();
-
         spaceship = new Spaceship();
         camera = new Camera(sketch);
 
@@ -25,15 +22,14 @@ var mapSketch = function(sketch) {
     sketch.setup = async function() {
         sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
 
-        sketch.push();
-        sketch.translate(camera.panX, camera.panY);
-        sketch.scale(camera.scaleFactor);
+        camera.applyCameraTransform();
 
         mapBackground.initializeBackground(sketch, camera);
         mapStars.initializeMapStars(sketch);
 
-        sketch.pop();
+        camera.endCameraTransform();
 
+        // Start at a random star and configure the camera to autopan to it
         spaceship.setOrbitStar(mapStars.getRandomStar(), false);
         camera.setAutoCamera(spaceship.orbitStar.baseX, spaceship.orbitStar.baseY, 1.0);
     }
@@ -42,8 +38,12 @@ var mapSketch = function(sketch) {
 
         camera.handleAutoCamera();
 
+        // Background is drawn without camera transform
+        // since it needs weird logic to preserve parallax
         mapBackground.drawBackground(sketch);
 
+        // Todo: make this take a function and create a draw function?
+        // Same for initialize logic above
         camera.applyCameraTransform();
 
         mapStars.drawMapStars(sketch);
