@@ -1,6 +1,7 @@
 export class Star {
-    constructor(sketch) {
+    constructor(sketch, camera) {
         this.sketch = sketch;
+        this.camera = camera;
         this.baseX = sketch.random(-sketch.width, sketch.width*2);
         this.baseY = sketch.random(-sketch.height, sketch.height*2);
         this.size = sketch.random(1, 3);
@@ -13,12 +14,16 @@ export class Star {
         this.brightness = 200 + 55 * this.sketch.sin(this.sketch.frameCount * this.twinkleSpeed);
     }
 
-    show(camera) {
-        let x = this.baseX + camera.panX * this.depth; // Parallax effect
-        let y = this.baseY + camera.panY * this.depth;
+    drawStar() {
+        // Drawing these is awkward because we need to (attempt) to preserve the same parallax effect at different zooms
+        // That is why we need camera
+        // This solution doesn't really work, but it's close enough
 
-        let zoomedX = (x - this.sketch.width / 2) * camera.scaleFactor + this.sketch.width / 2;
-        let zoomedY = (y - this.sketch.height / 2) * camera.scaleFactor + this.sketch.height / 2;
+        let x = this.baseX + this.camera.panX * this.depth;
+        let y = this.baseY + this.camera.panY * this.depth;
+
+        let zoomedX = (x - this.sketch.width / 2) * this.camera.scaleFactor + this.sketch.width / 2;
+        let zoomedY = (y - this.sketch.height / 2) * this.camera.scaleFactor + this.sketch.height / 2;
 
         this.sketch.noStroke();
         this.sketch.fill(this.brightness);
@@ -31,18 +36,18 @@ export class MapBackground {
         this.stars = [];
     }
 
-    initializeBackground(sketch) {
+    initializeBackground(sketch, camera) {
         for (let i = 0; i < 2000; i++) {
-            this.stars.push(new Star(sketch));
+            this.stars.push(new Star(sketch, camera));
         }
     }
 
-    drawBackground(sketch, camera) {
+    drawBackground(sketch) {
         sketch.background(10);
     
         for (let star of this.stars) {
             star.update();
-            star.show(camera);
+            star.drawStar();
         }
     }
 }

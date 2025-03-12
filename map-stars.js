@@ -25,7 +25,7 @@ export class MapStar {
         this.size = this.baseSize + 1 * this.sketch.sin(this.sketch.frameCount * this.pulseSpeed);
     }
 
-    show(camera) {
+    show() {
         this.sketch.noStroke();
 
         // Outer glow aura (adds a soft halo effect)
@@ -52,10 +52,10 @@ export class MapStars {
         }
     }
     
-    drawMapStars(sketch, camera) {
+    drawMapStars(sketch) {
         for (let star of this.mapStars) {
             star.update();
-            star.show(camera);
+            star.show();
         }
     }
     

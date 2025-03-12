@@ -23,7 +23,7 @@ var mapSketch = function(sketch) {
         sketch.translate(camera.panX, camera.panY);
         sketch.scale(camera.scaleFactor);
 
-        mapBackground.initializeBackground(sketch);
+        mapBackground.initializeBackground(sketch, camera);
         mapStars.initializeMapStars(sketch);
 
         sketch.pop();
@@ -39,13 +39,13 @@ var mapSketch = function(sketch) {
         camera.handleAutoCamera(sketch);
         sketch.pop();
 
-        mapBackground.drawBackground(sketch, camera);
+        mapBackground.drawBackground(sketch);
 
         sketch.push();
         sketch.translate(camera.panX, camera.panY);
         sketch.scale(camera.scaleFactor);
 
-        mapStars.drawMapStars(sketch, camera);
+        mapStars.drawMapStars(sketch);
         spaceship.drawSpaceship(sketch);
 
         sketch.pop();
