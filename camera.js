@@ -7,93 +7,112 @@ export function isMouseInsideCanvas(sketch) {
     );
 }
 
-// Panning and Zooming Controls
-export function handleMousePressedCamera(sketch, camera, autoCamera) {
-    autoCamera.isAutoPanning = false;
+export class Camera{
+    constructor(sketch) {
+        this.scaleFactor = 1;
+        this.panX = 0;
+        this.panY = 0;
+        this.isDragging = false;
+        this.lastMouseX = 0;
+        this.lastMouseY = 0;
+        this.startMouseX = 0;
+        this.startMouseY = 0;
 
-    camera.startMouseX = sketch.mouseX;
-    camera.startMouseY = sketch.mouseY;
-
-    camera.lastMouseX = sketch.mouseX;
-    camera.lastMouseY = sketch.mouseY;
-    camera.isDragging = true;
-}
-
-export function handleMouseReleasedCamera(sketch, camera, autoCamera) {
-    if (camera.startMouseX === sketch.mouseX && camera.startMouseY === sketch.mouseY){
-        let mouseXRel = (sketch.mouseX - camera.panX) / camera.scaleFactor;
-        let mouseYRel = (sketch.mouseY - camera.panY) / camera.scaleFactor;
-        setAutoCamera(autoCamera, mouseXRel, mouseYRel, 1.0);
+        // Autocamera parameters
+        this.isAutoPanning = true;
+        this.rawTargetPanX = 0;
+        this.rawTargetPanY = 0;
+        this.targetZoom = 1.0;
     }
 
-    camera.isDragging = false;
-}
+    // Panning and Zooming Controls
+    handleMousePressedCamera(sketch) {
+        this.isAutoPanning = false;
 
-export function handleMouseDraggedCamera(sketch, camera) {
-    if (camera.isDragging) {
-        camera.panX += (sketch.mouseX - camera.lastMouseX);
-        camera.panY += (sketch.mouseY - camera.lastMouseY);
-        camera.lastMouseX = sketch.mouseX;
-        camera.lastMouseY = sketch.mouseY;
+        this.startMouseX = sketch.mouseX;
+        this.startMouseY = sketch.mouseY;
 
-        let zoomedWidth = sketch.width * camera.scaleFactor;
-        let zoomedHeight = sketch.height * camera.scaleFactor;
-    
-        let maxOffsetX = zoomedWidth * 1.0;
-        let maxOffsetY = zoomedHeight * 1.0;
-
-        camera.panX = sketch.constrain(camera.panX, -maxOffsetX, maxOffsetX);
-        camera.panY = sketch.constrain(camera.panY, -maxOffsetY, maxOffsetY);
-    }
-}
-
-export function handleMouseWheelCamera(sketch, event, camera, autoCamera) {
-    if (!isMouseInsideCanvas(sketch)) {
-        return;
+        this.lastMouseX = sketch.mouseX;
+        this.lastMouseY = sketch.mouseY;
+        this.isDragging = true;
     }
 
-    autoCamera.isAutoPanning = false;
+    handleMouseReleasedCamera(sketch) {
+        if (this.startMouseX === sketch.mouseX && this.startMouseY === sketch.mouseY){
+            let mouseXRel = (sketch.mouseX - this.panX) / this.scaleFactor;
+            let mouseYRel = (sketch.mouseY - this.panY) / this.scaleFactor;
+            this.setAutoCamera( mouseXRel, mouseYRel, 1.0);
+        }
 
-    let zoomAmount = 0.1; // Adjust the sensitivity of zoom
-    let newZoom = camera.scaleFactor + (event.delta > 0 ? -zoomAmount : zoomAmount);
+        this.isDragging = false;
+    }
 
-    // Constrain zoom to avoid flipping or excessive zooming
-    newZoom = sketch.constrain(newZoom, 0.7, 5);
+    handleMouseDraggedCamera(sketch) {
+        if (this.isDragging) {
+            this.panX += (sketch.mouseX - this.lastMouseX);
+            this.panY += (sketch.mouseY - this.lastMouseY);
+            this.lastMouseX = sketch.mouseX;
+            this.lastMouseY = sketch.mouseY;
 
-    // Adjust zoom so it zooms towards the mouse position
-    let mouseXRel = (sketch.mouseX - camera.panX) / camera.scaleFactor;
-    let mouseYRel = (sketch.mouseY - camera.panY) / camera.scaleFactor;
+            let zoomedWidth = sketch.width * this.scaleFactor;
+            let zoomedHeight = sketch.height * this.scaleFactor;
+        
+            let maxOffsetX = zoomedWidth * 1.0;
+            let maxOffsetY = zoomedHeight * 1.0;
 
-    camera.panX -= mouseXRel * (newZoom - camera.scaleFactor);
-    camera.panY -= mouseYRel * (newZoom - camera.scaleFactor);
+            this.panX = sketch.constrain(this.panX, -maxOffsetX, maxOffsetX);
+            this.panY = sketch.constrain(this.panY, -maxOffsetY, maxOffsetY);
+        }
+    }
 
-    camera.scaleFactor = newZoom;
+    handleMouseWheelCamera(sketch, event) {
+        if (!isMouseInsideCanvas(sketch)) {
+            return;
+        }
 
-    return false;
+        this.isAutoPanning = false;
 
-}
+        let zoomAmount = 0.1; // Adjust the sensitivity of zoom
+        let newZoom = this.scaleFactor + (event.delta > 0 ? -zoomAmount : zoomAmount);
 
-export function setAutoCamera(autoCamera, rawTargetPanX, rawTargetPanY, targetZoom) {
-    autoCamera.rawTargetPanX = rawTargetPanX;
-    autoCamera.rawTargetPanY = rawTargetPanY;
-    autoCamera.targetZoom = targetZoom;
-    autoCamera.isAutoPanning = true;
-}
+        // Constrain zoom to avoid flipping or excessive zooming
+        newZoom = sketch.constrain(newZoom, 0.7, 5);
 
-export function handleAutoCamera(sketch, camera, autoCamera) {
-    // Smoothly interpolate panX and panY towards targetPanX and targetPanY
-    if (autoCamera.isAutoPanning) {
-        let targetPanX = sketch.width / 2 - autoCamera.rawTargetPanX * camera.scaleFactor;
-        let targetPanY = sketch.height / 2 - autoCamera.rawTargetPanY * camera.scaleFactor;
+        // Adjust zoom so it zooms towards the mouse position
+        let mouseXRel = (sketch.mouseX - this.panX) / this.scaleFactor;
+        let mouseYRel = (sketch.mouseY - this.panY) / this.scaleFactor;
 
-        let lerpFactor = 0.1; // Adjust for smoothness (0.1 = slow, 1 = immediate)
-        camera.panX = sketch.lerp(camera.panX, targetPanX, lerpFactor);
-        camera.panY = sketch.lerp(camera.panY, targetPanY, lerpFactor);
-        camera.scaleFactor = sketch.lerp(camera.scaleFactor, autoCamera.targetZoom, lerpFactor);
+        this.panX -= mouseXRel * (newZoom - this.scaleFactor);
+        this.panY -= mouseYRel * (newZoom - this.scaleFactor);
 
-        // Stop panning if close to the target
-        if (Math.abs(camera.panX - targetPanX) < 1 && Math.abs(camera.panY - targetPanY) < 1) {
-            autoCamera.isAutoPanning = false;
+        this.scaleFactor = newZoom;
+
+        return false;
+
+    }
+
+    setAutoCamera(rawTargetPanX, rawTargetPanY, targetZoom) {
+        this.rawTargetPanX = rawTargetPanX;
+        this.rawTargetPanY = rawTargetPanY;
+        this.targetZoom = targetZoom;
+        this.isAutoPanning = true;
+    }
+
+    handleAutoCamera(sketch) {
+        // Smoothly interpolate panX and panY towards targetPanX and targetPanY
+        if (this.isAutoPanning) {
+            let targetPanX = sketch.width / 2 - this.rawTargetPanX * this.scaleFactor;
+            let targetPanY = sketch.height / 2 - this.rawTargetPanY * this.scaleFactor;
+
+            let lerpFactor = 0.1; // Adjust for smoothness (0.1 = slow, 1 = immediate)
+            this.panX = sketch.lerp(this.panX, targetPanX, lerpFactor);
+            this.panY = sketch.lerp(this.panY, targetPanY, lerpFactor);
+            this.scaleFactor = sketch.lerp(this.scaleFactor, this.targetZoom, lerpFactor);
+
+            // Stop panning if close to the target
+            if (Math.abs(this.panX - targetPanX) < 1 && Math.abs(this.panY - targetPanY) < 1) {
+                this.isAutoPanning = false;
+            }
         }
     }
 }
