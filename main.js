@@ -40,10 +40,7 @@ var mapSketch = function(sketch) {
 
     sketch.draw = function() {
 
-        sketch.push();
-        sketch.translate(camera.panX, camera.panY);
         camera.handleAutoCamera();
-        sketch.pop();
 
         mapBackground.drawBackground(sketch);
 
