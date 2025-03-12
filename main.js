@@ -4,15 +4,21 @@ import { mouseDragged, mousePressed, mouseReleased, mouseWheel } from './control
 import { MapStars } from './map-stars.js'
 import { Spaceship } from './spaceship.js';
 
-let mapBackground = new MapBackground();
-let mapStars = new MapStars();
+let mapBackground = null;
+let mapStars = null;
 
-let spaceship = new Spaceship();
+let spaceship = null;
 
-let camera = new Camera();
+let camera = null;
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
+        mapBackground = new MapBackground();
+        mapStars = new MapStars();
+
+        spaceship = new Spaceship();
+        camera = new Camera(sketch);
+
         spaceship.preload(sketch);
     };
 
@@ -36,26 +42,24 @@ var mapSketch = function(sketch) {
 
         sketch.push();
         sketch.translate(camera.panX, camera.panY);
-        camera.handleAutoCamera(sketch);
+        camera.handleAutoCamera();
         sketch.pop();
 
         mapBackground.drawBackground(sketch);
 
-        sketch.push();
-        sketch.translate(camera.panX, camera.panY);
-        sketch.scale(camera.scaleFactor);
+        camera.applyCameraTransform();
 
         mapStars.drawMapStars(sketch);
         spaceship.drawSpaceship(sketch);
 
-        sketch.pop();
+        camera.endCameraTransform();
     }
 
     // Attach event listeners
-    sketch.mousePressed = function() { mousePressed(sketch, camera); };
+    sketch.mousePressed = function() { mousePressed(camera); };
     sketch.mouseReleased = function() { mouseReleased(sketch, camera, mapStars, spaceship); };
-    sketch.mouseDragged = function() { mouseDragged(sketch, camera); };
-    sketch.mouseWheel = function(event) { return mouseWheel(sketch, event, camera); };
+    sketch.mouseDragged = function() { mouseDragged(camera); };
+    sketch.mouseWheel = function(event) { return mouseWheel(event, camera); };
 
 };
 

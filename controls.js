@@ -1,17 +1,17 @@
 
-export function mousePressed(sketch, camera) {
-    camera.handleMousePressedCamera(sketch);
+export function mousePressed(camera) {
+    camera.handleMousePressedCamera();
 }
 
 export function mouseReleased(sketch, camera, mapStars, spaceship) {
-    camera.handleMouseReleasedCamera(sketch);
+    camera.handleMouseReleasedCamera();
     mapStars.handleMouseReleasedMapStars(sketch, camera, spaceship);
 }
 
-export function mouseDragged(sketch, camera) {
-    camera.handleMouseDraggedCamera(sketch);
+export function mouseDragged(camera) {
+    camera.handleMouseDraggedCamera();
 }
 
-export function mouseWheel(sketch, event, camera) {
-    return camera.handleMouseWheelCamera(sketch, event);
+export function mouseWheel(event, camera) {
+    return camera.handleMouseWheelCamera(event);
 }
