@@ -265,6 +265,7 @@ export class MapStars {
             MapStar.selectedStar = nearest;
             nearest.isSelected = true;
             console.log(`Selected Star: ${nearest.name}`);
+            console.log(nearest.getDescription());
         } else {
             // **Deselect if clicked in empty space**
             if (MapStar.selectedStar) {
@@ -274,33 +275,21 @@ export class MapStars {
         }
     }
 
-    async handleMouseDraggedMapStars(sketch, camera){
-        let mouseXTransformed = (sketch.mouseX - camera.panX) / camera.scaleFactor;
-        let mouseYTransformed = (sketch.mouseY - camera.panY) / camera.scaleFactor;
-
-        let nearest = this.starTree.nearestNeighbor([mouseXTransformed, mouseYTransformed]);
-        let dist = sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
-
-        if (dist > 20)
-            return;
-
-        if (nearest.name != null){
-            console.log(nearest.name);
-            console.log(nearest.getDescription());
-        }
-        else {
-            let prompt = "[INST]Come up with a name for a star system in a scifi context. Here is some information about the star:\n" + 
-                         nearest.getDescription() +
-                         "\nRespond in the following format: `Name: {answer}`[/INST]Name:";
-            let genText = "";
-            function streamHandler(streamText){
-                genText = streamText;
-            };
-            await this.textGenerator.generateText(prompt, streamHandler, 1.8, 300, 0.01, 1.03);
-            nearest.name = genText.trim();
-            console.log(nearest.name);
-            console.log(nearest.getDescription())
-        }
-    }
-
+        // if (nearest.name != null){
+        //     console.log(nearest.name);
+        //     console.log(nearest.getDescription());
+        // }
+        // else {
+        //     let prompt = "[INST]Come up with a name for a star system in a scifi context. Here is some information about the star:\n" + 
+        //                  nearest.getDescription() +
+        //                  "\nRespond in the following format: `Name: {answer}`[/INST]Name:";
+        //     let genText = "";
+        //     function streamHandler(streamText){
+        //         genText = streamText;
+        //     };
+        //     await this.textGenerator.generateText(prompt, streamHandler, 1.8, 300, 0.01, 1.03);
+        //     nearest.name = genText.trim();
+        //     console.log(nearest.name);
+        //     console.log(nearest.getDescription())
+        // }
 }
