@@ -16,8 +16,9 @@ export class Spaceship {
         this.inTransit = false;
         this.transitAngle = 0;
         this.transitSpeed = 0; // Start at 0 velocity
-        this.maxTransitSpeed = 4; // Maximum travel speed
+        this.maxTransitSpeed = 2; // Maximum travel speed
         this.transitAcceleration = 0.05; // Acceleration per frame
+        this.transitDecceleration = 0.09
         this.newOrbitStar = null;
 
         this.prevDist = null;
@@ -88,12 +89,12 @@ export class Spaceship {
         let distToTarget = Math.hypot(this.spaceshipX - this.newOrbitStar.baseX, this.spaceshipY - this.newOrbitStar.baseY);
 
         // Acceleration logic
-        if (distToTarget > 100) {
+        if (distToTarget > 50) {
             // Speed up until max speed
             this.transitSpeed = Math.min(this.transitSpeed + this.transitAcceleration, this.maxTransitSpeed);
         } else {
             // Slow down when close to target
-            this.transitSpeed = Math.max(this.transitSpeed - this.transitAcceleration, 0.8);
+            this.transitSpeed = Math.max(this.transitSpeed - this.transitDecceleration, 0.8);
         }
 
         // Check if spaceship has reached new orbit star

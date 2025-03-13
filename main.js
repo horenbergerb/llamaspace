@@ -1,4 +1,4 @@
-import {MapBackground} from './background.js'
+import { MapBackground } from './background.js'
 import { Camera } from './camera.js';
 import { mouseDragged, mousePressed, mouseReleased, mouseWheel } from './controls.js';
 import { MapStars } from './map-stars.js'
