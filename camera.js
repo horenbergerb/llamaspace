@@ -46,34 +46,35 @@ export class Camera{
             return;
         }
 
-        if (sketch.touches.length === 2) {
+        if (this.sketch.touches.length === 2) {
             // Pinch zoom: Store the initial distance between two touch points
-            const touch1 = sketch.touches[0];
-            const touch2 = sketch.touches[1];
-            this.lastTouchDist = sketch.dist(touch1.x, touch1.y, touch2.x, touch2.y);
+            const touch1 = this.sketch.touches[0];
+            const touch2 = this.sketch.touches[1];
+            this.lastTouchDist = this.sketch.dist(touch1.x, touch1.y, touch2.x, touch2.y);
             return false;
         }
-        return;
+
+        this.handleMousePressedCamera();
+        return false;
     }
 
     handleTouchMovedCamera() {
-        if (!isMouseInsideCanvas(sketch)) {
+        if (!isMouseInsideCanvas(this.sketch)) {
             return; // Ignore touches outside the canvas
         }
-
         // TODO: Fix pinch zoom
-        if (sketch.touches.length === 2) {
+        if (this.sketch.touches.length === 2) {
             // Pinch zoom
-            const touch1 = sketch.touches[0];
-            const touch2 = sketch.touches[1];
-            const currentDist = sketch.dist(touch1.x, touch1.y, touch2.x, touch2.y);
+            const touch1 = this.sketch.touches[0];
+            const touch2 = this.sketch.touches[1];
+            const currentDist = this.sketch.dist(touch1.x, touch1.y, touch2.x, touch2.y);
     
             if (this.lastTouchDist){
                 const zoomFactor = 0.01; // Adjust sensitivity
                 let newZoom = this.scaleFactor + (currentDist - this.lastTouchDist) * zoomFactor;
             
                 // Constrain zoom level
-                newZoom = sketch.constrain(newZoom, 0.5, 5);
+                newZoom = this.sketch.constrain(newZoom, 0.5, 5);
             
                 // Calculate midpoint of two touch points in world coordinates
                 let midX = (touch1.x + touch2.x) / 2;
@@ -92,8 +93,10 @@ export class Camera{
 
             this.lastTouchDist = currentDist; // Update the last distance
             return false;
+        } else {
+            this.handleMouseDraggedCamera();
+            return false;
         }
-            return;
     }
 
     handleMouseReleasedCamera() {

@@ -247,6 +247,9 @@ export class MapStars {
         let mouseXTransformed = (sketch.mouseX - camera.panX) / camera.scaleFactor;
         let mouseYTransformed = (sketch.mouseY - camera.panY) / camera.scaleFactor;
 
+        if (camera.startMouseX != sketch.mouseX || camera.startMouseY != sketch.mouseY)
+            return;
+
         let nearest = this.starTree.nearestNeighbor([mouseXTransformed, mouseYTransformed]);
         let dist = sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
 
