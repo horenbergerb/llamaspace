@@ -100,7 +100,7 @@ export class Camera{
         if (this.startMouseX === this.sketch.mouseX && this.startMouseY === this.sketch.mouseY){
             let mouseXRel = (this.sketch.mouseX - this.panX) / this.scaleFactor;
             let mouseYRel = (this.sketch.mouseY - this.panY) / this.scaleFactor;
-            this.setAutoCamera( mouseXRel, mouseYRel, 1.0);
+            this.setAutoCamera( mouseXRel, mouseYRel, this.scaleFactor);
         }
 
         this.isDragging = false;

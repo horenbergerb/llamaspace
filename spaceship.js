@@ -157,5 +157,51 @@ export class Spaceship {
         this.sketch.image(this.image, 0, 0, 20, 20);
 
         this.sketch.pop();
+
+        // **Draw the pulsing dashed line to destination**
+        if (this.destinationSet) {
+            this.drawPulsingDashedLine();
+        }
+    }
+
+    drawPulsingDashedLine() {
+        if (!this.orbitStar || !this.newOrbitStar) return;
+    
+        let ctx = this.sketch.drawingContext;
+    
+        let x1 = this.orbitStar.baseX;
+        let y1 = this.orbitStar.baseY;
+        let x2 = this.newOrbitStar.baseX;
+        let y2 = this.newOrbitStar.baseY;
+    
+        // Compute vector direction from start to destination
+        let dx = x2 - x1;
+        let dy = y2 - y1;
+        let dist = Math.sqrt(dx * dx + dy * dy);
+    
+        // Normalize the direction vector
+        let nx = dx / dist;
+        let ny = dy / dist;
+    
+        // Shorten the line by trimming both ends
+        let shortenAmount = 15; // Adjust this to change the trim distance
+        x1 += nx * shortenAmount;
+        y1 += ny * shortenAmount;
+        x2 -= nx * shortenAmount;
+        y2 -= ny * shortenAmount;
+    
+        // Pulsing effect
+        let pulseFactor = (this.sketch.sin(this.sketch.frameCount * 0.1) + 1) / 2; // Pulse between 0 and 1
+        let alpha = 75 + pulseFactor * 50; // Fades between 100 and 200
+    
+        this.sketch.push();
+        this.sketch.stroke(255, 255, 255, alpha); // White with pulsing opacity
+        this.sketch.strokeWeight(2);
+        ctx.setLineDash([10, 10]); // Dashed pattern
+    
+        this.sketch.line(x1, y1, x2, y2);
+    
+        ctx.setLineDash([]); // Reset to solid line for other drawings
+        this.sketch.pop();
     }
 }
