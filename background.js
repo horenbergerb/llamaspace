@@ -32,18 +32,19 @@ export class Star {
 }
 
 export class MapBackground {
-    constructor() {
+    constructor(sketch) {
+        this.sketch = sketch;
         this.stars = [];
     }
 
-    initializeBackground(sketch, camera) {
+    initializeBackground(camera) {
         for (let i = 0; i < 2000; i++) {
-            this.stars.push(new Star(sketch, camera));
+            this.stars.push(new Star(this.sketch, camera));
         }
     }
 
-    drawBackground(sketch) {
-        sketch.background(10);
+    drawBackground() {
+        this.sketch.background(10);
     
         for (let star of this.stars) {
             star.update();

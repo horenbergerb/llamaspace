@@ -52,7 +52,7 @@ export class MapStars {
         }
     }
     
-    drawMapStars(sketch) {
+    drawMapStars() {
         for (let star of this.mapStars) {
             star.update();
             star.show();

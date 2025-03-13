@@ -11,7 +11,7 @@ let camera = null;
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
-        mapBackground = new MapBackground();
+        mapBackground = new MapBackground(sketch);
         mapStars = new MapStars();
         spaceship = new Spaceship(sketch);
         camera = new Camera(sketch);
@@ -24,7 +24,7 @@ var mapSketch = function(sketch) {
 
         camera.applyCameraTransform();
 
-        mapBackground.initializeBackground(sketch, camera);
+        mapBackground.initializeBackground(camera);
         mapStars.initializeMapStars(sketch);
 
         camera.endCameraTransform();
@@ -40,14 +40,14 @@ var mapSketch = function(sketch) {
 
         // Background is drawn without camera transform
         // since it needs weird logic to preserve parallax
-        mapBackground.drawBackground(sketch);
+        mapBackground.drawBackground();
 
         // Todo: make this take a function and create a draw function?
         // Same for initialize logic above
         camera.applyCameraTransform();
 
-        mapStars.drawMapStars(sketch);
-        spaceship.drawSpaceship(sketch);
+        mapStars.drawMapStars();
+        spaceship.drawSpaceship();
 
         camera.endCameraTransform();
     }
