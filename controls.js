@@ -1,4 +1,12 @@
 
+export function touchStarted(camera) {
+    return camera.handleTouchStartCamera();
+}
+
+export function touchMoved(camera) {
+    return camera.handleTouchMovedCamera();
+}
+
 export function mousePressed(camera) {
     camera.handleMousePressedCamera();
 }
@@ -9,7 +17,7 @@ export function mouseReleased(sketch, camera, mapStars, spaceship) {
 }
 
 export function mouseDragged(camera) {
-    camera.handleMouseDraggedCamera();
+    return camera.handleMouseDraggedCamera();
 }
 
 export function mouseWheel(event, camera) {

@@ -1,6 +1,6 @@
 import { MapBackground } from './background.js'
 import { Camera } from './camera.js';
-import { mouseDragged, mousePressed, mouseReleased, mouseWheel } from './controls.js';
+import { mouseDragged, mousePressed, mouseReleased, mouseWheel, touchStarted,  touchMoved } from './controls.js';
 import { MapStars } from './map-stars.js'
 import { Spaceship } from './spaceship.js';
 
@@ -20,7 +20,9 @@ var mapSketch = function(sketch) {
     };
 
     sketch.setup = async function() {
-        sketch.createCanvas(sketch.windowWidth, sketch.windowHeight);
+        let sketchHolder = document.getElementById('simple-example-holder'); // Get the container
+        let w = sketchHolder.clientWidth;
+        sketch.createCanvas(w, sketch.windowHeight*0.7);
 
         camera.applyCameraTransform();
 
@@ -55,8 +57,10 @@ var mapSketch = function(sketch) {
     // Attach event listeners
     sketch.mousePressed = function() { mousePressed(camera); };
     sketch.mouseReleased = function() { mouseReleased(sketch, camera, mapStars, spaceship); };
-    sketch.mouseDragged = function() { mouseDragged(camera); };
+    sketch.mouseDragged = function() { return mouseDragged(camera); };
     sketch.mouseWheel = function(event) { return mouseWheel(event, camera); };
+    sketch.touchStarted = function() { return touchStarted(camera); };
+    sketch.touchMoved = function() { return touchMoved(camera); };
 
 };
 
