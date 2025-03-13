@@ -1,4 +1,4 @@
-
+import { KDTree } from './k-d-tree.js';
 
 export class MapStar {
     constructor(sketch) {
@@ -19,6 +19,10 @@ export class MapStar {
             sketch.color(255, 100, 80)   // Red (M-type, coolest)
         ];
         this.color = sketch.random(starColors);
+    }
+
+    getCoords(){
+        return [this.baseX, this.baseY];
     }
 
     update() {
@@ -50,6 +54,7 @@ export class MapStars {
         for (let i = 0; i < 120; i++) {
             this.mapStars.push(new MapStar(sketch));
         }
+        this.starTree = new KDTree(this.mapStars);
     }
     
     drawMapStars() {
@@ -66,18 +71,11 @@ export class MapStars {
     handleMouseReleasedMapStars(sketch, camera, spaceship){
         let mouseXTransformed = (sketch.mouseX - camera.panX) / camera.scaleFactor;
         let mouseYTransformed = (sketch.mouseY - camera.panY) / camera.scaleFactor;
-        let nearest = null;
-        let nearest_dist = null
-        for (let mapStar of this.mapStars) {
-            let dist = sketch.dist(mouseXTransformed, mouseYTransformed, mapStar.baseX, mapStar.baseY);
-            if (dist < 20) {
-                if (nearest_dist == null || dist < nearest_dist){
-                    nearest = mapStar;
-                    nearest_dist = dist;
-                }
-            }
-        }
-        if (nearest != null)
+
+        let nearest = this.starTree.nearestNeighbor([mouseXTransformed, mouseYTransformed]);
+        let dist = sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
+
+        if (dist < 20)
             spaceship.setOrbitStar(nearest);
     }
 
