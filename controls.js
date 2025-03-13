@@ -13,10 +13,11 @@ export function mousePressed(camera) {
 
 export function mouseReleased(sketch, camera, mapStars, spaceship) {
     camera.handleMouseReleasedCamera();
+    mapStars.handleMouseDraggedMapStars(sketch, camera);
     mapStars.handleMouseReleasedMapStars(sketch, camera, spaceship);
 }
 
-export function mouseDragged(camera) {
+export function mouseDragged(sketch, camera, mapStars) {
     return camera.handleMouseDraggedCamera();
 }
 

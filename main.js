@@ -48,7 +48,7 @@ var mapSketch = function(sketch) {
         // Same for initialize logic above
         camera.applyCameraTransform();
 
-        mapStars.drawMapStars();
+        mapStars.drawMapStars(sketch, camera);
         spaceship.drawSpaceship();
 
         camera.endCameraTransform();
@@ -57,7 +57,7 @@ var mapSketch = function(sketch) {
     // Attach event listeners
     sketch.mousePressed = function() { mousePressed(camera); };
     sketch.mouseReleased = function() { mouseReleased(sketch, camera, mapStars, spaceship); };
-    sketch.mouseDragged = function() { return mouseDragged(camera); };
+    sketch.mouseDragged = function() { return mouseDragged(sketch, camera, mapStars); };
     sketch.mouseWheel = function(event) { return mouseWheel(event, camera); };
     sketch.touchStarted = function() { return touchStarted(camera); };
     sketch.touchMoved = function() { return touchMoved(camera); };

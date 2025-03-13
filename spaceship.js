@@ -13,7 +13,11 @@ export class Spaceship {
         this.spaceshipX = 0;
         this.spaceshipY = 0;
 
+        this.destinationSet = false;
+        // Whether the spaceship has departed orbit
+        // Used to prevent changing destinations on the fly
         this.inTransit = false;
+
         this.transitAngle = 0;
         this.transitSpeed = 0; // Start at 0 velocity
         this.maxTransitSpeed = 2; // Maximum travel speed
@@ -61,8 +65,7 @@ export class Spaceship {
 
         this.transitSpeed = 0; // Reset speed at start
 
-        // Enable transit mode
-        this.inTransit = true;
+        this.destinationSet = true;
         this.newOrbitStar = newOrbitStar;
     }
 
@@ -85,6 +88,8 @@ export class Spaceship {
     }
 
     updateSpaceshipInTransit(){
+        this.inTransit = true;
+
         /* Progresses the spaceship towards its target orbit. */
         let distToTarget = Math.hypot(this.spaceshipX - this.newOrbitStar.baseX, this.spaceshipY - this.newOrbitStar.baseY);
 
@@ -101,6 +106,7 @@ export class Spaceship {
         // i.e. if continuing forward would start taking us further from our target
         if ( this.prevDist != null  && distToTarget > this.prevDist) {
             this.inTransit = false;
+            this.destinationSet = false;
             this.orbitStar = this.newOrbitStar;
             this.transitSpeed = 0; // Reset speed
             this.prevDist = null;
@@ -128,7 +134,7 @@ export class Spaceship {
         angle = this.constrainAngle(angle);
 
         // Case where the ship has a destination and is facing the right direction to travel to it
-        if (this.inTransit && Math.abs(angle - this.transitAngle) <= 0.02) {
+        if (this.destinationSet && Math.abs(angle - this.transitAngle) <= 0.02) {
             this.updateSpaceshipInTransit();
         } else {
             // Normal orbit
