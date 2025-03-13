@@ -13,10 +13,10 @@ var mapSketch = function(sketch) {
     sketch.preload = function() {
         mapBackground = new MapBackground();
         mapStars = new MapStars();
-        spaceship = new Spaceship();
+        spaceship = new Spaceship(sketch);
         camera = new Camera(sketch);
 
-        spaceship.preload(sketch);
+        spaceship.preload();
     };
 
     sketch.setup = async function() {
