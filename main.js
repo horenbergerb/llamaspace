@@ -1,6 +1,6 @@
 import { MapBackground } from './background.js'
 import { Camera } from './camera.js';
-import { mouseDragged, mousePressed, mouseReleased, mouseWheel, touchStarted,  touchMoved } from './controls.js';
+import { ControlHandler } from './controls.js';
 import { MapStars } from './map-stars.js'
 import { Spaceship } from './spaceship.js';
 
@@ -8,6 +8,7 @@ let mapBackground = null;
 let mapStars = null;
 let spaceship = null;
 let camera = null;
+let controlHandler = null;
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
@@ -15,6 +16,7 @@ var mapSketch = function(sketch) {
         mapStars = new MapStars();
         spaceship = new Spaceship(sketch);
         camera = new Camera(sketch);
+        controlHandler = new ControlHandler();
 
         spaceship.preload();
     };
@@ -23,6 +25,8 @@ var mapSketch = function(sketch) {
         let sketchHolder = document.getElementById('simple-example-holder'); // Get the container
         let w = sketchHolder.clientWidth;
         sketch.createCanvas(w, sketch.windowHeight*0.7);
+
+        controlHandler.attachEventListeners(sketch, camera, mapStars, spaceship);
 
         camera.applyCameraTransform();
 
@@ -53,14 +57,6 @@ var mapSketch = function(sketch) {
 
         camera.endCameraTransform();
     }
-
-    // Attach event listeners
-    sketch.mousePressed = function() { mousePressed(camera); };
-    sketch.mouseReleased = function() { mouseReleased(sketch, camera, mapStars, spaceship); };
-    sketch.mouseDragged = function() { return mouseDragged(sketch, camera, mapStars); };
-    sketch.mouseWheel = function(event) { return mouseWheel(event, camera); };
-    sketch.touchStarted = function() { return touchStarted(camera); };
-    sketch.touchMoved = function() { return touchMoved(camera); };
 
 };
 
