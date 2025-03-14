@@ -1,6 +1,6 @@
 class KDNode {
     constructor(point, axis) {
-        this.point = point;  // [x, y]
+        this.point = point;  // Each point is a mapStar
         this.axis = axis;    // 0 for x, 1 for y
         this.left = null;
         this.right = null;

@@ -1,5 +1,4 @@
 import { KDTree } from './k-d-tree.js';
-import { TextGenerator } from './text-gen.js';
 
 export class MapStar {
     static usedNames = new Set(); // Stores already assigned names
@@ -13,6 +12,15 @@ export class MapStar {
         this.size = this.baseSize;
         this.pulseSpeed = sketch.random(0.01, 0.05);
         this.isSelected = false;
+
+        this.generateStarProperties(sketch);
+
+        // Naming
+        this.name = this.generateStarName();
+    }
+
+    generateStarProperties(sketch){
+        /* Generates the "flavor" of the star */
 
         // Star colors/types based on temperature classifications
         let starTypes = [
@@ -40,16 +48,12 @@ export class MapStar {
         let planetProbability = Math.min(1, this.mass * 0.2);
         this.hasPlanets = sketch.random() < planetProbability;
 
-        // Number of planets (if any)
         this.numPlanets = this.hasPlanets ? Math.floor(sketch.random(1, 10)) : 0;
 
-        // Presence of a habitable zone (only for spectral types F, G, K, some M)
         this.hasHabitableZone = ["F", "G", "K", "M"].includes(this.spectralClass.type) && this.numPlanets > 0;
         
-        // If a habitable zone exists, is there an Earth-like planet?
         this.hasEarthLikePlanet = this.hasHabitableZone && sketch.random() < 0.3;
 
-        // Radiation levels (high for O and B types, moderate for A and F, low for G, K, M)
         this.radiationLevel = this.spectralClass.type === "O" || this.spectralClass.type === "B" ? "Extreme" :
                               this.spectralClass.type === "A" || this.spectralClass.type === "F" ? "Moderate" : "Low";
 
@@ -68,9 +72,6 @@ export class MapStar {
         } else {
             this.remnantType = "None";
         }
-
-        // Naming
-        this.name = this.generateStarName();
     }
 
     // Utility function for picking a star type based on real-world rarity
@@ -178,7 +179,14 @@ export class MapStar {
         this.size = this.baseSize + 1 * this.sketch.sin(this.sketch.frameCount * this.pulseSpeed);
     }
 
-    show() {
+    drawSelector(){
+        this.sketch.stroke(this.color.levels[0], this.color.levels[1], this.color.levels[2]);
+        this.sketch.strokeWeight(2);
+        this.sketch.noFill();
+        this.sketch.ellipse(this.baseX, this.baseY, this.size + 10); // Outer ring
+    }
+
+    drawMapStar() {
         this.sketch.noStroke();
 
         // Outer glow aura (adds a soft halo effect)
@@ -192,12 +200,8 @@ export class MapStar {
         this.sketch.fill(this.color);
         this.sketch.ellipse(this.baseX, this.baseY, this.size);
 
-        // **Selection Indicator: Draw a ring if the star is selected**
         if (this.isSelected) {
-            this.sketch.stroke(this.color.levels[0], this.color.levels[1], this.color.levels[2]);
-            this.sketch.strokeWeight(2);
-            this.sketch.noFill();
-            this.sketch.ellipse(this.baseX, this.baseY, this.size + 10); // Outer ring
+            this.drawSelector();
         }
     }
 }
@@ -205,7 +209,6 @@ export class MapStar {
 export class MapStars {
     constructor(sketch) {
         this.mapStars = []; // Array for larger, glowing stars
-        this.textGenerator = new TextGenerator("https://10.243.155.214:8007/completion");
     }
 
     initializeMapStars(sketch) {
@@ -215,12 +218,24 @@ export class MapStars {
         this.starTree = new KDTree(this.mapStars);
     }
     
+    drawTooltip(sketch, mapStar){
+        sketch.fill(0, 0, 0, 150); // Semi-transparent black background
+        sketch.rectMode(sketch.CENTER);
+        let textWidth = sketch.textWidth(mapStar.name || "Unnamed Star") + 10;
+        sketch.rect(mapStar.baseX, mapStar.baseY - 15, textWidth, 20, 5); // Draw box above the star
+        
+        sketch.fill(255); // White text
+        sketch.textAlign(sketch.CENTER, sketch.CENTER);
+        sketch.text(mapStar.name || "Unnamed Star", mapStar.baseX, mapStar.baseY - 15); // Star name
+    }
+
     drawMapStars(sketch, camera) {
         for (let star of this.mapStars) {
             star.update();
-            star.show();
+            star.drawMapStar();
         }
     
+        // TODO: Cache this and update only when the mouse moves?
         let mouseXTransformed = (sketch.mouseX - camera.panX) / camera.scaleFactor;
         let mouseYTransformed = (sketch.mouseY - camera.panY) / camera.scaleFactor;
     
@@ -228,14 +243,7 @@ export class MapStars {
         let dist = sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
     
         if (dist < 20) {
-            sketch.fill(0, 0, 0, 150); // Semi-transparent black background
-            sketch.rectMode(sketch.CENTER);
-            let textWidth = sketch.textWidth(nearest.name || "Unnamed Star") + 10;
-            sketch.rect(nearest.baseX, nearest.baseY - 15, textWidth, 20, 5); // Draw box above the star
-            
-            sketch.fill(255); // White text
-            sketch.textAlign(sketch.CENTER, sketch.CENTER);
-            sketch.text(nearest.name || "Unnamed Star", nearest.baseX, nearest.baseY - 15); // Star name
+            this.drawTooltip(sketch, nearest);
         }
     }    
     
@@ -256,40 +264,20 @@ export class MapStars {
         if (dist < 20) {
             if (!spaceship.inTransit)
                 spaceship.setOrbitStar(nearest);
-            // **Deselect previously selected star**
+
             if (MapStar.selectedStar) {
                 MapStar.selectedStar.isSelected = false;
             }
     
-            // **Select new star**
             MapStar.selectedStar = nearest;
             nearest.isSelected = true;
             console.log(`Selected Star: ${nearest.name}`);
             console.log(nearest.getDescription());
         } else {
-            // **Deselect if clicked in empty space**
             if (MapStar.selectedStar) {
                 MapStar.selectedStar.isSelected = false;
                 MapStar.selectedStar = null;
             }
         }
     }
-
-        // if (nearest.name != null){
-        //     console.log(nearest.name);
-        //     console.log(nearest.getDescription());
-        // }
-        // else {
-        //     let prompt = "[INST]Come up with a name for a star system in a scifi context. Here is some information about the star:\n" + 
-        //                  nearest.getDescription() +
-        //                  "\nRespond in the following format: `Name: {answer}`[/INST]Name:";
-        //     let genText = "";
-        //     function streamHandler(streamText){
-        //         genText = streamText;
-        //     };
-        //     await this.textGenerator.generateText(prompt, streamHandler, 1.8, 300, 0.01, 1.03);
-        //     nearest.name = genText.trim();
-        //     console.log(nearest.name);
-        //     console.log(nearest.getDescription())
-        // }
 }

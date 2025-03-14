@@ -47,7 +47,6 @@ export class Camera{
         }
 
         if (this.sketch.touches.length === 2) {
-            // Pinch zoom: Store the initial distance between two touch points
             const touch1 = this.sketch.touches[0];
             const touch2 = this.sketch.touches[1];
             this.lastTouchDist = this.sketch.dist(touch1.x, touch1.y, touch2.x, touch2.y);
@@ -60,9 +59,8 @@ export class Camera{
 
     handleTouchMovedCamera() {
         if (!isMouseInsideCanvas(this.sketch)) {
-            return; // Ignore touches outside the canvas
+            return;
         }
-        // TODO: Fix pinch zoom
         if (this.sketch.touches.length === 2) {
             // Pinch zoom
             const touch1 = this.sketch.touches[0];
@@ -70,10 +68,9 @@ export class Camera{
             const currentDist = this.sketch.dist(touch1.x, touch1.y, touch2.x, touch2.y);
     
             if (this.lastTouchDist){
-                const zoomFactor = 0.01; // Adjust sensitivity
+                const zoomFactor = 0.01; // Sensitivity
                 let newZoom = this.scaleFactor + (currentDist - this.lastTouchDist) * zoomFactor;
             
-                // Constrain zoom level
                 newZoom = this.sketch.constrain(newZoom, 0.5, 5);
             
                 // Calculate midpoint of two touch points in world coordinates
@@ -82,7 +79,6 @@ export class Camera{
                 let midXWorld = (midX - this.panX) / this.scaleFactor;
                 let midYWorld = (midY - this.panY) / this.scaleFactor;
             
-                // Update zoom level
                 let zoomChange = newZoom / this.scaleFactor;
                 this.scaleFactor = newZoom;
             
@@ -91,7 +87,7 @@ export class Camera{
                 this.panY -= (midYWorld * zoomChange - midYWorld) * this.scaleFactor;
             }
 
-            this.lastTouchDist = currentDist; // Update the last distance
+            this.lastTouchDist = currentDist;
             return false;
         } else {
             this.handleMouseDraggedCamera();
@@ -140,10 +136,9 @@ export class Camera{
 
         this.isAutoPanning = false;
 
-        let zoomAmount = 0.1; // Adjust the sensitivity of zoom
+        let zoomAmount = 0.1; // Sensitivity
         let newZoom = this.scaleFactor + (event.delta > 0 ? -zoomAmount : zoomAmount);
 
-        // Constrain zoom to avoid flipping or excessive zooming
         newZoom = this.sketch.constrain(newZoom, 0.7, 5);
 
         // Adjust zoom so it zooms towards the mouse position
