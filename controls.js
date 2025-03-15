@@ -6,8 +6,10 @@ export class ControlHandler {
 
     }
 
-    touchStarted(camera) {
-        return camera.handleTouchStartCamera();
+    touchStarted(camera, mapScene) {
+        let out = true;
+        out &= camera.handleTouchStartCamera();
+        out &= mapScene.handleMousePressedMapScene();
     }
 
     touchMoved(camera) {
@@ -38,7 +40,7 @@ export class ControlHandler {
         sketch.mouseReleased = () => this.mouseReleased(sketch, camera, mapScene, spaceship);
         sketch.mouseDragged = () => this.mouseDragged(camera);
         sketch.mouseWheel = (event) => this.mouseWheel(event, camera);
-        sketch.touchStarted = () => this.touchStarted(camera);
+        sketch.touchStarted = () => this.touchStarted(camera, mapScene);
         sketch.touchMoved = () => this.touchMoved(camera);
 
         // Disable right-click menu on the canvas
