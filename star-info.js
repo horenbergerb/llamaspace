@@ -115,7 +115,7 @@ export class StarInfoUI {
         if (mouseXTransformed >= destX && mouseXTransformed <= destX + 100 && mouseYTransformed >= destY && mouseYTransformed <= destY + 25) {
             if (!spaceship.inTransit) {
                 console.log(`Setting course for ${this.star.name}...`);
-                spaceship.setOrbitStar(this.star);
+                spaceship.setOrbitBody(this.star);
                 this.close();
             }
             return capturedMouse;

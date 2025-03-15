@@ -6,7 +6,7 @@ export class Spaceship {
 
         // Angle of the ship with respect to the planet it orbits
         this.orbitAngle = 0; 
-        this.orbitStar = null;
+        this.orbitBody = null;
         this.orbitRadius = 20;
 
         // The angle of rotation of the spaceship's image
@@ -24,7 +24,7 @@ export class Spaceship {
         this.maxTransitSpeed = 2; // Maximum travel speed
         this.transitAcceleration = 0.05; // Acceleration per frame
         this.transitDecceleration = 0.09
-        this.newOrbitStar = null;
+        this.newOrbitBody = null;
 
         this.prevDist = null;
     }
@@ -46,7 +46,7 @@ export class Spaceship {
         return angle; 
     }
 
-    setOrbitStar(newOrbitStar) {
+    setOrbitBody(newOrbitBody) {
         /* Determines the star around which the spaceship will orbit.
         If the spaceship is already at a star, it will begin the process of traveling
         to the new star. 
@@ -54,35 +54,35 @@ export class Spaceship {
         Note that we calculate the angle between the stars, but
         we will travel along a line parallel to the connecting line between these stars.
         We leave our orbit on a tangent trajectory and arrive at the new orbit on a tangent trajectory.*/
-        if (!this.orbitStar) {
-            this.orbitStar = newOrbitStar;
+        if (!this.orbitBody) {
+            this.orbitBody = newOrbitBody;
             return;
         }
 
         // Calculate angle between current orbit star and new orbit star
-        let dx = newOrbitStar.baseX - this.orbitStar.baseX;
-        let dy = newOrbitStar.baseY - this.orbitStar.baseY;
+        let dx = newOrbitBody.baseX - this.orbitBody.baseX;
+        let dy = newOrbitBody.baseY - this.orbitBody.baseY;
         this.transitAngle = Math.atan2(dy, dx);
 
         this.transitSpeed = 0; // Reset speed at start
 
         this.destinationSet = true;
-        this.newOrbitStar = newOrbitStar;
+        this.newOrbitBody = newOrbitBody;
     }
 
     updateSpaceshipInOrbit() {
-        /* Orbits the spaceship about its orbitStar.
+        /* Orbits the spaceship about its orbitBody.
         Assumes the spaceship is already in orbit, i.e.
         that it's located at this.orbitAngle relative to the star */
-        if (!this.orbitStar) return [0, 0, 0];
+        if (!this.orbitBody) return [0, 0, 0];
 
         // Update orbit angle
         this.orbitAngle += 0.02;
         this.orbitAngle = this.constrainAngle(this.orbitAngle);
 
         // Increment the spaceship position in orbit
-        this.spaceshipX = this.orbitStar.baseX + this.orbitRadius * Math.cos(this.orbitAngle);
-        this.spaceshipY = this.orbitStar.baseY + this.orbitRadius * Math.sin(this.orbitAngle);
+        this.spaceshipX = this.orbitBody.baseX + this.orbitRadius * Math.cos(this.orbitAngle);
+        this.spaceshipY = this.orbitBody.baseY + this.orbitRadius * Math.sin(this.orbitAngle);
 
         // Adjust rotation to face forward
         this.spaceshipAngle = this.orbitAngle + Math.PI;
@@ -92,7 +92,7 @@ export class Spaceship {
         this.inTransit = true;
 
         /* Progresses the spaceship towards its target orbit. */
-        let distToTarget = Math.hypot(this.spaceshipX - this.newOrbitStar.baseX, this.spaceshipY - this.newOrbitStar.baseY);
+        let distToTarget = Math.hypot(this.spaceshipX - this.newOrbitBody.baseX, this.spaceshipY - this.newOrbitBody.baseY);
 
         // Acceleration logic
         if (distToTarget > 50) {
@@ -108,7 +108,7 @@ export class Spaceship {
         if ( this.prevDist != null  && distToTarget > this.prevDist) {
             this.inTransit = false;
             this.destinationSet = false;
-            this.orbitStar = this.newOrbitStar;
+            this.orbitBody = this.newOrbitBody;
             this.transitSpeed = 0; // Reset speed
             this.prevDist = null;
             this.updateSpaceshipInOrbit();
@@ -129,7 +129,7 @@ export class Spaceship {
         /* Draws the spaceship. This handles two cases:
         1) the spaceship is in orbit around a star
         2) the spaceship is traveling between stars */
-        if (!Spaceship.image || !this.orbitStar) return;
+        if (!Spaceship.image || !this.orbitBody) return;
 
         let angle = this.orbitAngle + Math.PI / 2;
         angle = this.constrainAngle(angle);
@@ -166,14 +166,14 @@ export class Spaceship {
     }
 
     drawPulsingDashedLine() {
-        if (!this.orbitStar || !this.newOrbitStar) return;
+        if (!this.orbitBody || !this.newOrbitBody) return;
     
         let ctx = this.sketch.drawingContext;
     
-        let x1 = this.orbitStar.baseX;
-        let y1 = this.orbitStar.baseY;
-        let x2 = this.newOrbitStar.baseX;
-        let y2 = this.newOrbitStar.baseY;
+        let x1 = this.orbitBody.baseX;
+        let y1 = this.orbitBody.baseY;
+        let x2 = this.newOrbitBody.baseX;
+        let y2 = this.newOrbitBody.baseY;
     
         // Compute vector direction from start to destination
         let dx = x2 - x1;

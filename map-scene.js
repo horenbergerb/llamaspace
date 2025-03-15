@@ -6,17 +6,14 @@ import { Spaceship } from './spaceship.js';
 export class MapScene {
     constructor(sketch) {
         this.sketch = sketch;
-        this.mapStars = []; // Array for navigable stars
+        this.mapBodies = []; // Array for navigable bodies
         this.pressStartTime = null;
         this.starInfoUI = null;
         this.spaceship = null;
     }
 
     initializeMapScene() {
-        for (let i = 0; i < 120; i++) {
-            this.mapStars.push(new MapStar(this.sketch));
-        }
-        this.starTree = new KDTree(this.mapStars);
+        this.starTree = new KDTree(this.mapBodies);
         this.starInfoUI = new StarInfoUI(this.sketch);
         this.spaceship = new Spaceship(this.sketch);
     }
@@ -44,7 +41,7 @@ export class MapScene {
     }
 
     drawMapScene(camera) {
-        for (let star of this.mapStars) {
+        for (let star of this.mapBodies) {
             star.update();
             star.drawMapStar();
         }
@@ -55,8 +52,8 @@ export class MapScene {
         this.starInfoUI.drawUI();
     }    
     
-    getRandomStar() {
-        return this.mapStars[Math.floor(Math.random() * this.mapStars.length)];
+    getRandomBody() {
+        return this.mapBodies[Math.floor(Math.random() * this.mapBodies.length)];
     }
 
     openStarInfo(star) {
@@ -88,7 +85,7 @@ export class MapScene {
             }
             else if (pressDuration < 300) {
                 if (!this.spaceship.inTransit)
-                    this.spaceship.setOrbitStar(nearest);
+                    this.spaceship.setOrbitBody(nearest);
             } else {
                 // Long press to open star info window
                 this.openStarInfo(nearest);

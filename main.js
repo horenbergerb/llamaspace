@@ -3,16 +3,17 @@ import { Camera } from './camera.js';
 import { ControlHandler } from './controls.js';
 import { MapScene } from './map-scene.js'
 import { Spaceship } from './spaceship.js';
+import { MapStar } from './map-star.js';
 
 let mapBackground = null;
-let mapScene = null;
+let galaxyMapScene = null;
 let camera = null;
 let controlHandler = null;
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
         mapBackground = new MapBackground(sketch);
-        mapScene = new MapScene(sketch);
+        galaxyMapScene = new MapScene(sketch);
         Spaceship.preload(sketch);
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
@@ -24,18 +25,20 @@ var mapSketch = function(sketch) {
         let w = sketchHolder.clientWidth;
         sketch.createCanvas(w, sketch.windowHeight*0.7);
 
-        controlHandler.attachEventListeners(sketch, camera, mapScene);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene);
 
         camera.applyCameraTransform();
 
         mapBackground.initializeBackground(camera);
-        mapScene.initializeMapScene(sketch);
+
+        generateGalaxy();
+        galaxyMapScene.initializeMapScene(sketch);
 
         camera.endCameraTransform();
 
         // Start at a random star and configure the camera to autopan to it
-        mapScene.spaceship.setOrbitStar(mapScene.getRandomStar(), false);
-        camera.setAutoCamera(mapScene.spaceship.orbitStar.baseX, mapScene.spaceship.orbitStar.baseY, 1.0);
+        galaxyMapScene.spaceship.setOrbitBody(galaxyMapScene.getRandomBody(), false);
+        camera.setAutoCamera(galaxyMapScene.spaceship.orbitBody.baseX, galaxyMapScene.spaceship.orbitBody.baseY, 1.0);
     }
 
     sketch.draw = function() {
@@ -50,9 +53,15 @@ var mapSketch = function(sketch) {
         // Same for initialize logic above
         camera.applyCameraTransform();
 
-        mapScene.drawMapScene(camera);
+        galaxyMapScene.drawMapScene(camera);
 
         camera.endCameraTransform();
+    }
+
+    function generateGalaxy() {
+        for (let i = 0; i < 120; i++) {
+            galaxyMapScene.mapBodies.push(new MapStar(sketch));
+        }
     }
 
 };
