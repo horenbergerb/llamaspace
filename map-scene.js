@@ -3,49 +3,49 @@ import { StarInfoUI } from './star-info.js';
 import { MapStar } from './map-star.js';
 
 export class MapScene {
-    constructor() {
+    constructor(sketch) {
         this.sketch = sketch;
         this.mapStars = []; // Array for navigable stars
         this.pressStartTime = null;
         this.starInfoUI = null;
     }
 
-    initializeMapScene(sketch) {
+    initializeMapScene() {
         for (let i = 0; i < 120; i++) {
-            this.mapStars.push(new MapStar(sketch));
+            this.mapStars.push(new MapStar(this.sketch));
         }
         this.starTree = new KDTree(this.mapStars);
-        this.starInfoUI = new StarInfoUI(sketch);
+        this.starInfoUI = new StarInfoUI(this.sketch);
     }
     
-    drawTooltip(sketch, mapStar){
-        sketch.push();
-        sketch.fill(0, 0, 0, 150); // Semi-transparent black background
-        sketch.rectMode(sketch.CENTER);
-        let textWidth = sketch.textWidth(mapStar.name || "Unnamed Star") + 10;
-        sketch.rect(mapStar.baseX, mapStar.baseY - 15, textWidth, 20, 5); // Draw box above the star
+    drawTooltip(mapStar){
+        this.sketch.push();
+        this.sketch.fill(0, 0, 0, 150); // Semi-transparent black background
+        this.sketch.rectMode(this.sketch.CENTER);
+        let textWidth = this.sketch.textWidth(mapStar.name || "Unnamed Star") + 10;
+        this.sketch.rect(mapStar.baseX, mapStar.baseY - 15, textWidth, 20, 5); // Draw box above the star
         
-        sketch.fill(255); // White text
-        sketch.textAlign(sketch.CENTER, sketch.CENTER);
-        sketch.text(mapStar.name || "Unnamed Star", mapStar.baseX, mapStar.baseY - 15); // Star name
-        sketch.pop();
+        this.sketch.fill(255); // White text
+        this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
+        this.sketch.text(mapStar.name || "Unnamed Star", mapStar.baseX, mapStar.baseY - 15); // Star name
+        this.sketch.pop();
     }
 
-    drawMapScene(sketch, camera) {
+    drawMapScene(camera) {
         for (let star of this.mapStars) {
             star.update();
             star.drawMapStar();
         }
     
         // TODO: Cache this and update only when the mouse moves?
-        let mouseXTransformed = (sketch.mouseX - camera.panX) / camera.scaleFactor;
-        let mouseYTransformed = (sketch.mouseY - camera.panY) / camera.scaleFactor;
+        let mouseXTransformed = (this.sketch.mouseX - camera.panX) / camera.scaleFactor;
+        let mouseYTransformed = (this.sketch.mouseY - camera.panY) / camera.scaleFactor;
     
         let nearest = this.starTree.nearestNeighbor([mouseXTransformed, mouseYTransformed]);
-        let dist = sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
+        let dist = this.sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
     
         if (dist < 20) {
-            this.drawTooltip(sketch, nearest);
+            this.drawTooltip(nearest);
         }
 
         this.starInfoUI.drawUI();
@@ -59,24 +59,24 @@ export class MapScene {
         this.starInfoUI.open(star);
     }
 
-    handleMousePressedMapScene(sketch){
-        this.pressStartTime = sketch.millis();
+    handleMousePressedMapScene(){
+        this.pressStartTime = this.sketch.millis();
     }
 
-    handleMouseReleasedMapScene(sketch, camera, spaceship){
-        let mouseXTransformed = (sketch.mouseX - camera.panX) / camera.scaleFactor;
-        let mouseYTransformed = (sketch.mouseY - camera.panY) / camera.scaleFactor;
+    handleMouseReleasedMapScene(camera, spaceship){
+        let mouseXTransformed = (this.sketch.mouseX - camera.panX) / camera.scaleFactor;
+        let mouseYTransformed = (this.sketch.mouseY - camera.panY) / camera.scaleFactor;
 
-        if (camera.startMouseX != sketch.mouseX || camera.startMouseY != sketch.mouseY)
+        if (camera.startMouseX != this.sketch.mouseX || camera.startMouseY != this.sketch.mouseY)
             return;
 
         let nearest = this.starTree.nearestNeighbor([mouseXTransformed, mouseYTransformed]);
-        let dist = sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
+        let dist = this.sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
 
-        let pressDuration = sketch.millis() - this.pressStartTime;
+        let pressDuration = this.sketch.millis() - this.pressStartTime;
 
         if (dist < 20) {
-            if (sketch.mouseButton === sketch.RIGHT) {
+            if (this.sketch.mouseButton === this.sketch.RIGHT) {
                 this.openStarInfo(nearest);
             }
             else if (pressDuration < 300) {

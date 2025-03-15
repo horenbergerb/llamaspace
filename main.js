@@ -13,7 +13,7 @@ let controlHandler = null;
 var mapSketch = function(sketch) {
     sketch.preload = function() {
         mapBackground = new MapBackground(sketch);
-        mapScene = new MapScene();
+        mapScene = new MapScene(sketch);
         spaceship = new Spaceship(sketch);
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
@@ -52,7 +52,7 @@ var mapSketch = function(sketch) {
         // Same for initialize logic above
         camera.applyCameraTransform();
 
-        mapScene.drawMapScene(sketch, camera);
+        mapScene.drawMapScene(camera);
         spaceship.drawSpaceship();
 
         camera.endCameraTransform();

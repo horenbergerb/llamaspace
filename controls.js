@@ -16,12 +16,12 @@ export class ControlHandler {
 
     mousePressed(sketch, camera, mapScene) {
         camera.handleMousePressedCamera();
-        mapScene.handleMousePressedMapScene(sketch);
+        mapScene.handleMousePressedMapScene();
     }
 
     mouseReleased(sketch, camera, mapScene, spaceship) {
         camera.handleMouseReleasedCamera();
-        mapScene.handleMouseReleasedMapScene(sketch, camera, spaceship);
+        mapScene.handleMouseReleasedMapScene(camera, spaceship);
     }
 
     mouseDragged(camera) {
