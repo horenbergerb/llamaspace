@@ -69,7 +69,7 @@ export class StarInfoUI {
         this.sketch.textSize(12);
         this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
         this.sketch.stroke(100);
-        this.sketch.text("Scan Star", this.uiX + 70, this.uiY + this.uiHeight - 28);
+        this.sketch.text("Enter System", this.uiX + 70, this.uiY + this.uiHeight - 28);
         this.sketch.stroke(255);
 
         this.sketch.fill(50, 255, 100);
@@ -102,10 +102,10 @@ export class StarInfoUI {
         }
 
         // Check if clicking the "Scan Star" button
-        let scanX = this.uiX + 20;
-        let scanY = this.uiY + this.uiHeight - 40;
-        if (mouseXTransformed >= scanX && mouseXTransformed <= scanX + 100 && mouseYTransformed >= scanY && mouseYTransformed <= scanY + 25) {
-            console.log(`Scanning ${this.star.name}...`);
+        let enterX = this.uiX + 20;
+        let enterY = this.uiY + this.uiHeight - 40;
+        if (mouseXTransformed >= enterX && mouseXTransformed <= enterX + 100 && mouseYTransformed >= enterY && mouseYTransformed <= enterY + 25) {
+            console.log(`Entering System ${this.star.name}...`);
             return capturedMouse;
         }
 
