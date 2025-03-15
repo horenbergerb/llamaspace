@@ -83,33 +83,42 @@ export class StarInfoUI {
         this.sketch.pop();
     }
 
-    handleMousePressed(mouseX, mouseY, spaceship) {
-        if (!this.isVisible) return;
+    handleMouseReleased(camera, mouseX, mouseY, spaceship) {
+        if (!this.isVisible) return false;
+
+        let mouseXTransformed = (mouseX - camera.panX) / camera.scaleFactor;
+        let mouseYTransformed = (mouseY - camera.panY) / camera.scaleFactor;
+
+        let capturedMouse = (mouseXTransformed >= this.uiX && mouseXTransformed <= this.uiX + this.uiWidth && mouseYTransformed >= this.uiY && mouseYTransformed <= this.uiY + this.uiHeight);
+        if (!capturedMouse)
+            return capturedMouse;
 
         // Check if clicking the close button
         let closeX = this.uiX + this.uiWidth - this.closeButtonSize - 5;
         let closeY = this.uiY + 5;
-        if (mouseX >= closeX && mouseX <= closeX + this.closeButtonSize && mouseY >= closeY && mouseY <= closeY + this.closeButtonSize) {
+        if (mouseXTransformed >= closeX && mouseXTransformed <= closeX + this.closeButtonSize && mouseYTransformed >= closeY && mouseYTransformed <= closeY + this.closeButtonSize) {
             this.close();
-            return;
+            return capturedMouse;
         }
 
         // Check if clicking the "Scan Star" button
         let scanX = this.uiX + 20;
         let scanY = this.uiY + this.uiHeight - 40;
-        if (mouseX >= scanX && mouseX <= scanX + 100 && mouseY >= scanY && mouseY <= scanY + 25) {
+        if (mouseXTransformed >= scanX && mouseXTransformed <= scanX + 100 && mouseYTransformed >= scanY && mouseYTransformed <= scanY + 25) {
             console.log(`Scanning ${this.star.name}...`);
-            return;
+            return capturedMouse;
         }
 
         // Check if clicking the "Set Destination" button
         let destX = this.uiX + this.uiWidth - 120;
         let destY = this.uiY + this.uiHeight - 40;
-        if (mouseX >= destX && mouseX <= destX + 100 && mouseY >= destY && mouseY <= destY + 25) {
+        if (mouseXTransformed >= destX && mouseXTransformed <= destX + 100 && mouseYTransformed >= destY && mouseYTransformed <= destY + 25) {
             console.log(`Setting course for ${this.star.name}...`);
             spaceship.setOrbitStar(this.star);
             this.close();
-            return;
+            return capturedMouse;
         }
+
+        return capturedMouse;
     }
 }

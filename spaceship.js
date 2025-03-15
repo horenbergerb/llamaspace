@@ -1,8 +1,9 @@
 export class Spaceship {
+    static image = null;
+
     constructor(sketch) {
         this.sketch = sketch;
 
-        this.image;
         // Angle of the ship with respect to the planet it orbits
         this.orbitAngle = 0; 
         this.orbitStar = null;
@@ -28,8 +29,8 @@ export class Spaceship {
         this.prevDist = null;
     }
 
-    preload() {
-        this.image = this.sketch.loadImage("spaceship.png");
+    static preload(sketch) {
+        Spaceship.image = sketch.loadImage("spaceship.png");
     }
 
     constrainAngle(angle){
@@ -128,7 +129,7 @@ export class Spaceship {
         /* Draws the spaceship. This handles two cases:
         1) the spaceship is in orbit around a star
         2) the spaceship is traveling between stars */
-        if (!this.image || !this.orbitStar) return;
+        if (!Spaceship.image || !this.orbitStar) return;
 
         let angle = this.orbitAngle + Math.PI / 2;
         angle = this.constrainAngle(angle);
@@ -154,7 +155,7 @@ export class Spaceship {
         }
 
         this.sketch.noFill();
-        this.sketch.image(this.image, 0, 0, 20, 20);
+        this.sketch.image(Spaceship.image, 0, 0, 20, 20);
 
         this.sketch.pop();
 

@@ -21,9 +21,10 @@ export class ControlHandler {
         mapScene.handleMousePressedMapScene();
     }
 
-    mouseReleased(sketch, camera, mapScene, spaceship) {
-        camera.handleMouseReleasedCamera();
-        mapScene.handleMouseReleasedMapScene(camera, spaceship);
+    mouseReleased(sketch, camera, mapScene) {
+        if (!mapScene.handleMouseReleasedMapScene(camera))
+            camera.handleMouseReleasedCamera();
+
     }
 
     mouseDragged(camera) {
@@ -34,10 +35,10 @@ export class ControlHandler {
         return camera.handleMouseWheelCamera(event);
     }
 
-    attachEventListeners(sketch, camera, mapScene, spaceship){
+    attachEventListeners(sketch, camera, mapScene){
         // Attach event listeners
         sketch.mousePressed = () => this.mousePressed(sketch, camera, mapScene);
-        sketch.mouseReleased = () => this.mouseReleased(sketch, camera, mapScene, spaceship);
+        sketch.mouseReleased = () => this.mouseReleased(sketch, camera, mapScene);
         sketch.mouseDragged = () => this.mouseDragged(camera);
         sketch.mouseWheel = (event) => this.mouseWheel(event, camera);
         sketch.touchStarted = () => this.touchStarted(camera, mapScene);

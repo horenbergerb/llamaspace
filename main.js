@@ -6,7 +6,6 @@ import { Spaceship } from './spaceship.js';
 
 let mapBackground = null;
 let mapScene = null;
-let spaceship = null;
 let camera = null;
 let controlHandler = null;
 
@@ -14,11 +13,10 @@ var mapSketch = function(sketch) {
     sketch.preload = function() {
         mapBackground = new MapBackground(sketch);
         mapScene = new MapScene(sketch);
-        spaceship = new Spaceship(sketch);
+        Spaceship.preload(sketch);
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
 
-        spaceship.preload();
     };
 
     sketch.setup = async function() {
@@ -26,7 +24,7 @@ var mapSketch = function(sketch) {
         let w = sketchHolder.clientWidth;
         sketch.createCanvas(w, sketch.windowHeight*0.7);
 
-        controlHandler.attachEventListeners(sketch, camera, mapScene, spaceship);
+        controlHandler.attachEventListeners(sketch, camera, mapScene);
 
         camera.applyCameraTransform();
 
@@ -36,8 +34,8 @@ var mapSketch = function(sketch) {
         camera.endCameraTransform();
 
         // Start at a random star and configure the camera to autopan to it
-        spaceship.setOrbitStar(mapScene.getRandomStar(), false);
-        camera.setAutoCamera(spaceship.orbitStar.baseX, spaceship.orbitStar.baseY, 1.0);
+        mapScene.spaceship.setOrbitStar(mapScene.getRandomStar(), false);
+        camera.setAutoCamera(mapScene.spaceship.orbitStar.baseX, mapScene.spaceship.orbitStar.baseY, 1.0);
     }
 
     sketch.draw = function() {
@@ -53,7 +51,6 @@ var mapSketch = function(sketch) {
         camera.applyCameraTransform();
 
         mapScene.drawMapScene(camera);
-        spaceship.drawSpaceship();
 
         camera.endCameraTransform();
     }

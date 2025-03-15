@@ -1,6 +1,7 @@
 import { KDTree } from './k-d-tree.js';
 import { StarInfoUI } from './star-info.js';
 import { MapStar } from './map-star.js';
+import { Spaceship } from './spaceship.js';
 
 export class MapScene {
     constructor(sketch) {
@@ -8,6 +9,7 @@ export class MapScene {
         this.mapStars = []; // Array for navigable stars
         this.pressStartTime = null;
         this.starInfoUI = null;
+        this.spaceship = null;
     }
 
     initializeMapScene() {
@@ -16,6 +18,7 @@ export class MapScene {
         }
         this.starTree = new KDTree(this.mapStars);
         this.starInfoUI = new StarInfoUI(this.sketch);
+        this.spaceship = new Spaceship(this.sketch);
     }
     
     drawTooltip(camera){
@@ -46,6 +49,7 @@ export class MapScene {
             star.drawMapStar();
         }
     
+        this.spaceship.drawSpaceship();
         this.drawTooltip(camera);
 
         this.starInfoUI.drawUI();
@@ -63,12 +67,15 @@ export class MapScene {
         this.pressStartTime = this.sketch.millis();
     }
 
-    handleMouseReleasedMapScene(camera, spaceship){
+    handleMouseReleasedMapScene(camera){
         let mouseXTransformed = (this.sketch.mouseX - camera.panX) / camera.scaleFactor;
         let mouseYTransformed = (this.sketch.mouseY - camera.panY) / camera.scaleFactor;
 
         if (this.sketch.dist(camera.startMouseX, camera.startMouseY, this.sketch.mouseX, this.sketch.mouseY) > 10)
-            return;
+            return false;
+
+        if (this.starInfoUI.handleMouseReleased(camera, this.sketch.mouseX, this.sketch.mouseY, this.spaceship))
+            return true;
 
         let nearest = this.starTree.nearestNeighbor([mouseXTransformed, mouseYTransformed]);
         let dist = this.sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
@@ -80,8 +87,8 @@ export class MapScene {
                 this.openStarInfo(nearest);
             }
             else if (pressDuration < 300) {
-                if (!spaceship.inTransit)
-                    spaceship.setOrbitStar(nearest);
+                if (!this.spaceship.inTransit)
+                    this.spaceship.setOrbitStar(nearest);
             } else {
                 // Long press to open star info window
                 this.openStarInfo(nearest);
@@ -101,5 +108,7 @@ export class MapScene {
                 MapStar.selectedStar = null;
             }
         }
+        
+        return false;
     }
 }
