@@ -4,16 +4,17 @@ import { MapStar } from './map-star.js';
 
 export class MapScene {
     constructor() {
-        this.mapScene = []; // Array for larger, glowing stars
+        this.sketch = sketch;
+        this.mapStars = []; // Array for navigable stars
         this.pressStartTime = null;
         this.starInfoUI = null;
     }
 
     initializeMapScene(sketch) {
         for (let i = 0; i < 120; i++) {
-            this.mapScene.push(new MapStar(sketch));
+            this.mapStars.push(new MapStar(sketch));
         }
-        this.starTree = new KDTree(this.mapScene);
+        this.starTree = new KDTree(this.mapStars);
         this.starInfoUI = new StarInfoUI(sketch);
     }
     
@@ -31,7 +32,7 @@ export class MapScene {
     }
 
     drawMapScene(sketch, camera) {
-        for (let star of this.mapScene) {
+        for (let star of this.mapStars) {
             star.update();
             star.drawMapStar();
         }
@@ -51,7 +52,7 @@ export class MapScene {
     }    
     
     getRandomStar() {
-        return this.mapScene[Math.floor(Math.random() * this.mapScene.length)];
+        return this.mapStars[Math.floor(Math.random() * this.mapStars.length)];
     }
 
     openStarInfo(star) {
