@@ -207,18 +207,18 @@ export class MapStar {
     }
 }
 
-export class MapStars {
+export class MapScene {
     constructor(sketch) {
-        this.mapStars = []; // Array for larger, glowing stars
+        this.mapScene = []; // Array for larger, glowing stars
         this.pressStartTime = null;
         this.starInfoUI = null;
     }
 
-    initializeMapStars(sketch) {
+    initializeMapScene(sketch) {
         for (let i = 0; i < 120; i++) {
-            this.mapStars.push(new MapStar(sketch));
+            this.mapScene.push(new MapStar(sketch));
         }
-        this.starTree = new KDTree(this.mapStars);
+        this.starTree = new KDTree(this.mapScene);
         this.starInfoUI = new StarInfoUI(sketch);
     }
     
@@ -235,8 +235,8 @@ export class MapStars {
         sketch.pop();
     }
 
-    drawMapStars(sketch, camera) {
-        for (let star of this.mapStars) {
+    drawMapScene(sketch, camera) {
+        for (let star of this.mapScene) {
             star.update();
             star.drawMapStar();
         }
@@ -256,18 +256,18 @@ export class MapStars {
     }    
     
     getRandomStar() {
-        return this.mapStars[Math.floor(Math.random() * this.mapStars.length)];
+        return this.mapScene[Math.floor(Math.random() * this.mapScene.length)];
     }
 
     openStarInfo(star) {
         this.starInfoUI.open(star);
     }
 
-    handleMousePressedMapStars(sketch){
+    handleMousePressedMapScene(sketch){
         this.pressStartTime = sketch.millis();
     }
 
-    handleMouseReleasedMapStars(sketch, camera, spaceship){
+    handleMouseReleasedMapScene(sketch, camera, spaceship){
         let mouseXTransformed = (sketch.mouseX - camera.panX) / camera.scaleFactor;
         let mouseYTransformed = (sketch.mouseY - camera.panY) / camera.scaleFactor;
 
