@@ -3,7 +3,7 @@ import { isMouseInsideCanvas } from "./utils.js";
 export class ControlHandler {
 
     constructor(sketch) {
-
+        this.isTouchEvent = false;
     }
 
     touchStarted(camera, mapScene) {
@@ -43,7 +43,10 @@ export class ControlHandler {
         sketch.mouseWheel = (event) => this.mouseWheel(event, camera);
         sketch.touchStarted = () => this.touchStarted(camera, mapScene);
         sketch.touchMoved = () => this.touchMoved(camera);
-
+        sketch.touchEnded = () => {
+            this.mouseReleased(sketch, camera, mapScene); // Handle release via touchEnded
+            return false;
+        };
         // Disable right-click menu on the canvas
         sketch.canvas.addEventListener("contextmenu", (event) => {
             event.preventDefault();

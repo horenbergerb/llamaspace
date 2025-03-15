@@ -113,9 +113,11 @@ export class StarInfoUI {
         let destX = this.uiX + this.uiWidth - 120;
         let destY = this.uiY + this.uiHeight - 40;
         if (mouseXTransformed >= destX && mouseXTransformed <= destX + 100 && mouseYTransformed >= destY && mouseYTransformed <= destY + 25) {
-            console.log(`Setting course for ${this.star.name}...`);
-            spaceship.setOrbitStar(this.star);
-            this.close();
+            if (!spaceship.inTransit) {
+                console.log(`Setting course for ${this.star.name}...`);
+                spaceship.setOrbitStar(this.star);
+                this.close();
+            }
             return capturedMouse;
         }
 
