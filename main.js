@@ -1,7 +1,7 @@
 import { MapBackground } from './background.js'
 import { Camera } from './camera.js';
 import { ControlHandler } from './controls.js';
-import { MapScene } from './map-stars.js'
+import { MapScene } from './map-scene.js'
 import { Spaceship } from './spaceship.js';
 
 let mapBackground = null;
