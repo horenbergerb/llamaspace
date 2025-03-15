@@ -1,8 +1,9 @@
 import { KDTree } from './k-d-tree.js';
+import { StarInfoUI } from './star-info.js';
 
 export class MapStar {
     static usedNames = new Set(); // Stores already assigned names
-    static selectedStar = null; // Track selected star
+    static selectedStar = null;
 
     constructor(sketch) {
         this.sketch = sketch;
@@ -209,6 +210,8 @@ export class MapStar {
 export class MapStars {
     constructor(sketch) {
         this.mapStars = []; // Array for larger, glowing stars
+        this.pressStartTime = null;
+        this.starInfoUI = null;
     }
 
     initializeMapStars(sketch) {
@@ -216,9 +219,11 @@ export class MapStars {
             this.mapStars.push(new MapStar(sketch));
         }
         this.starTree = new KDTree(this.mapStars);
+        this.starInfoUI = new StarInfoUI(sketch);
     }
     
     drawTooltip(sketch, mapStar){
+        sketch.push();
         sketch.fill(0, 0, 0, 150); // Semi-transparent black background
         sketch.rectMode(sketch.CENTER);
         let textWidth = sketch.textWidth(mapStar.name || "Unnamed Star") + 10;
@@ -227,6 +232,7 @@ export class MapStars {
         sketch.fill(255); // White text
         sketch.textAlign(sketch.CENTER, sketch.CENTER);
         sketch.text(mapStar.name || "Unnamed Star", mapStar.baseX, mapStar.baseY - 15); // Star name
+        sketch.pop();
     }
 
     drawMapStars(sketch, camera) {
@@ -245,10 +251,20 @@ export class MapStars {
         if (dist < 20) {
             this.drawTooltip(sketch, nearest);
         }
+
+        this.starInfoUI.drawUI();
     }    
     
     getRandomStar() {
         return this.mapStars[Math.floor(Math.random() * this.mapStars.length)];
+    }
+
+    openStarInfo(star) {
+        this.starInfoUI.open(star);
+    }
+
+    handleMousePressedMapStars(sketch){
+        this.pressStartTime = sketch.millis();
     }
 
     handleMouseReleasedMapStars(sketch, camera, spaceship){
@@ -261,9 +277,19 @@ export class MapStars {
         let nearest = this.starTree.nearestNeighbor([mouseXTransformed, mouseYTransformed]);
         let dist = sketch.dist(mouseXTransformed, mouseYTransformed, nearest.baseX, nearest.baseY);
 
+        let pressDuration = sketch.millis() - this.pressStartTime;
+
         if (dist < 20) {
-            if (!spaceship.inTransit)
-                spaceship.setOrbitStar(nearest);
+            if (sketch.mouseButton === sketch.RIGHT) {
+                this.openStarInfo(nearest);
+            }
+            else if (pressDuration < 300) {
+                if (!spaceship.inTransit)
+                    spaceship.setOrbitStar(nearest);
+            } else {
+                // Long press to open star info window
+                this.openStarInfo(nearest);
+            }
 
             if (MapStar.selectedStar) {
                 MapStar.selectedStar.isSelected = false;

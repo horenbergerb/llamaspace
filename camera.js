@@ -1,11 +1,4 @@
-export function isMouseInsideCanvas(sketch) {
-    return (
-        sketch.mouseX >= 0 &&
-        sketch.mouseX <= sketch.width &&
-        sketch.mouseY >= 0 &&
-        sketch.mouseY <= sketch.height
-    );
-}
+import { isMouseInsideCanvas } from "./utils.js";
 
 export class Camera{
     constructor(sketch) {
@@ -96,6 +89,9 @@ export class Camera{
     }
 
     handleMouseReleasedCamera() {
+        if (!isMouseInsideCanvas(this.sketch)) {
+            return;
+        }
         if (this.startMouseX === this.sketch.mouseX && this.startMouseY === this.sketch.mouseY){
             let mouseXRel = (this.sketch.mouseX - this.panX) / this.scaleFactor;
             let mouseYRel = (this.sketch.mouseY - this.panY) / this.scaleFactor;
@@ -103,6 +99,7 @@ export class Camera{
         }
 
         this.isDragging = false;
+        return false;
     }
 
     handleMouseDraggedCamera() {

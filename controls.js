@@ -1,3 +1,5 @@
+import { isMouseInsideCanvas } from "./utils.js";
+
 export class ControlHandler {
 
     constructor(sketch) {
@@ -12,8 +14,9 @@ export class ControlHandler {
         return camera.handleTouchMovedCamera();
     }
 
-    mousePressed(camera) {
+    mousePressed(sketch, camera, mapStars) {
         camera.handleMousePressedCamera();
+        mapStars.handleMousePressedMapStars(sketch);
     }
 
     mouseReleased(sketch, camera, mapStars, spaceship) {
@@ -31,12 +34,17 @@ export class ControlHandler {
 
     attachEventListeners(sketch, camera, mapStars, spaceship){
         // Attach event listeners
-        sketch.mousePressed = () => this.mousePressed(camera);
+        sketch.mousePressed = () => this.mousePressed(sketch, camera, mapStars);
         sketch.mouseReleased = () => this.mouseReleased(sketch, camera, mapStars, spaceship);
         sketch.mouseDragged = () => this.mouseDragged(camera);
         sketch.mouseWheel = (event) => this.mouseWheel(event, camera);
         sketch.touchStarted = () => this.touchStarted(camera);
         sketch.touchMoved = () => this.touchMoved(camera);
+
+        // Disable right-click menu on the canvas
+        sketch.canvas.addEventListener("contextmenu", (event) => {
+            event.preventDefault();
+        });
 }
 
 }
