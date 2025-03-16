@@ -1,13 +1,22 @@
 export class Spaceship {
     static image = null;
 
+    // Transit-related constants
+    static ARRIVAL_DISTANCE = 20;  // Distance at which we consider arrival at a planet
+    static SLOW_DOWN_DISTANCE = 50;  // Distance at which to start slowing down
+    static ORBIT_RADIUS = 20;  // Distance to maintain in orbit
+    static ORBIT_SPEED = 0.02;  // Speed of orbit rotation
+    static MAX_TRANSIT_SPEED = 2;  // Maximum travel speed
+    static ACCELERATION = 0.05;  // Acceleration per frame
+    static DECELERATION = 0.09;  // Deceleration per frame
+    static MIN_SPEED = 0.8;  // Minimum speed during transit
+
     constructor(sketch) {
         this.sketch = sketch;
 
         // Angle of the ship with respect to the planet it orbits
         this.orbitAngle = 0; 
         this.orbitBody = null;
-        this.orbitRadius = 20;
 
         // The angle of rotation of the spaceship's image
         this.spaceshipAngle = 0;
@@ -21,9 +30,6 @@ export class Spaceship {
 
         this.transitAngle = 0;
         this.transitSpeed = 0; // Start at 0 velocity
-        this.maxTransitSpeed = 2; // Maximum travel speed
-        this.transitAcceleration = 0.05; // Acceleration per frame
-        this.transitDecceleration = 0.09
         this.newOrbitBody = null;
 
         this.prevDist = null;
@@ -58,21 +64,30 @@ export class Spaceship {
             return;
         }
 
-        // Calculate angle between current orbit body and new orbit body
-        let dx = newOrbitBody.baseX - this.orbitBody.baseX;
-        let dy = newOrbitBody.baseY - this.orbitBody.baseY;
-        this.transitAngle = Math.atan2(dy, dx);
-
-        this.transitSpeed = 0; // Reset speed at start
+        this.calculateInitialTransitAngle(newOrbitBody);
+        this.transitSpeed = 0;
         this.destinationSet = true;
         this.newOrbitBody = newOrbitBody;
 
-        // If either body is a planet (instanceof MapPlanet), start transit immediately
-        if (this.orbitBody.constructor.name === 'MapPlanet' || newOrbitBody.constructor.name === 'MapPlanet') {
-            this.inTransit = true;
-            // Update angle to face the destination immediately
-            this.spaceshipAngle = this.transitAngle + Math.PI / 2;
+        if (this.isEitherBodyAPlanet()) {
+            this.startImmediateTransit();
         }
+    }
+
+    calculateInitialTransitAngle(target) {
+        const dx = target.baseX - this.orbitBody.baseX;
+        const dy = target.baseY - this.orbitBody.baseY;
+        this.transitAngle = Math.atan2(dy, dx);
+    }
+
+    isEitherBodyAPlanet() {
+        return this.orbitBody.constructor.name === 'MapPlanet' || 
+               this.newOrbitBody.constructor.name === 'MapPlanet';
+    }
+
+    startImmediateTransit() {
+        this.inTransit = true;
+        this.spaceshipAngle = this.transitAngle + Math.PI / 2;
     }
 
     updateSpaceshipInOrbit() {
@@ -82,68 +97,93 @@ export class Spaceship {
         if (!this.orbitBody) return [0, 0, 0];
 
         // Update orbit angle
-        this.orbitAngle += 0.02;
-        this.orbitAngle = this.constrainAngle(this.orbitAngle);
+        this.orbitAngle = this.constrainAngle(this.orbitAngle + Spaceship.ORBIT_SPEED);
 
-        // Increment the spaceship position in orbit
-        this.spaceshipX = this.orbitBody.baseX + this.orbitRadius * Math.cos(this.orbitAngle);
-        this.spaceshipY = this.orbitBody.baseY + this.orbitRadius * Math.sin(this.orbitAngle);
+        // Update position
+        this.spaceshipX = this.orbitBody.baseX + Spaceship.ORBIT_RADIUS * Math.cos(this.orbitAngle);
+        this.spaceshipY = this.orbitBody.baseY + Spaceship.ORBIT_RADIUS * Math.sin(this.orbitAngle);
 
-        // Adjust rotation to face forward
+        // Face tangent to orbit
         this.spaceshipAngle = this.orbitAngle + Math.PI;
     }
 
-    updateSpaceshipInTransit(){
+    updateSpaceshipInTransit() {
         this.inTransit = true;
-
-        /* Progresses the spaceship towards its target orbit. */
-        let distToTarget = Math.hypot(this.spaceshipX - this.newOrbitBody.baseX, this.spaceshipY - this.newOrbitBody.baseY);
-
-        // If destination is a planet, continuously update transit angle to follow its movement
-        if (this.newOrbitBody.constructor.name === 'MapPlanet') {
-            let dx = this.newOrbitBody.baseX - this.spaceshipX;
-            let dy = this.newOrbitBody.baseY - this.spaceshipY;
-            this.transitAngle = Math.atan2(dy, dx);
-            // Update spaceship angle to face the moving target
-            this.spaceshipAngle = this.transitAngle + Math.PI / 2;
-        }
-
-        // Acceleration logic
-        if (distToTarget > 50) {
-            // Speed up until max speed
-            this.transitSpeed = Math.min(this.transitSpeed + this.transitAcceleration, this.maxTransitSpeed);
-        } else {
-            // Slow down when close to target
-            this.transitSpeed = Math.max(this.transitSpeed - this.transitDecceleration, 0.8);
-        }
-
-        // Move towards the target using transitAngle
-        let speedX = this.transitSpeed * Math.cos(this.transitAngle);
-        let speedY = this.transitSpeed * Math.sin(this.transitAngle);
-
-        this.spaceshipX += speedX;
-        this.spaceshipY += speedY;
         
-        // Only update angle for star-to-star travel, planet angles are handled above
-        if (this.newOrbitBody.constructor.name !== 'MapPlanet') {
-            this.spaceshipAngle = this.transitAngle + Math.PI / 2;
+        const distToTarget = this.calculateDistanceToTarget();
+        
+        if (this.newOrbitBody.constructor.name === 'MapPlanet') {
+            this.updateAngleForMovingTarget();
         }
 
-        // Check if spaceship has reached new orbit body, but only if:
-        // 1. We've gotten close enough to the target (within 100 pixels)
-        // 2. We've been tracking the previous distance
-        // 3. The distance is now increasing (we've passed the closest point)
-        if ((this.prevDist !== null && this.newOrbitBody.constructor.name == 'MapPlanet' && distToTarget < 20) ||
-            (this.prevDist !== null && this.newOrbitBody.constructor.name == 'MapStar' && distToTarget > this.prevDist)) {
-            this.inTransit = false;
-            this.destinationSet = false;
-            this.orbitBody = this.newOrbitBody;
-            this.transitSpeed = 0; // Reset speed
-            this.prevDist = null;
-            this.updateSpaceshipInOrbit();
+        this.updateTransitSpeed(distToTarget);
+        this.moveSpaceship();
+
+        if (this.hasReachedDestination(distToTarget)) {
+            this.completeTransit();
         } else {
             this.prevDist = distToTarget;
         }
+    }
+
+    calculateDistanceToTarget() {
+        return Math.hypot(
+            this.spaceshipX - this.newOrbitBody.baseX,
+            this.spaceshipY - this.newOrbitBody.baseY
+        );
+    }
+
+    updateAngleForMovingTarget() {
+        const dx = this.newOrbitBody.baseX - this.spaceshipX;
+        const dy = this.newOrbitBody.baseY - this.spaceshipY;
+        this.transitAngle = Math.atan2(dy, dx);
+        this.spaceshipAngle = this.transitAngle + Math.PI / 2;
+    }
+
+    updateTransitSpeed(distToTarget) {
+        if (distToTarget > Spaceship.SLOW_DOWN_DISTANCE) {
+            this.transitSpeed = Math.min(
+                this.transitSpeed + Spaceship.ACCELERATION,
+                Spaceship.MAX_TRANSIT_SPEED
+            );
+        } else {
+            this.transitSpeed = Math.max(
+                this.transitSpeed - Spaceship.DECELERATION,
+                Spaceship.MIN_SPEED
+            );
+        }
+    }
+
+    moveSpaceship() {
+        const speedX = this.transitSpeed * Math.cos(this.transitAngle);
+        const speedY = this.transitSpeed * Math.sin(this.transitAngle);
+        
+        this.spaceshipX += speedX;
+        this.spaceshipY += speedY;
+
+        // Update angle for star-to-star travel (planet angles handled separately)
+        if (this.newOrbitBody.constructor.name !== 'MapPlanet') {
+            this.spaceshipAngle = this.transitAngle + Math.PI / 2;
+        }
+    }
+
+    hasReachedDestination(distToTarget) {
+        if (!this.prevDist) return false;
+
+        if (this.newOrbitBody.constructor.name === 'MapPlanet') {
+            return distToTarget < Spaceship.ARRIVAL_DISTANCE;
+        } else {
+            return distToTarget > this.prevDist;
+        }
+    }
+
+    completeTransit() {
+        this.inTransit = false;
+        this.destinationSet = false;
+        this.orbitBody = this.newOrbitBody;
+        this.transitSpeed = 0;
+        this.prevDist = null;
+        this.updateSpaceshipInOrbit();
     }
 
     drawPulsingDashedLine() {
@@ -194,45 +234,42 @@ export class Spaceship {
         3) the spaceship is traveling to/from a planet (departs immediately) */
         if (!Spaceship.image || !this.orbitBody) return;
 
-        let angle = this.orbitAngle + Math.PI / 2;
-        angle = this.constrainAngle(angle);
+        const angle = this.constrainAngle(this.orbitAngle + Math.PI / 2);
 
-        // If we're already in transit or if either body is a planet and we have a destination
+        // Determine if we should be in transit
         if (this.inTransit || 
-            (this.destinationSet && 
-             (this.orbitBody.constructor.name === 'MapPlanet' || 
-              this.newOrbitBody.constructor.name === 'MapPlanet'))) {
-            this.updateSpaceshipInTransit();
-        }
-        // For star-to-star travel, wait until facing the right direction
-        else if (this.destinationSet && Math.abs(angle - this.transitAngle) <= 0.02) {
+            (this.destinationSet && this.isEitherBodyAPlanet()) ||
+            (this.destinationSet && Math.abs(angle - this.transitAngle) <= 0.02)) {
             this.updateSpaceshipInTransit();
         } else {
-            // Normal orbit
             this.updateSpaceshipInOrbit();
         }
 
-        // Draw the pulsing dashed line to destination first (behind ship)
+        // Draw destination line
         if (this.destinationSet) {
             this.drawPulsingDashedLine();
         }
 
+        this.drawSpaceshipSprite();
+    }
+
+    drawSpaceshipSprite() {
         this.sketch.push();
         this.sketch.translate(this.spaceshipX, this.spaceshipY);
         this.sketch.rotate(this.spaceshipAngle);
         this.sketch.imageMode(this.sketch.CENTER);
 
-        // Glowing aura effect
+        // Draw glowing aura
         this.sketch.noStroke();
         for (let i = 5; i > 0; i--) {
-            let alpha = 10 - i * 2;
+            const alpha = 10 - i * 2;
             this.sketch.fill(204, 204, 204, alpha);
             this.sketch.ellipse(0, 0, 20 + i * 4);
         }
 
+        // Draw ship
         this.sketch.noFill();
         this.sketch.image(Spaceship.image, 0, 0, 20, 20);
-
         this.sketch.pop();
     }
 }
