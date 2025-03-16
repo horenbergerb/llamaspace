@@ -92,6 +92,29 @@ export class MapScene {
         this.pressStartTime = this.sketch.millis();
     }
 
+    handleTouchStartMapScene(camera, touchX, touchY) {
+        // Check UI interactions first
+        if (this.starInfoUI.handleTouchStart(camera, touchX, touchY) ||
+            this.planetInfoUI.handleTouchStart(camera, touchX, touchY)) {
+            return true;
+        }
+        return false;
+    }
+
+    handleTouchMoveMapScene(camera, touchX, touchY) {
+        // Check UI interactions first
+        if (this.starInfoUI.handleTouchMove(camera, touchX, touchY) ||
+            this.planetInfoUI.handleTouchMove(camera, touchX, touchY)) {
+            return true;
+        }
+        return false;
+    }
+
+    handleTouchEndMapScene(camera, touchX, touchY) {
+        this.starInfoUI.handleTouchEnd(camera, touchX, touchY);
+        this.planetInfoUI.handleTouchEnd(camera, touchX, touchY);
+    }
+
     handleMouseWheelMapScene(event) {
         // Check if either UI is visible and handle scrolling
         if (this.starInfoUI.isVisible) {

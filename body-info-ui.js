@@ -16,6 +16,13 @@ export class BodyInfoUI {
         this.propertiesStartY = 40; // Where properties start
         this.propertiesEndY = this.uiHeight - 50; // Space for buttons at bottom
         this.propertiesHeight = this.propertiesEndY - this.propertiesStartY;
+        
+        // Touch scrolling properties
+        this.touchStartX = null;
+        this.touchStartY = null;
+        this.lastTouchY = null;
+        this.isDraggingScroll = false;
+        this.touchingButton = false;
     }
 
     open(body) {
@@ -86,6 +93,9 @@ export class BodyInfoUI {
 
     drawUI(spaceship) {
         if (!this.isVisible || !this.body) return;
+
+        // Store spaceship reference for touch handling
+        this._spaceship = spaceship;
 
         this.sketch.push();
 
@@ -228,5 +238,90 @@ export class BodyInfoUI {
         g.remove();
         this.sketch.pop();
         return totalHeight;
+    }
+
+    handleTouchStart(camera, touchX, touchY) {
+        if (!this.isVisible) return false;
+
+        let touchXTransformed = (touchX - camera.panX) / camera.scaleFactor;
+        let touchYTransformed = (touchY - camera.panY) / camera.scaleFactor;
+
+        // Check if touch is within UI bounds
+        let isTouchInUI = (touchXTransformed >= this.uiX && 
+                          touchXTransformed <= this.uiX + this.uiWidth && 
+                          touchYTransformed >= this.uiY && 
+                          touchYTransformed <= this.uiY + this.uiHeight);
+
+        if (!isTouchInUI) return false;
+
+        // Store touch start position for button handling
+        this.touchStartX = touchXTransformed;
+        this.touchStartY = touchYTransformed;
+
+        // Check if touch is in button areas first
+        let isInButtonArea = touchYTransformed >= this.uiY + this.propertiesEndY;
+        let isInCloseButton = (touchXTransformed >= this.uiX + this.uiWidth - this.closeButtonSize - 5 &&
+                              touchXTransformed <= this.uiX + this.uiWidth - 5 &&
+                              touchYTransformed >= this.uiY + 5 &&
+                              touchYTransformed <= this.uiY + this.closeButtonSize + 5);
+
+        if (isInButtonArea || isInCloseButton) {
+            this.touchingButton = true;
+            return true;
+        }
+
+        // Check if touch is in the scrollable area
+        let isTouchInScrollArea = (touchYTransformed >= this.uiY + this.propertiesStartY && 
+                                 touchYTransformed <= this.uiY + this.propertiesEndY);
+
+        if (isTouchInScrollArea) {
+            this.lastTouchY = touchY;
+            this.isDraggingScroll = true;
+        }
+
+        return true; // Capture all touches within UI
+    }
+
+    handleTouchMove(camera, touchX, touchY) {
+        if (this.touchingButton) {
+            // If we're touching a button and move too far, cancel the button press
+            let touchXTransformed = (touchX - camera.panX) / camera.scaleFactor;
+            let touchYTransformed = (touchY - camera.panY) / camera.scaleFactor;
+            let dist = Math.sqrt(
+                Math.pow(touchXTransformed - this.touchStartX, 2) + 
+                Math.pow(touchYTransformed - this.touchStartY, 2)
+            );
+            if (dist > 10) {
+                this.touchingButton = false;
+            }
+            return true;
+        }
+
+        if (!this.isDraggingScroll) return false;
+
+        // Calculate touch delta and update scroll
+        const touchDelta = this.lastTouchY - touchY;
+        const sensitivity = 0.5; // Reduce scrolling speed
+        this.scrollOffset = this.sketch.constrain(
+            this.scrollOffset + touchDelta * sensitivity,
+            -this.maxScrollOffset,
+            0
+        );
+        
+        this.lastTouchY = touchY;
+        return true;
+    }
+
+    handleTouchEnd(camera, touchX, touchY) {
+        if (this.touchingButton) {
+            // Simulate a mouse release at the touch position
+            this.handleMouseReleased(camera, touchX, touchY, this._spaceship);
+        }
+        
+        this.touchStartX = null;
+        this.touchStartY = null;
+        this.lastTouchY = null;
+        this.isDraggingScroll = false;
+        this.touchingButton = false;
     }
 } 
