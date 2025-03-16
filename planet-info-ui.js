@@ -6,7 +6,7 @@ export class PlanetInfoUI extends BodyInfoUI {
         const planet = this.body;
 
         // Measure the total height first
-        this.measurePropertiesHeight();
+        this.setMaxScrollOffset();
 
         // Draw planet-specific properties
         pg.text(`Type: ${planet.bodyProperties.type}`, 15, infoY);

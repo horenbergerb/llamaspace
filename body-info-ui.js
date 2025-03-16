@@ -212,7 +212,7 @@ export class BodyInfoUI {
     }
 
     // Helper method to measure total height of properties
-    measurePropertiesHeight() {
+    setMaxScrollOffset() {
         if (!this.body || !this.body.bodyProperties) return 0;
         
         // Count the number of simple properties

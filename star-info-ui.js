@@ -6,7 +6,7 @@ export class StarInfoUI extends BodyInfoUI {
         const star = this.body;
 
         // Measure the total height first
-        this.measurePropertiesHeight();
+        this.setMaxScrollOffset();
 
         // Draw star-specific properties
         pg.text(`Spectral Class: ${star.bodyProperties.type}`, 15, infoY);
