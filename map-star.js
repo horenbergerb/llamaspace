@@ -1,9 +1,10 @@
-export class MapStar {
+import { MapBody } from './map-body.js';
+
+export class MapStar extends MapBody {
     static usedNames = new Set(); // Stores already assigned names
-    static selectedStar = null;
 
     constructor(sketch) {
-        this.sketch = sketch;
+        super(sketch);
         this.baseX = sketch.random(-0.5 * sketch.width, sketch.width * 1.5);
         this.baseY = sketch.random(-0.5 * sketch.height, sketch.height * 1.5);
         this.baseSize = sketch.random(6, 12);
@@ -32,43 +33,53 @@ export class MapStar {
         ];
 
         // Assign a spectral type based on real-world rarity
-        this.spectralClass = this.weightedRandom(starTypes);
-        this.color = this.spectralClass.color;
-        this.temperature = this.spectralClass.temp;
-        this.mass = this.spectralClass.mass;
-        this.lifespan = this.spectralClass.lifespan; // in million years
-        this.size *= this.spectralClass.sizeFactor; // Adjust size by class
+        const spectralClass = this.weightedRandom(starTypes);
+        this.color = spectralClass.color;
+        this.size *= spectralClass.sizeFactor;
+        this.baseSize *= spectralClass.sizeFactor;
 
-        // Binary or single star system
-        this.isBinary = sketch.random() < 0.3; // ~30% of stars are in binary/multiple systems
+        // Store all star properties in the bodyProperties dictionary
+        this.bodyProperties = {
+            type: spectralClass.type,
+            temperature: spectralClass.temp,
+            mass: spectralClass.mass,
+            lifespan: spectralClass.lifespan,
+            isBinary: sketch.random() < 0.3,
+            numPlanets: 0,
+            hasHabitableZone: false,
+            hasEarthLikePlanet: false,
+            radiationLevel: "Low",
+            flareActivity: "Rare",
+            remnantType: "None"
+        };
 
-        // Planetary system probability: More massive and cooler stars are more likely to have planets
-        let planetProbability = Math.min(1, this.mass * 0.2);
-        this.hasPlanets = sketch.random() < planetProbability;
+        // Calculate planetary system properties
+        let planetProbability = Math.min(1, this.bodyProperties.mass * 0.2);
+        this.bodyProperties.hasPlanets = sketch.random() < planetProbability;
+        if (this.bodyProperties.hasPlanets) {
+            this.bodyProperties.numPlanets = Math.floor(sketch.random(1, 10));
+        }
 
-        this.numPlanets = this.hasPlanets ? Math.floor(sketch.random(1, 10)) : 0;
+        // Calculate habitable zone and Earth-like planet
+        this.bodyProperties.hasHabitableZone = ["F", "G", "K", "M"].includes(this.bodyProperties.type) && this.bodyProperties.hasPlanets;
+        this.bodyProperties.hasEarthLikePlanet = this.bodyProperties.hasHabitableZone && sketch.random() < 0.3;
 
-        this.hasHabitableZone = ["F", "G", "K", "M"].includes(this.spectralClass.type) && this.numPlanets > 0;
-        
-        this.hasEarthLikePlanet = this.hasHabitableZone && sketch.random() < 0.3;
+        // Calculate radiation level
+        this.bodyProperties.radiationLevel = this.bodyProperties.type === "O" || this.bodyProperties.type === "B" ? "Extreme" :
+                                           this.bodyProperties.type === "A" || this.bodyProperties.type === "F" ? "Moderate" : "Low";
 
-        this.radiationLevel = this.spectralClass.type === "O" || this.spectralClass.type === "B" ? "Extreme" :
-                              this.spectralClass.type === "A" || this.spectralClass.type === "F" ? "Moderate" : "Low";
+        // Calculate flare activity
+        this.bodyProperties.flareActivity = (this.bodyProperties.type === "M" && sketch.random() < 0.7) ||
+                                          (this.bodyProperties.type === "K" && sketch.random() < 0.3) ? "Frequent" :
+                                          (this.bodyProperties.type === "G" && sketch.random() < 0.2) ? "Occasional" : "Rare";
 
-        // Likelihood of flares (mostly M-type stars, but some others)
-        this.flareActivity = (this.spectralClass.type === "M" && sketch.random() < 0.7) ||
-                             (this.spectralClass.type === "K" && sketch.random() < 0.3) ? "Frequent" :
-                             (this.spectralClass.type === "G" && sketch.random() < 0.2) ? "Occasional" : "Rare";
-
-        // Neutron stars, white dwarfs, or black holes
-        if (this.mass > 20) {
-            this.remnantType = sketch.random() < 0.7 ? "Black Hole" : "Neutron Star";
-        } else if (this.mass > 8) {
-            this.remnantType = "Neutron Star";
-        } else if (this.mass < 1.4 && this.spectralClass.type !== "M") {
-            this.remnantType = "White Dwarf";
-        } else {
-            this.remnantType = "None";
+        // Calculate remnant type
+        if (this.bodyProperties.mass > 20) {
+            this.bodyProperties.remnantType = sketch.random() < 0.7 ? "Black Hole" : "Neutron Star";
+        } else if (this.bodyProperties.mass > 8) {
+            this.bodyProperties.remnantType = "Neutron Star";
+        } else if (this.bodyProperties.mass < 1.4 && this.bodyProperties.type !== "M") {
+            this.bodyProperties.remnantType = "White Dwarf";
         }
     }
 
@@ -143,27 +154,28 @@ export class MapStar {
 
     // Generate a description for the star when scanned
     getDescription() {
-        let desc = `Spectral Class: ${this.spectralClass.type}\n` +
-                   `Temperature: ${Math.round(this.temperature)} K\n` +
-                   `Mass: ${this.mass.toFixed(2)} M☉\n` +
-                   `Lifespan: ${this.lifespan.toFixed(0)} million years\n` +
-                   `Radiation Level: ${this.radiationLevel}\n` +
-                   `Flare Activity: ${this.flareActivity}\n`;
+        let desc = `Star Name: ${this.name}\n` +
+                   `Spectral Class: ${this.bodyProperties.type}\n` +
+                   `Temperature: ${Math.round(this.bodyProperties.temperature)} K\n` +
+                   `Mass: ${this.bodyProperties.mass.toFixed(2)} M☉\n` +
+                   `Lifespan: ${this.bodyProperties.lifespan.toFixed(0)} million years\n` +
+                   `Radiation Level: ${this.bodyProperties.radiationLevel}\n` +
+                   `Flare Activity: ${this.bodyProperties.flareActivity}\n`;
 
-        if (this.isBinary) {
+        if (this.bodyProperties.isBinary) {
             desc += `This star is part of a binary system.\n`;
         }
-        if (this.hasPlanets) {
-            desc += `Number of Planets: ${this.numPlanets}\n`;
+        if (this.bodyProperties.hasPlanets) {
+            desc += `Number of Planets: ${this.bodyProperties.numPlanets}\n`;
         }
-        if (this.hasHabitableZone) {
+        if (this.bodyProperties.hasHabitableZone) {
             desc += `This star has a habitable zone.\n`;
-            if (this.hasEarthLikePlanet) {
+            if (this.bodyProperties.hasEarthLikePlanet) {
                 desc += `There is an Earth-like planet in the habitable zone.\n`;
             }
         }
-        if (this.remnantType !== "None") {
-            desc += `This star will eventually become a ${this.remnantType}.\n`;
+        if (this.bodyProperties.remnantType !== "None") {
+            desc += `This star will eventually become a ${this.bodyProperties.remnantType}.\n`;
         }
 
         return desc;
@@ -178,13 +190,16 @@ export class MapStar {
     }
 
     drawSelector(){
+        this.sketch.push();
         this.sketch.stroke(this.color.levels[0], this.color.levels[1], this.color.levels[2]);
         this.sketch.strokeWeight(2);
         this.sketch.noFill();
         this.sketch.ellipse(this.baseX, this.baseY, this.size + 10); // Outer ring
+        this.sketch.pop();
     }
 
-    drawMapStar() {
+    draw() {
+        this.sketch.push();
         this.sketch.noStroke();
 
         // Outer glow aura (adds a soft halo effect)
@@ -197,6 +212,8 @@ export class MapStar {
         // Main glowing star
         this.sketch.fill(this.color);
         this.sketch.ellipse(this.baseX, this.baseY, this.size);
+
+        this.sketch.pop();
 
         if (this.isSelected) {
             this.drawSelector();

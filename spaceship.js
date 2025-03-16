@@ -125,46 +125,6 @@ export class Spaceship {
         }
     }
 
-    drawSpaceship() {
-        /* Draws the spaceship. This handles two cases:
-        1) the spaceship is in orbit around a star
-        2) the spaceship is traveling between stars */
-        if (!Spaceship.image || !this.orbitBody) return;
-
-        let angle = this.orbitAngle + Math.PI / 2;
-        angle = this.constrainAngle(angle);
-
-        // Case where the ship has a destination and is facing the right direction to travel to it
-        if (this.destinationSet && Math.abs(angle - this.transitAngle) <= 0.02) {
-            this.updateSpaceshipInTransit();
-        } else {
-            // Normal orbit
-            this.updateSpaceshipInOrbit();
-        }
-
-        this.sketch.push();
-        this.sketch.translate(this.spaceshipX, this.spaceshipY);
-        this.sketch.rotate(this.spaceshipAngle);
-        this.sketch.imageMode(this.sketch.CENTER);
-
-        // Glowing aura effect
-        for (let i = 5; i > 0; i--) {
-            let alpha = 10 - i * 2;
-            this.sketch.fill(204, 204, 204, alpha);
-            this.sketch.ellipse(0, 0, 20 + i * 4);
-        }
-
-        this.sketch.noFill();
-        this.sketch.image(Spaceship.image, 0, 0, 20, 20);
-
-        this.sketch.pop();
-
-        // **Draw the pulsing dashed line to destination**
-        if (this.destinationSet) {
-            this.drawPulsingDashedLine();
-        }
-    }
-
     drawPulsingDashedLine() {
         if (!this.orbitBody || !this.newOrbitBody) return;
     
@@ -193,7 +153,7 @@ export class Spaceship {
     
         // Pulsing effect
         let pulseFactor = (this.sketch.sin(this.sketch.frameCount * 0.1) + 1) / 2; // Pulse between 0 and 1
-        let alpha = 75 + pulseFactor * 50; // Fades between 100 and 200
+        let alpha = 75 + pulseFactor * 50; // Fades between 75 and 125
     
         this.sketch.push();
         this.sketch.stroke(255, 255, 255, alpha); // White with pulsing opacity
@@ -203,6 +163,47 @@ export class Spaceship {
         this.sketch.line(x1, y1, x2, y2);
     
         ctx.setLineDash([]); // Reset to solid line for other drawings
+        this.sketch.pop();
+    }
+
+    drawSpaceship() {
+        /* Draws the spaceship. This handles two cases:
+        1) the spaceship is in orbit around a star
+        2) the spaceship is traveling between stars */
+        if (!Spaceship.image || !this.orbitBody) return;
+
+        let angle = this.orbitAngle + Math.PI / 2;
+        angle = this.constrainAngle(angle);
+
+        // Case where the ship has a destination and is facing the right direction to travel to it
+        if (this.destinationSet && Math.abs(angle - this.transitAngle) <= 0.02) {
+            this.updateSpaceshipInTransit();
+        } else {
+            // Normal orbit
+            this.updateSpaceshipInOrbit();
+        }
+
+        // Draw the pulsing dashed line to destination first (behind ship)
+        if (this.destinationSet) {
+            this.drawPulsingDashedLine();
+        }
+
+        this.sketch.push();
+        this.sketch.translate(this.spaceshipX, this.spaceshipY);
+        this.sketch.rotate(this.spaceshipAngle);
+        this.sketch.imageMode(this.sketch.CENTER);
+
+        // Glowing aura effect
+        this.sketch.noStroke();
+        for (let i = 5; i > 0; i--) {
+            let alpha = 10 - i * 2;
+            this.sketch.fill(204, 204, 204, alpha);
+            this.sketch.ellipse(0, 0, 20 + i * 4);
+        }
+
+        this.sketch.noFill();
+        this.sketch.image(Spaceship.image, 0, 0, 20, 20);
+
         this.sketch.pop();
     }
 }

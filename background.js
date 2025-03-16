@@ -25,9 +25,11 @@ export class Star {
         let zoomedX = (x - this.sketch.width / 2) * this.camera.scaleFactor + this.sketch.width / 2;
         let zoomedY = (y - this.sketch.height / 2) * this.camera.scaleFactor + this.sketch.height / 2;
 
+        this.sketch.push();
         this.sketch.noStroke();
         this.sketch.fill(this.brightness);
         this.sketch.ellipse(zoomedX, zoomedY, this.size);
+        this.sketch.pop();
     }
 }
 

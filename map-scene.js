@@ -10,6 +10,7 @@ export class MapScene {
         this.pressStartTime = null;
         this.starInfoUI = null;
         this.spaceship = null;
+        this.selectedStar = null;
     }
 
     initializeMapScene() {
@@ -43,7 +44,7 @@ export class MapScene {
     drawMapScene(camera) {
         for (let star of this.mapBodies) {
             star.update();
-            star.drawMapStar();
+            star.draw();
         }
     
         this.spaceship.drawSpaceship();
@@ -91,18 +92,18 @@ export class MapScene {
                 this.openStarInfo(nearest);
             }
 
-            if (MapStar.selectedStar) {
-                MapStar.selectedStar.isSelected = false;
+            if (this.selectedStar) {
+                this.selectedStar.isSelected = false;
             }
     
-            MapStar.selectedStar = nearest;
+            this.selectedStar = nearest;
             nearest.isSelected = true;
             console.log(`Selected Star: ${nearest.name}`);
             console.log(nearest.getDescription());
         } else {
-            if (MapStar.selectedStar) {
-                MapStar.selectedStar.isSelected = false;
-                MapStar.selectedStar = null;
+            if (this.selectedStar) {
+                this.selectedStar.isSelected = false;
+                this.selectedStar = null;
             }
         }
         

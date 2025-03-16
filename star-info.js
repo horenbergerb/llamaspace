@@ -8,6 +8,7 @@ export class StarInfoUI {
         this.uiWidth = 300;
         this.uiHeight = 200;
         this.closeButtonSize = 20;
+        this.inSystemView = false; // Track if we're in system view
     }
 
     open(star) {
@@ -45,11 +46,11 @@ export class StarInfoUI {
         this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
         this.sketch.textSize(12);
         let infoY = this.uiY + 40;
-        this.sketch.text(`Spectral Class: ${this.star.spectralClass.type}`, this.uiX + 15, infoY);
-        this.sketch.text(`Temperature: ${Math.round(this.star.temperature)} K`, this.uiX + 15, infoY + 20);
-        this.sketch.text(`Mass: ${this.star.mass.toFixed(2)} M☉`, this.uiX + 15, infoY + 40);
-        this.sketch.text(`Planets: ${this.star.hasPlanets ? this.star.numPlanets : "None"}`, this.uiX + 15, infoY + 60);
-        this.sketch.text(`Flare Activity: ${this.star.flareActivity}`, this.uiX + 15, infoY + 80);
+        this.sketch.text(`Spectral Class: ${this.star.bodyProperties.type}`, this.uiX + 15, infoY);
+        this.sketch.text(`Temperature: ${Math.round(this.star.bodyProperties.temperature)} K`, this.uiX + 15, infoY + 20);
+        this.sketch.text(`Mass: ${this.star.bodyProperties.mass.toFixed(2)} M☉`, this.uiX + 15, infoY + 40);
+        this.sketch.text(`Planets: ${this.star.bodyProperties.hasPlanets ? this.star.bodyProperties.numPlanets : "None"}`, this.uiX + 15, infoY + 60);
+        this.sketch.text(`Flare Activity: ${this.star.bodyProperties.flareActivity}`, this.uiX + 15, infoY + 80);
 
         this.sketch.stroke(255);
         // Close Button
@@ -63,22 +64,35 @@ export class StarInfoUI {
         this.sketch.stroke(255);
 
         // Action Buttons
-        this.sketch.fill(50, 150, 255);
-        this.sketch.rect(this.uiX + 20, this.uiY + this.uiHeight - 40, 100, 25, 5);
-        this.sketch.fill(255);
-        this.sketch.textSize(12);
-        this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
-        this.sketch.stroke(100);
-        this.sketch.text("Enter System", this.uiX + 70, this.uiY + this.uiHeight - 28);
-        this.sketch.stroke(255);
+        if (!this.inSystemView) {
+            // Enter System button (only show in galaxy view)
+            this.sketch.fill(50, 150, 255);
+            this.sketch.rect(this.uiX + 20, this.uiY + this.uiHeight - 40, 100, 25, 5);
+            this.sketch.fill(255);
+            this.sketch.textSize(12);
+            this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
+            this.sketch.stroke(100);
+            this.sketch.text("Enter System", this.uiX + 70, this.uiY + this.uiHeight - 28);
+            this.sketch.stroke(255);
 
-        this.sketch.fill(50, 255, 100);
-        this.sketch.rect(this.uiX + this.uiWidth - 120, this.uiY + this.uiHeight - 40, 100, 25, 5);
-        this.sketch.fill(255);
-
-        this.sketch.stroke(100);
-        this.sketch.text("Set Destination", this.uiX + this.uiWidth - 70, this.uiY + this.uiHeight - 28);
-        this.sketch.stroke(255);
+            // Set Destination button (only in galaxy view)
+            this.sketch.fill(50, 255, 100);
+            this.sketch.rect(this.uiX + this.uiWidth - 120, this.uiY + this.uiHeight - 40, 100, 25, 5);
+            this.sketch.fill(255);
+            this.sketch.stroke(100);
+            this.sketch.text("Set Destination", this.uiX + this.uiWidth - 70, this.uiY + this.uiHeight - 28);
+            this.sketch.stroke(255);
+        } else {
+            // Return to Galaxy button (only show in system view)
+            this.sketch.fill(50, 150, 255);
+            this.sketch.rect(this.uiX + this.uiWidth / 2 - 60, this.uiY + this.uiHeight - 40, 120, 25, 5);
+            this.sketch.fill(255);
+            this.sketch.textSize(12);
+            this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
+            this.sketch.stroke(100);
+            this.sketch.text("Return to Galaxy", this.uiX + this.uiWidth / 2, this.uiY + this.uiHeight - 28);
+            this.sketch.stroke(255);
+        }
 
         this.sketch.pop();
     }
@@ -101,24 +115,39 @@ export class StarInfoUI {
             return capturedMouse;
         }
 
-        // Check if clicking the "Scan Star" button
-        let enterX = this.uiX + 20;
-        let enterY = this.uiY + this.uiHeight - 40;
-        if (mouseXTransformed >= enterX && mouseXTransformed <= enterX + 100 && mouseYTransformed >= enterY && mouseYTransformed <= enterY + 25) {
-            console.log(`Entering System ${this.star.name}...`);
-            return capturedMouse;
-        }
-
-        // Check if clicking the "Set Destination" button
-        let destX = this.uiX + this.uiWidth - 120;
-        let destY = this.uiY + this.uiHeight - 40;
-        if (mouseXTransformed >= destX && mouseXTransformed <= destX + 100 && mouseYTransformed >= destY && mouseYTransformed <= destY + 25) {
-            if (!spaceship.inTransit) {
-                console.log(`Setting course for ${this.star.name}...`);
-                spaceship.setOrbitBody(this.star);
+        if (!this.inSystemView) {
+            // Check if clicking the "Enter System" button (only in galaxy view)
+            let enterX = this.uiX + 20;
+            let enterY = this.uiY + this.uiHeight - 40;
+            if (mouseXTransformed >= enterX && mouseXTransformed <= enterX + 100 && mouseYTransformed >= enterY && mouseYTransformed <= enterY + 25) {
+                console.log(`Entering System ${this.star.name}...`);
+                window.enterStarSystem(this.star);
                 this.close();
+                return capturedMouse;
             }
-            return capturedMouse;
+
+            // Check if clicking the "Set Destination" button (only in galaxy view)
+            let destX = this.uiX + this.uiWidth - 120;
+            let destY = this.uiY + this.uiHeight - 40;
+            if (mouseXTransformed >= destX && mouseXTransformed <= destX + 100 && mouseYTransformed >= destY && mouseYTransformed <= destY + 25) {
+                if (!spaceship.inTransit) {
+                    console.log(`Setting course for ${this.star.name}...`);
+                    spaceship.setOrbitBody(this.star);
+                    this.close();
+                }
+                return capturedMouse;
+            }
+        } else {
+            // Check if clicking the "Return to Galaxy" button (only in system view)
+            let returnX = this.uiX + this.uiWidth / 2 - 60;
+            let returnY = this.uiY + this.uiHeight - 40;
+            if (mouseXTransformed >= returnX && mouseXTransformed <= returnX + 120 && mouseYTransformed >= returnY && mouseYTransformed <= returnY + 25) {
+                console.log(`Returning to galaxy map...`);
+                window.returnToGalaxyMap();
+                this.inSystemView = false;
+                this.close();
+                return capturedMouse;
+            }
         }
 
         return capturedMouse;

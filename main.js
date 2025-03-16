@@ -7,6 +7,8 @@ import { MapStar } from './map-star.js';
 
 let mapBackground = null;
 let galaxyMapScene = null;
+let systemMapScene = null; // New scene for when we enter a star system
+let currentScene = null; // Track which scene is active
 let camera = null;
 let controlHandler = null;
 
@@ -17,7 +19,6 @@ var mapSketch = function(sketch) {
         Spaceship.preload(sketch);
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
-
     };
 
     sketch.setup = async function() {
@@ -33,6 +34,7 @@ var mapSketch = function(sketch) {
 
         generateGalaxy();
         galaxyMapScene.initializeMapScene(sketch);
+        currentScene = galaxyMapScene; // Set initial scene
 
         camera.endCameraTransform();
 
@@ -42,18 +44,15 @@ var mapSketch = function(sketch) {
     }
 
     sketch.draw = function() {
-
         camera.handleAutoCamera();
 
         // Background is drawn without camera transform
         // since it needs weird logic to preserve parallax
         mapBackground.drawBackground();
 
-        // Todo: make this take a function and create a draw function?
-        // Same for initialize logic above
         camera.applyCameraTransform();
 
-        galaxyMapScene.drawMapScene(camera);
+        currentScene.drawMapScene(camera);
 
         camera.endCameraTransform();
     }
@@ -64,6 +63,54 @@ var mapSketch = function(sketch) {
         }
     }
 
+    // Function to enter a star's system
+    function enterStarSystem(star) {
+        systemMapScene = new MapScene(sketch);
+        
+        // Create a centered version of the star for the system view
+        let centralStar = new MapStar(sketch);
+        Object.assign(centralStar, star); // Copy properties from the galaxy star
+        centralStar.baseX = sketch.width / 2;
+        centralStar.baseY = sketch.height / 2;
+        systemMapScene.mapBodies.push(centralStar);
+        
+        systemMapScene.initializeMapScene(sketch);
+        systemMapScene.spaceship.setOrbitBody(centralStar, false);
+        
+        systemMapScene.starInfoUI.inSystemView = true;
+
+        // Switch to system scene
+        currentScene = systemMapScene;
+        controlHandler.attachEventListeners(sketch, camera, systemMapScene);
+        
+        // Reset camera and zoom in
+        camera.panX = 0;
+        camera.panY = 0;
+        camera.scaleFactor = 1.0;
+        camera.setAutoCamera(centralStar.baseX, centralStar.baseY, 2.0);
+    }
+
+    // Function to return to galaxy map
+    function returnToGalaxyMap() {
+        currentScene = galaxyMapScene;
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene);
+        systemMapScene = null;
+        
+        // Reset camera
+        camera.panX = 0;
+        camera.panY = 0;
+        camera.scaleFactor = 1.0;
+        
+        // Auto-pan to the star we just exited
+        let lastStar = galaxyMapScene.selectedStar;
+        if (lastStar) {
+            camera.setAutoCamera(lastStar.baseX, lastStar.baseY, 1.0);
+        }
+    }
+
+    // Expose these functions to the window so they can be called from other modules
+    window.enterStarSystem = enterStarSystem;
+    window.returnToGalaxyMap = returnToGalaxyMap;
 };
 
 // Attach the sketch to a specific DOM element
