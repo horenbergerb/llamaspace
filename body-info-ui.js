@@ -6,7 +6,7 @@ export class BodyInfoUI {
         this.uiX = 0;
         this.uiY = 0;
         this.uiWidth = 300;
-        this.uiHeight = 200;
+        this.uiHeight = 230;
         this.closeButtonSize = 20;
         this.inSystemMap = false;
         
@@ -14,7 +14,7 @@ export class BodyInfoUI {
         this.scrollOffset = 0;
         this.maxScrollOffset = 0;
         this.propertiesStartY = 40; // Where properties start
-        this.propertiesEndY = this.uiHeight - 50; // Space for buttons at bottom
+        this.propertiesEndY = this.uiHeight - 70; // Increased space for buttons at bottom
         this.propertiesHeight = this.propertiesEndY - this.propertiesStartY;
         
         // Touch scrolling properties
@@ -46,25 +46,25 @@ export class BodyInfoUI {
         // Set Destination button (available everywhere)
         const canSetDestination = !spaceship.inTransit;
         this.sketch.fill(canSetDestination ? 50 : 30, 255, canSetDestination ? 100 : 60);
-        this.sketch.rect(this.uiX + this.uiWidth - 120, this.uiY + this.uiHeight - 40, 100, 25, 5);
+        this.sketch.rect(this.uiX + this.uiWidth - 120, this.uiY + this.uiHeight - 35, 100, 25, 5);
         this.sketch.fill(255);
         this.sketch.stroke(100);
-        const destButtonY = this.uiY + this.uiHeight - 40 + 25/2; // Center vertically in button
+        const destButtonY = this.uiY + this.uiHeight - 35 + 25/2; // Center vertically in button
         this.sketch.text("Set Destination", this.uiX + this.uiWidth - 70, destButtonY);
 
         if (!this.inSystemMap) {
             // Enter System button (only in galaxy view)
             this.sketch.fill(50, 150, 255);
-            this.sketch.rect(this.uiX + 20, this.uiY + this.uiHeight - 40, 100, 25, 5);
+            this.sketch.rect(this.uiX + 20, this.uiY + this.uiHeight - 35, 100, 25, 5);
             this.sketch.fill(255);
-            const enterButtonY = this.uiY + this.uiHeight - 40 + 25/2; // Center vertically in button
+            const enterButtonY = this.uiY + this.uiHeight - 35 + 25/2; // Center vertically in button
             this.sketch.text("Enter System", this.uiX + 70, enterButtonY);
         } else {
             // Research button (only in system view)
             this.sketch.fill(255, 150, 50);
-            this.sketch.rect(this.uiX + 20, this.uiY + this.uiHeight - 40, 100, 25, 5);
+            this.sketch.rect(this.uiX + 20, this.uiY + this.uiHeight - 35, 100, 25, 5);
             this.sketch.fill(255);
-            const researchButtonY = this.uiY + this.uiHeight - 40 + 25/2; // Center vertically in button
+            const researchButtonY = this.uiY + this.uiHeight - 35 + 25/2; // Center vertically in button
             this.sketch.text("Research", this.uiX + 70, researchButtonY);
         }
     }
@@ -177,7 +177,7 @@ export class BodyInfoUI {
 
         // Check Set Destination button
         let destX = this.uiX + this.uiWidth - 120;
-        let destY = this.uiY + this.uiHeight - 40;
+        let destY = this.uiY + this.uiHeight - 35;
         if (mouseXTransformed >= destX && 
             mouseXTransformed <= destX + 100 && 
             mouseYTransformed >= destY && 
@@ -192,7 +192,7 @@ export class BodyInfoUI {
 
         // Check Enter System/Research button
         let actionX = this.uiX + 20;
-        let actionY = this.uiY + this.uiHeight - 40;
+        let actionY = this.uiY + this.uiHeight - 35;
         if (mouseXTransformed >= actionX && 
             mouseXTransformed <= actionX + 100 && 
             mouseYTransformed >= actionY && 
