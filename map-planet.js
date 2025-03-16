@@ -8,7 +8,7 @@ export class MapPlanet extends MapBody {
         
         // Orbital properties
         this.orbitRadius = this.calculateOrbitRadius();
-        this.orbitSpeed = 0.003 / Math.pow(this.orbitIndex + 1, 0.5); // Faster base speed with Kepler-like scaling
+        this.orbitSpeed = 0.003 / Math.pow(this.orbitIndex + 1, 0.5); // Adjusted for deltaTime
         this.orbitAngle = sketch.random(0, 2 * Math.PI);
         
         // Visual properties - increased sizes for system view
@@ -122,8 +122,10 @@ export class MapPlanet extends MapBody {
     }
 
     updatePosition() {
-        // Update orbital position
-        this.orbitAngle += this.orbitSpeed;
+        // Update orbital position using deltaTime
+        const deltaTimeSeconds = this.sketch.deltaTime / 1000;
+        const timeScale = deltaTimeSeconds * 60; // Scale to 60fps equivalent
+        this.orbitAngle += this.orbitSpeed * timeScale;
         this.baseX = this.parentStar.baseX + Math.cos(this.orbitAngle) * this.orbitRadius;
         this.baseY = this.parentStar.baseY + Math.sin(this.orbitAngle) * this.orbitRadius;
     }

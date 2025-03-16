@@ -6,11 +6,11 @@ export class Spaceship {
     static SLOW_DOWN_DISTANCE = 50;  // Distance at which to start slowing down
     static BASE_ORBIT_RADIUS = 20;  // Base distance to maintain in orbit (for galaxy view)
     static ORBIT_RADIUS_FACTOR = 1.5;  // Multiplier for orbit radius relative to body size
-    static ORBIT_SPEED = 0.02;  // Speed of orbit rotation
-    static MAX_TRANSIT_SPEED = 2;  // Maximum travel speed
-    static ACCELERATION = 0.05;  // Acceleration per frame
-    static DECELERATION = 0.09;  // Deceleration per frame
-    static MIN_SPEED = 0.8;  // Minimum speed during transit
+    static ORBIT_SPEED = 0.02;  // Speed of orbit rotation (adjusted for deltaTime)
+    static MAX_TRANSIT_SPEED = 2.0;  // Maximum travel speed (adjusted for deltaTime)
+    static ACCELERATION = 0.05;  // Acceleration per frame (adjusted for deltaTime)
+    static DECELERATION = 0.09;  // Deceleration per frame (adjusted for deltaTime)
+    static MIN_SPEED = 0.8;  // Minimum speed during transit (adjusted for deltaTime)
 
     constructor(sketch) {
         this.sketch = sketch;
@@ -87,8 +87,9 @@ export class Spaceship {
     updateSpaceshipInOrbit() {
         if (!this.orbitBody) return;
 
-        // Update orbit angle
-        this.orbitAngle = this.constrainAngle(this.orbitAngle + Spaceship.ORBIT_SPEED);
+        // Update orbit angle using deltaTime
+        const deltaTimeSeconds = this.sketch.deltaTime / 1000;
+        this.orbitAngle = this.constrainAngle(this.orbitAngle + Spaceship.ORBIT_SPEED * deltaTimeSeconds * 60);
 
         // Calculate orbit radius based on context
         const orbitRadius = this.inSystemMap ? 
@@ -138,22 +139,28 @@ export class Spaceship {
     }
 
     updateTransitSpeed(distToTarget) {
+        const deltaTimeSeconds = this.sketch.deltaTime / 1000;
+        const timeScale = deltaTimeSeconds * 60; // Scale to 60fps equivalent
+
         if (distToTarget > Spaceship.SLOW_DOWN_DISTANCE) {
             this.transitSpeed = Math.min(
-                this.transitSpeed + Spaceship.ACCELERATION,
+                this.transitSpeed + Spaceship.ACCELERATION * timeScale,
                 Spaceship.MAX_TRANSIT_SPEED
             );
         } else {
             this.transitSpeed = Math.max(
-                this.transitSpeed - Spaceship.DECELERATION,
+                this.transitSpeed - Spaceship.DECELERATION * timeScale,
                 Spaceship.MIN_SPEED
             );
         }
     }
 
     moveSpaceship() {
-        const speedX = this.transitSpeed * Math.cos(this.transitAngle);
-        const speedY = this.transitSpeed * Math.sin(this.transitAngle);
+        const deltaTimeSeconds = this.sketch.deltaTime / 1000;
+        const timeScale = deltaTimeSeconds * 60; // Scale to 60fps equivalent
+        
+        const speedX = this.transitSpeed * Math.cos(this.transitAngle) * timeScale;
+        const speedY = this.transitSpeed * Math.sin(this.transitAngle) * timeScale;
         
         this.spaceshipX += speedX;
         this.spaceshipY += speedY;
