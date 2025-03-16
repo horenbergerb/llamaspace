@@ -213,30 +213,19 @@ export class BodyInfoUI {
 
     // Helper method to measure total height of properties
     measurePropertiesHeight() {
-        let height = 0;
-        this.sketch.push();
-        this.sketch.textSize(12);
+        if (!this.body || !this.body.bodyProperties) return 0;
         
-        // Create a temporary graphics buffer to measure text
-        const g = this.sketch.createGraphics(1, 1);
-        g.textSize(12);
+        // Count the number of simple properties
+        let numProperties = Object.entries(this.body.bodyProperties)
+            .filter(([key, value]) => typeof value !== 'object' && typeof value !== 'function')
+            .length;
         
-        // Simulate drawing properties to calculate height
-        const tempDraw = (y) => {
-            if (!this.body || !this.body.bodyProperties) return 0;
-            for (const [key, value] of Object.entries(this.body.bodyProperties)) {
-                if (typeof value !== 'object' && typeof value !== 'function') {
-                    height += 20; // Standard line height
-                }
-            }
-            return height;
-        };
+        // Calculate total height (20 pixels per line)
+        let totalHeight = numProperties * 20;
         
-        const totalHeight = tempDraw(0);
+        // Update max scroll offset
         this.maxScrollOffset = Math.max(0, totalHeight - this.propertiesHeight);
         
-        g.remove();
-        this.sketch.pop();
         return totalHeight;
     }
 
