@@ -92,6 +92,18 @@ export class MapScene {
         this.pressStartTime = this.sketch.millis();
     }
 
+    handleMouseWheelMapScene(event) {
+        // Check if either UI is visible and handle scrolling
+        if (this.starInfoUI.isVisible) {
+            this.starInfoUI.handleScroll(event.delta);
+            return true;
+        } else if (this.planetInfoUI.isVisible) {
+            this.planetInfoUI.handleScroll(event.delta);
+            return true;
+        }
+        return false;
+    }
+
     handleMouseReleasedMapScene(camera) {
         let mouseXTransformed = (this.sketch.mouseX - camera.panX) / camera.scaleFactor;
         let mouseYTransformed = (this.sketch.mouseY - camera.panY) / camera.scaleFactor;

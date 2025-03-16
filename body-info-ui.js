@@ -9,6 +9,13 @@ export class BodyInfoUI {
         this.uiHeight = 200;
         this.closeButtonSize = 20;
         this.inSystemMap = false;
+        
+        // Scroll-related properties
+        this.scrollOffset = 0;
+        this.maxScrollOffset = 0;
+        this.propertiesStartY = 40; // Where properties start
+        this.propertiesEndY = this.uiHeight - 50; // Space for buttons at bottom
+        this.propertiesHeight = this.propertiesEndY - this.propertiesStartY;
     }
 
     open(body) {
@@ -66,6 +73,17 @@ export class BodyInfoUI {
                         this.uiY + this.closeButtonSize / 2 + 5);
     }
 
+    handleScroll(delta) {
+        if (!this.isVisible) return;
+        
+        // Adjust scroll offset based on wheel delta
+        this.scrollOffset = this.sketch.constrain(
+            this.scrollOffset + delta,
+            -this.maxScrollOffset,
+            0
+        );
+    }
+
     drawUI(spaceship) {
         if (!this.isVisible || !this.body) return;
 
@@ -81,13 +99,21 @@ export class BodyInfoUI {
         this.sketch.textAlign(this.sketch.CENTER, this.sketch.TOP);
         this.sketch.text(this.body.name, this.uiX + this.uiWidth / 2, this.uiY + 10);
 
-        // Draw properties
-        this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
-        this.sketch.textSize(12);
-        let infoY = this.uiY + 40;
+        // Create a graphics buffer for the properties section
+        const pg = this.sketch.createGraphics(this.uiWidth, this.propertiesHeight);
+        pg.background(0, 0, 0, 0); // Transparent background
         
-        // Draw body-specific properties
-        this.drawProperties(infoY);
+        // Set up the graphics context
+        pg.fill(255);
+        pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
+        pg.textSize(12);
+
+        // Draw properties into the graphics buffer
+        this.drawProperties(0, pg); // Pass 0 as Y since we're in the buffer's coordinate space
+
+        // Draw the graphics buffer in the clipped region
+        this.sketch.image(pg, this.uiX, this.uiY + this.propertiesStartY);
+        pg.remove(); // Clean up the buffer
 
         // Draw common buttons
         this.drawCommonButtons(spaceship);
@@ -95,10 +121,21 @@ export class BodyInfoUI {
         // Draw close button
         this.drawCloseButton();
 
+        // Draw scroll indicator if needed
+        if (this.maxScrollOffset > 0) {
+            const scrollPercent = -this.scrollOffset / this.maxScrollOffset;
+            const scrollBarHeight = Math.max(30, (this.propertiesHeight / (this.propertiesHeight + this.maxScrollOffset)) * this.propertiesHeight);
+            const scrollBarY = this.uiY + this.propertiesStartY + (this.propertiesHeight - scrollBarHeight) * scrollPercent;
+            
+            this.sketch.fill(150, 150, 150, 100);
+            this.sketch.noStroke();
+            this.sketch.rect(this.uiX + this.uiWidth - 8, scrollBarY, 4, scrollBarHeight, 2);
+        }
+
         this.sketch.pop();
     }
 
-    drawProperties(startY) {
+    drawProperties(startY, pg) {
         // This should be overridden by child classes
         throw new Error("Method 'drawProperties' must be implemented by child classes");
     }
@@ -162,5 +199,34 @@ export class BodyInfoUI {
         }
 
         return true;
+    }
+
+    // Helper method to measure total height of properties
+    measurePropertiesHeight() {
+        let height = 0;
+        this.sketch.push();
+        this.sketch.textSize(12);
+        
+        // Create a temporary graphics buffer to measure text
+        const g = this.sketch.createGraphics(1, 1);
+        g.textSize(12);
+        
+        // Simulate drawing properties to calculate height
+        const tempDraw = (y) => {
+            if (!this.body || !this.body.bodyProperties) return 0;
+            for (const [key, value] of Object.entries(this.body.bodyProperties)) {
+                if (typeof value !== 'object' && typeof value !== 'function') {
+                    height += 20; // Standard line height
+                }
+            }
+            return height;
+        };
+        
+        const totalHeight = tempDraw(0);
+        this.maxScrollOffset = Math.max(0, totalHeight - this.propertiesHeight);
+        
+        g.remove();
+        this.sketch.pop();
+        return totalHeight;
     }
 } 

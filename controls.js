@@ -31,7 +31,12 @@ export class ControlHandler {
         return camera.handleMouseDraggedCamera();
     }
 
-    mouseWheel(event, camera) {
+    mouseWheel(event, camera, mapScene) {
+        // Check if we should handle UI scrolling first
+        if (mapScene.handleMouseWheelMapScene(event)) {
+            return false;
+        }
+        // If not handled by UI, let camera handle it
         return camera.handleMouseWheelCamera(event);
     }
 
@@ -40,7 +45,7 @@ export class ControlHandler {
         sketch.mousePressed = () => this.mousePressed(sketch, camera, mapScene);
         sketch.mouseReleased = () => this.mouseReleased(sketch, camera, mapScene);
         sketch.mouseDragged = () => this.mouseDragged(camera);
-        sketch.mouseWheel = (event) => this.mouseWheel(event, camera);
+        sketch.mouseWheel = (event) => this.mouseWheel(event, camera, mapScene);
         sketch.touchStarted = () => this.touchStarted(camera, mapScene);
         sketch.touchMoved = () => this.touchMoved(camera);
         sketch.touchEnded = () => {

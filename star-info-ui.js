@@ -1,45 +1,49 @@
 import { BodyInfoUI } from './body-info-ui.js';
 
 export class StarInfoUI extends BodyInfoUI {
-    drawProperties(startY) {
-        let infoY = startY;
+    drawProperties(startY, pg) {
+        let infoY = startY + this.scrollOffset;
         const star = this.body;
 
+        // Measure the total height first
+        this.measurePropertiesHeight();
+
         // Draw star-specific properties
-        this.sketch.text(`Spectral Class: ${star.bodyProperties.type}`, this.uiX + 15, infoY);
+        pg.text(`Spectral Class: ${star.bodyProperties.type}`, 15, infoY);
         infoY += 20;
-        this.sketch.text(`Temperature: ${Math.round(star.bodyProperties.temperature)} K`, this.uiX + 15, infoY);
+        pg.text(`Temperature: ${Math.round(star.bodyProperties.temperature)} K`, 15, infoY);
         infoY += 20;
-        this.sketch.text(`Mass: ${star.bodyProperties.mass.toFixed(2)} M☉`, this.uiX + 15, infoY);
+        pg.text(`Mass: ${star.bodyProperties.mass.toFixed(2)} M☉`, 15, infoY);
         infoY += 20;
-        this.sketch.text(`Lifespan: ${star.bodyProperties.lifespan.toFixed(0)} million years`, this.uiX + 15, infoY);
+        pg.text(`Lifespan: ${star.bodyProperties.lifespan.toFixed(0)} million years`, 15, infoY);
         infoY += 20;
-        this.sketch.text(`Radiation Level: ${star.bodyProperties.radiationLevel}`, this.uiX + 15, infoY);
+        pg.text(`Radiation Level: ${star.bodyProperties.radiationLevel}`, 15, infoY);
         infoY += 20;
-        this.sketch.text(`Flare Activity: ${star.bodyProperties.flareActivity}`, this.uiX + 15, infoY);
+        pg.text(`Flare Activity: ${star.bodyProperties.flareActivity}`, 15, infoY);
         infoY += 20;
 
         if (star.bodyProperties.isBinary) {
-            this.sketch.text(`Binary System: Yes`, this.uiX + 15, infoY);
+            pg.text(`Binary System: Yes`, 15, infoY);
             infoY += 20;
         }
 
         if (star.bodyProperties.hasPlanets) {
-            this.sketch.text(`Number of Planets: ${star.bodyProperties.numPlanets}`, this.uiX + 15, infoY);
+            pg.text(`Number of Planets: ${star.bodyProperties.numPlanets}`, 15, infoY);
             infoY += 20;
         }
 
         if (star.bodyProperties.hasHabitableZone) {
-            this.sketch.text(`Has Habitable Zone: Yes`, this.uiX + 15, infoY);
+            pg.text(`Has Habitable Zone: Yes`, 15, infoY);
             infoY += 20;
             if (star.bodyProperties.hasEarthLikePlanet) {
-                this.sketch.text(`Contains Earth-like Planet`, this.uiX + 15, infoY);
+                pg.text(`Contains Earth-like Planet`, 15, infoY);
                 infoY += 20;
             }
         }
 
         if (star.bodyProperties.remnantType !== "None") {
-            this.sketch.text(`Future: ${star.bodyProperties.remnantType}`, this.uiX + 15, infoY);
+            pg.text(`Future: ${star.bodyProperties.remnantType}`, 15, infoY);
+            infoY += 20;
         }
     }
 
