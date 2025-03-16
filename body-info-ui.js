@@ -85,7 +85,7 @@ export class BodyInfoUI {
         
         // Adjust scroll offset based on wheel delta
         this.scrollOffset = this.sketch.constrain(
-            this.scrollOffset + delta,
+            this.scrollOffset - delta,
             -this.maxScrollOffset,
             0
         );
@@ -292,7 +292,7 @@ export class BodyInfoUI {
         const touchDelta = this.lastTouchY - touchY;
         const sensitivity = 0.5; // Reduce scrolling speed
         this.scrollOffset = this.sketch.constrain(
-            this.scrollOffset + touchDelta * sensitivity,
+            this.scrollOffset - touchDelta * sensitivity,
             -this.maxScrollOffset,
             0
         );
