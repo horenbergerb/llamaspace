@@ -4,6 +4,7 @@ import { ControlHandler } from './controls.js';
 import { MapScene } from './map-scene.js'
 import { Spaceship } from './spaceship.js';
 import { MapStar } from './map-star.js';
+import { MapPlanet } from './map-planet.js';
 
 let mapBackground = null;
 let galaxyMapScene = null;
@@ -72,7 +73,18 @@ var mapSketch = function(sketch) {
         Object.assign(centralStar, star); // Copy properties from the galaxy star
         centralStar.baseX = sketch.width / 2;
         centralStar.baseY = sketch.height / 2;
+        // Make the star much larger in system view
+        centralStar.baseSize *= 4;
+        centralStar.size = centralStar.baseSize;
         systemMapScene.mapBodies.push(centralStar);
+        
+        // Generate planets if the star has them
+        if (star.bodyProperties.hasPlanets) {
+            for (let i = 0; i < star.bodyProperties.numPlanets; i++) {
+                let planet = new MapPlanet(sketch, centralStar, i);
+                systemMapScene.mapBodies.push(planet);
+            }
+        }
         
         systemMapScene.initializeMapScene(sketch);
         systemMapScene.spaceship.setOrbitBody(centralStar, false);
