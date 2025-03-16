@@ -8,7 +8,7 @@ export class MapPlanet extends MapBody {
         
         // Orbital properties
         this.orbitRadius = this.calculateOrbitRadius();
-        this.orbitSpeed = 0.005 / Math.pow(this.orbitIndex + 1, 0.5); // Faster base speed with Kepler-like scaling
+        this.orbitSpeed = 0.003 / Math.pow(this.orbitIndex + 1, 0.5); // Faster base speed with Kepler-like scaling
         this.orbitAngle = sketch.random(0, 2 * Math.PI);
         
         // Visual properties - increased sizes for system view

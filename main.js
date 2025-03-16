@@ -76,6 +76,7 @@ var mapSketch = function(sketch) {
         // Make the star much larger in system view
         centralStar.baseSize *= 4;
         centralStar.size = centralStar.baseSize;
+        centralStar.isSelected = false;
         systemMapScene.mapBodies.push(centralStar);
         
         // Generate planets if the star has them

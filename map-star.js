@@ -7,7 +7,7 @@ export class MapStar extends MapBody {
         super(sketch);
         this.baseX = sketch.random(-0.5 * sketch.width, sketch.width * 1.5);
         this.baseY = sketch.random(-0.5 * sketch.height, sketch.height * 1.5);
-        this.baseSize = sketch.random(6, 12);
+        this.baseSize = sketch.random(12, 18);
         this.size = this.baseSize;
         this.pulseSpeed = sketch.random(0.01, 0.05);
         this.isSelected = false;
