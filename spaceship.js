@@ -4,7 +4,8 @@ export class Spaceship {
     // Transit-related constants
     static ARRIVAL_DISTANCE = 20;  // Distance at which we consider arrival at destination
     static SLOW_DOWN_DISTANCE = 50;  // Distance at which to start slowing down
-    static ORBIT_RADIUS = 20;  // Distance to maintain in orbit
+    static BASE_ORBIT_RADIUS = 20;  // Base distance to maintain in orbit (for galaxy view)
+    static ORBIT_RADIUS_FACTOR = 1.5;  // Multiplier for orbit radius relative to body size
     static ORBIT_SPEED = 0.02;  // Speed of orbit rotation
     static MAX_TRANSIT_SPEED = 2;  // Maximum travel speed
     static ACCELERATION = 0.05;  // Acceleration per frame
@@ -89,9 +90,14 @@ export class Spaceship {
         // Update orbit angle
         this.orbitAngle = this.constrainAngle(this.orbitAngle + Spaceship.ORBIT_SPEED);
 
+        // Calculate orbit radius based on context
+        const orbitRadius = this.inSystemMap ? 
+            this.orbitBody.size * Spaceship.ORBIT_RADIUS_FACTOR : 
+            Spaceship.BASE_ORBIT_RADIUS;
+
         // Update position
-        this.spaceshipX = this.orbitBody.baseX + Spaceship.ORBIT_RADIUS * Math.cos(this.orbitAngle);
-        this.spaceshipY = this.orbitBody.baseY + Spaceship.ORBIT_RADIUS * Math.sin(this.orbitAngle);
+        this.spaceshipX = this.orbitBody.baseX + orbitRadius * Math.cos(this.orbitAngle);
+        this.spaceshipY = this.orbitBody.baseY + orbitRadius * Math.sin(this.orbitAngle);
 
         // Face tangent to orbit
         this.spaceshipAngle = this.orbitAngle + Math.PI;
