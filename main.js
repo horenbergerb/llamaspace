@@ -89,6 +89,8 @@ var mapSketch = function(sketch) {
         
         systemMapScene.initializeMapScene(sketch);
         systemMapScene.spaceship.setOrbitBody(centralStar, false);
+        systemMapScene.spaceship.setInSystemMap(true);
+
         
         systemMapScene.starInfoUI.inSystemView = true;
 

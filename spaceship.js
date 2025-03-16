@@ -2,7 +2,7 @@ export class Spaceship {
     static image = null;
 
     // Transit-related constants
-    static ARRIVAL_DISTANCE = 20;  // Distance at which we consider arrival at a planet
+    static ARRIVAL_DISTANCE = 20;  // Distance at which we consider arrival at destination
     static SLOW_DOWN_DISTANCE = 50;  // Distance at which to start slowing down
     static ORBIT_RADIUS = 20;  // Distance to maintain in orbit
     static ORBIT_SPEED = 0.02;  // Speed of orbit rotation
@@ -14,7 +14,7 @@ export class Spaceship {
     constructor(sketch) {
         this.sketch = sketch;
 
-        // Angle of the ship with respect to the planet it orbits
+        // Angle of the ship with respect to the body it orbits
         this.orbitAngle = 0; 
         this.orbitBody = null;
 
@@ -24,15 +24,14 @@ export class Spaceship {
         this.spaceshipY = 0;
 
         this.destinationSet = false;
-        // Whether the spaceship has departed orbit
-        // Used to prevent changing destinations on the fly
         this.inTransit = false;
-
         this.transitAngle = 0;
-        this.transitSpeed = 0; // Start at 0 velocity
+        this.transitSpeed = 0;
         this.newOrbitBody = null;
-
         this.prevDist = null;
+
+        // Track which map we're in
+        this.inSystemMap = false;
     }
 
     static preload(sketch) {
@@ -52,13 +51,11 @@ export class Spaceship {
         return angle; 
     }
 
+    setInSystemMap(isInSystem) {
+        this.inSystemMap = isInSystem;
+    }
+
     setOrbitBody(newOrbitBody) {
-        /* Determines the body around which the spaceship will orbit.
-        If the spaceship is already at a body, it will begin the process of traveling
-        to the new body. 
-        
-        For star-to-star travel: we wait until facing the right direction before departing
-        For any travel involving planets: we depart immediately */
         if (!this.orbitBody) {
             this.orbitBody = newOrbitBody;
             return;
@@ -69,7 +66,8 @@ export class Spaceship {
         this.destinationSet = true;
         this.newOrbitBody = newOrbitBody;
 
-        if (this.isEitherBodyAPlanet()) {
+        // In system map, start transit immediately
+        if (this.inSystemMap) {
             this.startImmediateTransit();
         }
     }
@@ -80,21 +78,13 @@ export class Spaceship {
         this.transitAngle = Math.atan2(dy, dx);
     }
 
-    isEitherBodyAPlanet() {
-        return this.orbitBody.constructor.name === 'MapPlanet' || 
-               this.newOrbitBody.constructor.name === 'MapPlanet';
-    }
-
     startImmediateTransit() {
         this.inTransit = true;
         this.spaceshipAngle = this.transitAngle + Math.PI / 2;
     }
 
     updateSpaceshipInOrbit() {
-        /* Orbits the spaceship about its orbitBody.
-        Assumes the spaceship is already in orbit, i.e.
-        that it's located at this.orbitAngle relative to the star */
-        if (!this.orbitBody) return [0, 0, 0];
+        if (!this.orbitBody) return;
 
         // Update orbit angle
         this.orbitAngle = this.constrainAngle(this.orbitAngle + Spaceship.ORBIT_SPEED);
@@ -112,7 +102,8 @@ export class Spaceship {
         
         const distToTarget = this.calculateDistanceToTarget();
         
-        if (this.newOrbitBody.constructor.name === 'MapPlanet') {
+        // In system map, continuously update angle to track target
+        if (this.inSystemMap) {
             this.updateAngleForMovingTarget();
         }
 
@@ -161,8 +152,8 @@ export class Spaceship {
         this.spaceshipX += speedX;
         this.spaceshipY += speedY;
 
-        // Update angle for star-to-star travel (planet angles handled separately)
-        if (this.newOrbitBody.constructor.name !== 'MapPlanet') {
+        // Only update angle in galaxy map, system map angles are handled separately
+        if (!this.inSystemMap) {
             this.spaceshipAngle = this.transitAngle + Math.PI / 2;
         }
     }
@@ -170,7 +161,7 @@ export class Spaceship {
     hasReachedDestination(distToTarget) {
         if (!this.prevDist) return false;
 
-        if (this.newOrbitBody.constructor.name === 'MapPlanet') {
+        if (this.inSystemMap) {
             return distToTarget < Spaceship.ARRIVAL_DISTANCE;
         } else {
             return distToTarget > this.prevDist;
@@ -228,17 +219,13 @@ export class Spaceship {
     }
 
     drawSpaceship() {
-        /* Draws the spaceship. This handles three cases:
-        1) the spaceship is in orbit around a body
-        2) the spaceship is traveling between stars (requires proper angle)
-        3) the spaceship is traveling to/from a planet (departs immediately) */
         if (!Spaceship.image || !this.orbitBody) return;
 
         const angle = this.constrainAngle(this.orbitAngle + Math.PI / 2);
 
         // Determine if we should be in transit
         if (this.inTransit || 
-            (this.destinationSet && this.isEitherBodyAPlanet()) ||
+            (this.destinationSet && this.inSystemMap) ||
             (this.destinationSet && Math.abs(angle - this.transitAngle) <= 0.02)) {
             this.updateSpaceshipInTransit();
         } else {
