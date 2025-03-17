@@ -46,46 +46,6 @@ export class BodyInfoUI {
         this.body = null;
     }
 
-    drawCommonButtons() {
-        this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
-        this.sketch.textSize(12);
-        
-        // Set Destination button (available everywhere)
-        this.sketch.fill(this.canSetDestination ? 50 : 30, 255, this.canSetDestination ? 100 : 60);
-        this.sketch.rect(this.uiX + this.uiWidth - 120, this.uiY + this.uiHeight - 35, 100, 25, 5);
-        this.sketch.fill(255);
-        this.sketch.stroke(100);
-        const destButtonY = this.uiY + this.uiHeight - 35 + 25/2; // Center vertically in button
-        this.sketch.text("Set Destination", this.uiX + this.uiWidth - 70, destButtonY);
-
-        if (!this.inSystemMap) {
-            // Enter System button (only in galaxy view)
-            this.sketch.fill(50, 150, 255);
-            this.sketch.rect(this.uiX + 20, this.uiY + this.uiHeight - 35, 100, 25, 5);
-            this.sketch.fill(255);
-            const enterButtonY = this.uiY + this.uiHeight - 35 + 25/2; // Center vertically in button
-            this.sketch.text("Enter System", this.uiX + 70, enterButtonY);
-        } else {
-            // Research button (only in system view)
-            this.sketch.fill(255, 150, 50);
-            this.sketch.rect(this.uiX + 20, this.uiY + this.uiHeight - 35, 100, 25, 5);
-            this.sketch.fill(255);
-            const researchButtonY = this.uiY + this.uiHeight - 35 + 25/2; // Center vertically in button
-            this.sketch.text("Research", this.uiX + 70, researchButtonY);
-        }
-    }
-
-    drawCloseButton() {
-        // Close Button
-        this.sketch.fill(255, 0, 0);
-        this.sketch.rect(this.uiX + this.uiWidth - this.closeButtonSize - 5, this.uiY + 5, 
-                        this.closeButtonSize, this.closeButtonSize, 5);
-        this.sketch.fill(255);
-        this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
-        this.sketch.text("X", this.uiX + this.uiWidth - this.closeButtonSize / 2 - 5, 
-                        this.uiY + this.closeButtonSize / 2 + 5);
-    }
-
     handleScroll(delta) {
         if (!this.isVisible) return;
         
@@ -97,63 +57,22 @@ export class BodyInfoUI {
         );
     }
 
-    drawUI(spaceship) {
-        if (!this.isVisible || !this.body) return;
-
-        // Store spaceship reference for touch handling
-        this._spaceship = spaceship;
-
-        this.sketch.push();
-
-        // Draw background panel
-        this.sketch.fill(0, 0, 0, 180);
-        this.sketch.stroke(255);
-        this.sketch.rect(this.uiX, this.uiY, this.uiWidth, this.uiHeight, 10);
-
-        // Draw name
-        this.sketch.fill(255);
-        this.sketch.textAlign(this.sketch.CENTER, this.sketch.TOP);
-        this.sketch.text(this.body.name, this.uiX + this.uiWidth / 2, this.uiY + 10);
-
-        // Create a graphics buffer for the properties section
-        const pg = this.sketch.createGraphics(this.uiWidth, this.propertiesHeight);
-        pg.background(0, 0, 0, 0); // Transparent background
+    // Helper method to measure total height of properties
+    setMaxScrollOffset() {
+        if (!this.body || !this.body.bodyProperties) return 0;
         
-        // Set up the graphics context
-        pg.fill(255);
-        pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
-        pg.textSize(12);
-
-        // Draw properties into the graphics buffer
-        this.drawProperties(0, pg); // Pass 0 as Y since we're in the buffer's coordinate space
-
-        // Draw the graphics buffer in the clipped region
-        this.sketch.image(pg, this.uiX, this.uiY + this.propertiesStartY);
-        pg.remove(); // Clean up the buffer
-
-        // Draw common buttons
-        this.drawCommonButtons();
+        // Count the number of simple properties
+        let numProperties = Object.entries(this.body.bodyProperties)
+            .filter(([key, value]) => typeof value !== 'object' && typeof value !== 'function')
+            .length;
         
-        // Draw close button
-        this.drawCloseButton();
-
-        // Draw scroll indicator if needed
-        if (this.maxScrollOffset > 0) {
-            const scrollPercent = -this.scrollOffset / this.maxScrollOffset;
-            const scrollBarHeight = Math.max(30, (this.propertiesHeight / (this.propertiesHeight + this.maxScrollOffset)) * this.propertiesHeight);
-            const scrollBarY = this.uiY + this.propertiesStartY + (this.propertiesHeight - scrollBarHeight) * scrollPercent;
-            
-            this.sketch.fill(150, 150, 150, 100);
-            this.sketch.noStroke();
-            this.sketch.rect(this.uiX + this.uiWidth - 8, scrollBarY, 4, scrollBarHeight, 2);
-        }
-
-        this.sketch.pop();
-    }
-
-    drawProperties(startY, pg) {
-        // This should be overridden by child classes
-        throw new Error("Method 'drawProperties' must be implemented by child classes");
+        // Calculate total height (20 pixels per line)
+        let totalHeight = numProperties * 20;
+        
+        // Update max scroll offset
+        this.maxScrollOffset = Math.max(0, totalHeight - this.propertiesHeight);
+        
+        return totalHeight;
     }
 
     handleMouseReleased(camera, mouseX, mouseY) {
@@ -194,6 +113,17 @@ export class BodyInfoUI {
             return true;
         }
 
+        // Check Return to Galaxy button if in system view and this is the central star
+        if (this.inSystemMap && 
+            this.body && 
+            this.body.baseX === this.sketch.width / 2 && 
+            this.body.baseY === this.sketch.height / 2 &&
+            this.isReturnToGalaxyButtonClicked(mouseXTransformed, mouseYTransformed)) {
+            this.eventBus.emit('returnToGalaxy');
+            this.close();
+            return true;
+        }
+
         return true;
     }
 
@@ -225,22 +155,13 @@ export class BodyInfoUI {
                 y <= actionY + 25);
     }
 
-    // Helper method to measure total height of properties
-    setMaxScrollOffset() {
-        if (!this.body || !this.body.bodyProperties) return 0;
-        
-        // Count the number of simple properties
-        let numProperties = Object.entries(this.body.bodyProperties)
-            .filter(([key, value]) => typeof value !== 'object' && typeof value !== 'function')
-            .length;
-        
-        // Calculate total height (20 pixels per line)
-        let totalHeight = numProperties * 20;
-        
-        // Update max scroll offset
-        this.maxScrollOffset = Math.max(0, totalHeight - this.propertiesHeight);
-        
-        return totalHeight;
+    isReturnToGalaxyButtonClicked(x, y) {
+        let returnX = this.uiX + this.uiWidth / 2 - 60;
+        let returnY = this.uiY + this.uiHeight - 70;
+        return (x >= returnX && 
+                x <= returnX + 120 && 
+                y >= returnY && 
+                y <= returnY + 25);
     }
 
     handleTouchStart(camera, touchX, touchY) {
@@ -326,5 +247,10 @@ export class BodyInfoUI {
         this.lastTouchY = null;
         this.isDraggingScroll = false;
         this.touchingButton = false;
+    }
+
+    getProperties() {
+        // This should be overridden by child classes
+        throw new Error("Method 'getProperties' must be implemented by child classes");
     }
 } 

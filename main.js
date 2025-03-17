@@ -5,6 +5,7 @@ import { MapScene } from './map-scene.js'
 import { Spaceship } from './spaceship.js';
 import { MapStar } from './map-star.js';
 import { MapPlanet } from './map-planet.js';
+import { UIRenderer } from './ui-renderer.js';
 
 let mapBackground = null;
 let galaxyMapScene = null;
@@ -12,6 +13,7 @@ let systemMapScene = null; // New scene for when we enter a star system
 let currentScene = null; // Track which scene is active
 let camera = null;
 let controlHandler = null;
+let uiRenderer = null;
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
@@ -20,6 +22,7 @@ var mapSketch = function(sketch) {
         Spaceship.preload(sketch);
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
+        uiRenderer = new UIRenderer(sketch);
     };
 
     sketch.setup = async function() {
@@ -53,7 +56,11 @@ var mapSketch = function(sketch) {
 
         camera.applyCameraTransform();
 
+        // Draw the game world
         currentScene.drawMapScene(camera);
+
+        // Draw UI elements on top
+        uiRenderer.render(currentScene, camera);
 
         camera.endCameraTransform();
     }
@@ -102,27 +109,14 @@ var mapSketch = function(sketch) {
         camera.setAutoCamera(centralStar.baseX, centralStar.baseY, 2.0);
     }
 
+    // Attach the enterStarSystem function to the window object
+    window.enterStarSystem = enterStarSystem;
+
     // Function to return to galaxy map
-    function returnToGalaxyMap() {
+    window.returnToGalaxyMap = function() {
         currentScene = galaxyMapScene;
         controlHandler.attachEventListeners(sketch, camera, galaxyMapScene);
-        systemMapScene = null;
-        
-        // Reset camera
-        camera.panX = 0;
-        camera.panY = 0;
-        camera.scaleFactor = 1.0;
-        
-        // Auto-pan to the star we just exited
-        let lastStar = galaxyMapScene.selectedStar;
-        if (lastStar) {
-            camera.setAutoCamera(lastStar.baseX, lastStar.baseY, 1.0);
-        }
     }
-
-    // Expose these functions to the window so they can be called from other modules
-    window.enterStarSystem = enterStarSystem;
-    window.returnToGalaxyMap = returnToGalaxyMap;
 };
 
 // Attach the sketch to a specific DOM element

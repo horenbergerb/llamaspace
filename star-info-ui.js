@@ -1,6 +1,27 @@
 import { BodyInfoUI } from './body-info-ui.js';
 
 export class StarInfoUI extends BodyInfoUI {
+    getProperties() {
+        if (!this.body) return [];
+        
+        const star = this.body;
+        return [
+            { label: 'Spectral Class', value: star.bodyProperties.type },
+            { label: 'Temperature', value: `${Math.round(star.bodyProperties.temperature)} K` },
+            { label: 'Mass', value: `${star.bodyProperties.mass.toFixed(2)} M☉` },
+            { label: 'Lifespan', value: `${star.bodyProperties.lifespan.toFixed(0)} million years` },
+            { label: 'Radiation Level', value: star.bodyProperties.radiationLevel },
+            { label: 'Flare Activity', value: star.bodyProperties.flareActivity },
+            ...(star.bodyProperties.isBinary ? [{ label: 'Binary System', value: 'Yes' }] : []),
+            ...(star.bodyProperties.hasPlanets ? [{ label: 'Number of Planets', value: star.bodyProperties.numPlanets }] : []),
+            ...(star.bodyProperties.hasHabitableZone ? [
+                { label: 'Has Habitable Zone', value: 'Yes' },
+                ...(star.bodyProperties.hasEarthLikePlanet ? [{ label: 'Contains Earth-like Planet', value: 'Yes' }] : [])
+            ] : []),
+            ...(star.bodyProperties.remnantType !== "None" ? [{ label: 'Future', value: star.bodyProperties.remnantType }] : [])
+        ];
+    }
+
     drawProperties(startY, pg) {
         let infoY = startY + this.scrollOffset;
         const star = this.body;

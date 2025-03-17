@@ -72,54 +72,20 @@ export class MapScene {
         };
     }
     
-    drawTooltip(camera) {
-        let mouseXTransformed = (this.sketch.mouseX - camera.panX) / camera.scaleFactor;
-        let mouseYTransformed = (this.sketch.mouseY - camera.panY) / camera.scaleFactor;
-    
-        // Find nearest body
-        let nearest = null;
-        let minDist = Infinity;
-        
-        for (let body of this.mapBodies) {
-            let dist = this.sketch.dist(mouseXTransformed, mouseYTransformed, body.baseX, body.baseY);
-            if (dist < minDist) {
-                minDist = dist;
-                nearest = body;
-            }
-        }
-    
-        if (!nearest || minDist >= 20) return;
-
-        this.sketch.push();
-        this.sketch.fill(0, 0, 0, 150); // Semi-transparent black background
-        this.sketch.rectMode(this.sketch.CENTER);
-        let textWidth = this.sketch.textWidth(nearest.name || "Unnamed Body") + 10;
-        this.sketch.rect(nearest.baseX, nearest.baseY - 15, textWidth, 20, 5); // Draw box above the body
-        
-        this.sketch.fill(255); // White text
-        this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
-        this.sketch.text(nearest.name || "Unnamed Body", nearest.baseX, nearest.baseY - 15); // Body name
-        this.sketch.pop();
-    }
-
     drawMapScene(camera) {
+        // Update all bodies
         for (let body of this.mapBodies) {
             body.update();
             body.draw();
         }
     
+        // Draw spaceship
         this.spaceship.drawSpaceship();
         
         // Emit spaceship state changes during updates
         this.eventBus.emit('spaceshipStateChanged', {
             inTransit: this.spaceship.inTransit
         });
-        
-        this.drawTooltip(camera);
-
-        // Draw appropriate UI
-        this.starInfoUI.drawUI();
-        this.planetInfoUI.drawUI();
     }    
     
     getRandomBody() {
