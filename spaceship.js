@@ -190,49 +190,8 @@ export class Spaceship {
         this.updateSpaceshipInOrbit();
     }
 
-    drawPulsingDashedLine() {
-        if (!this.orbitBody || !this.newOrbitBody) return;
-    
-        let ctx = this.sketch.drawingContext;
-    
-        let x1 = this.orbitBody.baseX;
-        let y1 = this.orbitBody.baseY;
-        let x2 = this.newOrbitBody.baseX;
-        let y2 = this.newOrbitBody.baseY;
-    
-        // Compute vector direction from start to destination
-        let dx = x2 - x1;
-        let dy = y2 - y1;
-        let dist = Math.sqrt(dx * dx + dy * dy);
-    
-        // Normalize the direction vector
-        let nx = dx / dist;
-        let ny = dy / dist;
-    
-        // Shorten the line by trimming both ends
-        let shortenAmount = 15; // Adjust this to change the trim distance
-        x1 += nx * shortenAmount;
-        y1 += ny * shortenAmount;
-        x2 -= nx * shortenAmount;
-        y2 -= ny * shortenAmount;
-    
-        // Pulsing effect
-        let pulseFactor = (this.sketch.sin(this.sketch.frameCount * 0.1) + 1) / 2; // Pulse between 0 and 1
-        let alpha = 75 + pulseFactor * 50; // Fades between 75 and 125
-    
-        this.sketch.push();
-        this.sketch.stroke(255, 255, 255, alpha); // White with pulsing opacity
-        this.sketch.strokeWeight(2);
-        ctx.setLineDash([10, 10]); // Dashed pattern
-    
-        this.sketch.line(x1, y1, x2, y2);
-    
-        ctx.setLineDash([]); // Reset to solid line for other drawings
-        this.sketch.pop();
-    }
-
-    drawSpaceship() {
-        if (!Spaceship.image || !this.orbitBody) return;
+    update() {
+        if (!this.orbitBody) return;
 
         const angle = this.constrainAngle(this.orbitAngle + Math.PI / 2);
 
@@ -244,32 +203,5 @@ export class Spaceship {
         } else {
             this.updateSpaceshipInOrbit();
         }
-
-        // Draw destination line
-        if (this.destinationSet) {
-            this.drawPulsingDashedLine();
-        }
-
-        this.drawSpaceshipSprite();
-    }
-
-    drawSpaceshipSprite() {
-        this.sketch.push();
-        this.sketch.translate(this.spaceshipX, this.spaceshipY);
-        this.sketch.rotate(this.spaceshipAngle);
-        this.sketch.imageMode(this.sketch.CENTER);
-
-        // Draw glowing aura
-        this.sketch.noStroke();
-        for (let i = 5; i > 0; i--) {
-            const alpha = 10 - i * 2;
-            this.sketch.fill(204, 204, 204, alpha);
-            this.sketch.ellipse(0, 0, 20 + i * 4);
-        }
-
-        // Draw ship
-        this.sketch.noFill();
-        this.sketch.image(Spaceship.image, 0, 0, 20, 20);
-        this.sketch.pop();
     }
 }

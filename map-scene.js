@@ -5,6 +5,7 @@ import { MapStar } from './map-star.js';
 import { MapPlanet } from './map-planet.js';
 import { Spaceship } from './spaceship.js';
 import { GameEventBus } from './game-events.js';
+import { SpaceshipRenderer } from './spaceship-renderer.js';
 
 export class MapScene {
     constructor(sketch) {
@@ -17,6 +18,7 @@ export class MapScene {
         this.starInfoUI = new StarInfoUI(sketch, this.eventBus);
         this.planetInfoUI = new PlanetInfoUI(sketch, this.eventBus);
         this.spaceship = null;
+        this.spaceshipRenderer = new SpaceshipRenderer(sketch);
         this.selectedBody = null;
 
         // Set up event handlers
@@ -79,8 +81,9 @@ export class MapScene {
             body.draw();
         }
     
-        // Draw spaceship
-        this.spaceship.drawSpaceship();
+        // Update and render spaceship
+        this.spaceship.update();
+        this.spaceshipRenderer.render(this.spaceship);
         
         // Emit spaceship state changes during updates
         this.eventBus.emit('spaceshipStateChanged', {
