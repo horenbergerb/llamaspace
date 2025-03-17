@@ -56,6 +56,20 @@ export class MapScene {
     initializeMapScene() {
         this.starTree = new KDTree(this.mapBodies);
         this.spaceship = new Spaceship(this.sketch);
+        
+        // Emit initial spaceship state
+        this.eventBus.emit('spaceshipStateChanged', {
+            inTransit: this.spaceship.inTransit
+        });
+
+        // Set up observer for spaceship state changes
+        const originalSetOrbitBody = this.spaceship.setOrbitBody;
+        this.spaceship.setOrbitBody = (body) => {
+            originalSetOrbitBody.call(this.spaceship, body);
+            this.eventBus.emit('spaceshipStateChanged', {
+                inTransit: this.spaceship.inTransit
+            });
+        };
     }
     
     drawTooltip(camera) {
@@ -95,11 +109,17 @@ export class MapScene {
         }
     
         this.spaceship.drawSpaceship();
+        
+        // Emit spaceship state changes during updates
+        this.eventBus.emit('spaceshipStateChanged', {
+            inTransit: this.spaceship.inTransit
+        });
+        
         this.drawTooltip(camera);
 
         // Draw appropriate UI
-        this.starInfoUI.drawUI(this.spaceship);
-        this.planetInfoUI.drawUI(this.spaceship);
+        this.starInfoUI.drawUI();
+        this.planetInfoUI.drawUI();
     }    
     
     getRandomBody() {
@@ -172,8 +192,8 @@ export class MapScene {
             return false;
 
         // Check UI interactions first
-        if (this.starInfoUI.handleMouseReleased(camera, this.sketch.mouseX, this.sketch.mouseY, this.spaceship) ||
-            this.planetInfoUI.handleMouseReleased(camera, this.sketch.mouseX, this.sketch.mouseY, this.spaceship)) {
+        if (this.starInfoUI.handleMouseReleased(camera, this.sketch.mouseX, this.sketch.mouseY) ||
+            this.planetInfoUI.handleMouseReleased(camera, this.sketch.mouseX, this.sketch.mouseY)) {
             return true;
         }
 
@@ -196,21 +216,13 @@ export class MapScene {
                 this.openBodyInfo(nearest);
             }
             else if (pressDuration < 300) {
-                if (!this.spaceship.inTransit)
-                    this.spaceship.setOrbitBody(nearest);
+                this.eventBus.emit('setDestination', nearest);
             } else {
                 // Long press to open body info
                 this.openBodyInfo(nearest);
             }
 
-            if (this.selectedBody) {
-                this.selectedBody.isSelected = false;
-            }
-    
-            this.selectedBody = nearest;
-            nearest.isSelected = true;
-            console.log(`Selected Body: ${nearest.name}`);
-            console.log(nearest.getDescription());
+            this.eventBus.emit('selectBody', nearest);
         } else {
             if (this.selectedBody) {
                 this.selectedBody.isSelected = false;

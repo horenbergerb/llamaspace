@@ -47,8 +47,8 @@ export class StarInfoUI extends BodyInfoUI {
         }
     }
 
-    drawUI(spaceship) {
-        super.drawUI(spaceship);
+    drawUI() {
+        super.drawUI();
 
         // Add Return to Galaxy button if in system view and this is the central star
         if (this.isVisible && this.body && this.inSystemMap && 
@@ -66,7 +66,7 @@ export class StarInfoUI extends BodyInfoUI {
         }
     }
 
-    handleMouseReleased(camera, mouseX, mouseY, spaceship) {
+    handleMouseReleased(camera, mouseX, mouseY) {
         if (!this.isVisible) return false;
 
         let mouseXTransformed = (mouseX - camera.panX) / camera.scaleFactor;
@@ -84,13 +84,12 @@ export class StarInfoUI extends BodyInfoUI {
                 mouseXTransformed <= returnX + 120 && 
                 mouseYTransformed >= returnY && 
                 mouseYTransformed <= returnY + 25) {
-                console.log(`Returning to galaxy map...`);
-                window.returnToGalaxyMap();
+                this.eventBus.emit('returnToGalaxy');
                 this.close();
                 return true;
             }
         }
 
-        return super.handleMouseReleased(camera, mouseX, mouseY, spaceship);
+        return super.handleMouseReleased(camera, mouseX, mouseY);
     }
 } 

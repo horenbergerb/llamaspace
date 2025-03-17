@@ -24,6 +24,12 @@ export class BodyInfoUI {
         this.lastTouchY = null;
         this.isDraggingScroll = false;
         this.touchingButton = false;
+
+        // Subscribe to spaceship state updates
+        this.canSetDestination = true; // Default to true
+        this.eventBus.on('spaceshipStateChanged', (state) => {
+            this.canSetDestination = !state.inTransit;
+        });
     }
 
     open(body) {
@@ -40,13 +46,12 @@ export class BodyInfoUI {
         this.body = null;
     }
 
-    drawCommonButtons(spaceship) {
+    drawCommonButtons() {
         this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
         this.sketch.textSize(12);
         
         // Set Destination button (available everywhere)
-        const canSetDestination = !spaceship.inTransit;
-        this.sketch.fill(canSetDestination ? 50 : 30, 255, canSetDestination ? 100 : 60);
+        this.sketch.fill(this.canSetDestination ? 50 : 30, 255, this.canSetDestination ? 100 : 60);
         this.sketch.rect(this.uiX + this.uiWidth - 120, this.uiY + this.uiHeight - 35, 100, 25, 5);
         this.sketch.fill(255);
         this.sketch.stroke(100);
@@ -127,7 +132,7 @@ export class BodyInfoUI {
         pg.remove(); // Clean up the buffer
 
         // Draw common buttons
-        this.drawCommonButtons(spaceship);
+        this.drawCommonButtons();
         
         // Draw close button
         this.drawCloseButton();
