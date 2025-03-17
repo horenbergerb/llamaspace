@@ -4,16 +4,53 @@ import { PlanetInfoUI } from './planet-info-ui.js';
 import { MapStar } from './map-star.js';
 import { MapPlanet } from './map-planet.js';
 import { Spaceship } from './spaceship.js';
+import { GameEventBus } from './game-events.js';
 
 export class MapScene {
     constructor(sketch) {
         this.sketch = sketch;
         this.mapBodies = []; // Array for navigable bodies
         this.pressStartTime = null;
-        this.starInfoUI = new StarInfoUI(sketch);
-        this.planetInfoUI = new PlanetInfoUI(sketch);
+        this.eventBus = new GameEventBus();
+        
+        // Create UI with event bus
+        this.starInfoUI = new StarInfoUI(sketch, this.eventBus);
+        this.planetInfoUI = new PlanetInfoUI(sketch, this.eventBus);
         this.spaceship = null;
         this.selectedBody = null;
+
+        // Set up event handlers
+        this.eventBus.on('setDestination', (body) => {
+            if (!this.spaceship.inTransit) {
+                console.log(`Setting course for ${body.name}...`);
+                this.spaceship.setOrbitBody(body);
+            }
+        });
+
+        this.eventBus.on('enterSystem', (body) => {
+            console.log(`Entering System ${body.name}...`);
+            window.enterStarSystem(body);
+        });
+
+        this.eventBus.on('returnToGalaxy', () => {
+            console.log('Returning to galaxy map...');
+            window.returnToGalaxyMap();
+        });
+
+        this.eventBus.on('research', (body) => {
+            console.log(`Researching ${body.name}...`);
+            // TODO: Implement research functionality
+        });
+
+        this.eventBus.on('selectBody', (body) => {
+            if (this.selectedBody) {
+                this.selectedBody.isSelected = false;
+            }
+            this.selectedBody = body;
+            body.isSelected = true;
+            console.log(`Selected Body: ${body.name}`);
+            console.log(body.getDescription());
+        });
     }
 
     initializeMapScene() {

@@ -1,6 +1,7 @@
 export class BodyInfoUI {
-    constructor(sketch) {
+    constructor(sketch, eventBus) {
         this.sketch = sketch;
+        this.eventBus = eventBus;
         this.isVisible = false;
         this.body = null;
         this.uiX = 0;
@@ -150,7 +151,7 @@ export class BodyInfoUI {
         throw new Error("Method 'drawProperties' must be implemented by child classes");
     }
 
-    handleMouseReleased(camera, mouseX, mouseY, spaceship) {
+    handleMouseReleased(camera, mouseX, mouseY) {
         if (!this.isVisible) return false;
 
         let mouseXTransformed = (mouseX - camera.panX) / camera.scaleFactor;
@@ -165,50 +166,58 @@ export class BodyInfoUI {
         if (!capturedMouse) return false;
 
         // Check close button
-        let closeX = this.uiX + this.uiWidth - this.closeButtonSize - 5;
-        let closeY = this.uiY + 5;
-        if (mouseXTransformed >= closeX && 
-            mouseXTransformed <= closeX + this.closeButtonSize && 
-            mouseYTransformed >= closeY && 
-            mouseYTransformed <= closeY + this.closeButtonSize) {
+        if (this.isCloseButtonClicked(mouseXTransformed, mouseYTransformed)) {
             this.close();
             return true;
         }
 
         // Check Set Destination button
-        let destX = this.uiX + this.uiWidth - 120;
-        let destY = this.uiY + this.uiHeight - 35;
-        if (mouseXTransformed >= destX && 
-            mouseXTransformed <= destX + 100 && 
-            mouseYTransformed >= destY && 
-            mouseYTransformed <= destY + 25) {
-            if (!spaceship.inTransit) {
-                console.log(`Setting course for ${this.body.name}...`);
-                spaceship.setOrbitBody(this.body);
-                this.close();
-            }
+        if (this.isDestinationButtonClicked(mouseXTransformed, mouseYTransformed)) {
+            this.eventBus.emit('setDestination', this.body);
+            this.close();
             return true;
         }
 
         // Check Enter System/Research button
-        let actionX = this.uiX + 20;
-        let actionY = this.uiY + this.uiHeight - 35;
-        if (mouseXTransformed >= actionX && 
-            mouseXTransformed <= actionX + 100 && 
-            mouseYTransformed >= actionY && 
-            mouseYTransformed <= actionY + 25) {
+        if (this.isActionButtonClicked(mouseXTransformed, mouseYTransformed)) {
             if (!this.inSystemMap) {
-                console.log(`Entering System ${this.body.name}...`);
-                window.enterStarSystem(this.body);
+                this.eventBus.emit('enterSystem', this.body);
             } else {
-                console.log(`Researching ${this.body.name}...`);
-                // TODO: Implement research functionality
+                this.eventBus.emit('research', this.body);
             }
             this.close();
             return true;
         }
 
         return true;
+    }
+
+    // Helper methods for button click detection
+    isCloseButtonClicked(x, y) {
+        let closeX = this.uiX + this.uiWidth - this.closeButtonSize - 5;
+        let closeY = this.uiY + 5;
+        return (x >= closeX && 
+                x <= closeX + this.closeButtonSize && 
+                y >= closeY && 
+                y <= closeY + this.closeButtonSize);
+    }
+
+    isDestinationButtonClicked(x, y) {
+        let destX = this.uiX + this.uiWidth - 120;
+        let destY = this.uiY + this.uiHeight - 35;
+        return (x >= destX && 
+                x <= destX + 100 && 
+                y >= destY && 
+                y <= destY + 25);
+    }
+
+    isActionButtonClicked(x, y) {
+        let actionX = this.uiX + 20;
+        let actionY = this.uiY + this.uiHeight - 35;
+        return (x >= actionX && 
+                x <= actionX + 100 && 
+                y >= actionY && 
+                y <= actionY + 25);
     }
 
     // Helper method to measure total height of properties
@@ -304,7 +313,7 @@ export class BodyInfoUI {
     handleTouchEnd(camera, touchX, touchY) {
         if (this.touchingButton) {
             // Simulate a mouse release at the touch position
-            this.handleMouseReleased(camera, touchX, touchY, this._spaceship);
+            this.handleMouseReleased(camera, touchX, touchY);
         }
         
         this.touchStartX = null;
