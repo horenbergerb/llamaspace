@@ -1,10 +1,10 @@
 import { MapBackgroundRenderer } from './renderers/map-background-renderer.js'
 import { Camera } from './camera.js';
 import { ControlHandler } from './controls.js';
-import { MapScene } from './map-scene.js'
-import { Spaceship } from './spaceship.js';
-import { MapStar } from './map-star.js';
-import { MapPlanet } from './map-planet.js';
+import { MapScene } from './map-objects/map-scene.js'
+import { Spaceship } from './map-objects/map-spaceship.js';
+import { MapStar } from './map-objects/map-star.js';
+import { MapPlanet } from './map-objects/map-planet.js';
 import { UIRenderer } from './renderers/info-ui-renderer.js';
 
 let backgroundRenderer = null;

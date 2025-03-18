@@ -1,11 +1,11 @@
-import { KDTree } from './utils/k-d-tree.js';
-import { StarInfoUI } from './ui/star-info-ui.js';
-import { PlanetInfoUI } from './ui/planet-info-ui.js';
+import { KDTree } from '../utils/k-d-tree.js';
+import { StarInfoUI } from '../ui/star-info-ui.js';
+import { PlanetInfoUI } from '../ui/planet-info-ui.js';
 import { MapStar } from './map-star.js';
 import { MapPlanet } from './map-planet.js';
-import { Spaceship } from './spaceship.js';
-import { GameEventBus } from './utils/game-events.js';
-import { MapSceneRenderer } from './renderers/map-scene-renderer.js';
+import { Spaceship } from './map-spaceship.js';
+import { GameEventBus } from '../utils/game-events.js';
+import { MapSceneRenderer } from '../renderers/map-scene-renderer.js';
 
 export class MapScene {
     constructor(sketch) {
