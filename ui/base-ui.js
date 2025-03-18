@@ -1,7 +1,8 @@
 export class BaseUI {
-    constructor(sketch, eventBus, initialScene) {
+    constructor(sketch, eventBus, initialScene, crewMembers) {
         this.sketch = sketch;
         this.eventBus = eventBus;
+        this.crewMembers = crewMembers;
         
         // Ship button properties
         this.buttonWidth = 80;
@@ -19,6 +20,12 @@ export class BaseUI {
         
         // Close button properties
         this.closeButtonSize = 20;
+
+        // Scroll properties for crew tab
+        this.crewScrollOffset = 0;
+        this.crewMaxScrollOffset = 0;
+        this.crewPropertiesHeight = 0;
+        this.crewPropertiesStartY = 60; // Start below tabs
 
         // Scene tracking - initialize with the provided scene
         this.currentScene = initialScene;
@@ -143,8 +150,70 @@ export class BaseUI {
             this.sketch.text('Ship Status:', contentX, contentY);
             // Add more ship-related content here
         } else if (this.currentTab === 'Crew') {
-            this.sketch.text('Crew Members:', contentX, contentY);
-            // Add more crew-related content here
+            // Create a graphics buffer for the crew properties section
+            const contentWidth = width - 40; // Account for margins
+            const contentHeight = height - 40; // Account for margins
+            const pg = this.sketch.createGraphics(contentWidth, contentHeight);
+            pg.background(0, 0, 0, 0);
+            
+            // Set up the graphics context
+            pg.fill(255);
+            pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            pg.textSize(12);
+            
+            const lineHeight = 16; // Fixed line height for 12pt text
+
+            // First pass: calculate total height needed
+            let totalHeight = 0;
+            for (const crew of this.crewMembers) {
+                totalHeight += lineHeight; // Name and race
+                totalHeight += lineHeight; // "Skills:" label
+                totalHeight += Object.keys(crew.skillLevels).length * lineHeight; // Skills
+                totalHeight += lineHeight; // "Demeanor:" label
+                totalHeight += lineHeight; // Demeanor traits
+                totalHeight += lineHeight * 1.5; // Extra space between crew members
+            }
+
+            // Draw crew members into the graphics buffer
+            let infoY = this.crewScrollOffset;
+
+            for (const crew of this.crewMembers) {
+                // Draw crew member name and race
+                pg.text(`${crew.name} (${crew.race})`, 0, infoY);
+                infoY += lineHeight;
+
+                // Draw skills
+                pg.text('Skills:', 10, infoY);
+                infoY += lineHeight;
+                for (const [skill, level] of Object.entries(crew.skillLevels)) {
+                    pg.text(`  ${skill}: ${level}/5`, 20, infoY);
+                    infoY += lineHeight;
+                }
+
+                // Draw demeanor traits
+                pg.text('Demeanor:', 10, infoY);
+                infoY += lineHeight;
+                pg.text(`  ${crew.demeanor.join(', ')}`, 20, infoY);
+                infoY += lineHeight * 1.5; // Add extra space between crew members
+            }
+
+            // Draw the graphics buffer in the clipped region
+            this.sketch.image(pg, contentX, contentY);
+            pg.remove();
+
+            // Calculate max scroll offset based on total content height
+            this.crewMaxScrollOffset = Math.max(0, totalHeight - contentHeight);
+
+            // Draw scroll indicator if needed
+            if (this.crewMaxScrollOffset > 0) {
+                const scrollPercent = -this.crewScrollOffset / this.crewMaxScrollOffset;
+                const scrollBarHeight = Math.max(30, (contentHeight / totalHeight) * contentHeight);
+                const scrollBarY = y + (height - scrollBarHeight) * scrollPercent;
+                
+                this.sketch.fill(150, 150, 150, 100);
+                this.sketch.noStroke();
+                this.sketch.rect(x + width - 8, scrollBarY, 4, scrollBarHeight, 2);
+            }
         }
     }
 
@@ -178,8 +247,23 @@ export class BaseUI {
                 if (mouseX >= tabX && mouseX <= tabX + tabWidth &&
                     mouseY >= y && mouseY <= y + this.tabHeight) {
                     this.currentTab = tab;
+                    // Reset scroll when changing tabs
+                    this.crewScrollOffset = 0;
                 }
             });
+
+            // Handle crew tab scrolling
+            if (this.currentTab === 'Crew') {
+                const contentY = y + this.crewPropertiesStartY;
+                if (mouseX >= x && mouseX <= x + windowWidth &&
+                    mouseY >= contentY && mouseY <= y + windowHeight) {
+                    // Handle mouse wheel scrolling
+                    if (this.sketch.mouseWheel) {
+                        this.crewScrollOffset = Math.max(-this.crewMaxScrollOffset, 
+                            Math.min(0, this.crewScrollOffset + this.sketch.mouseWheel));
+                    }
+                }
+            }
 
             // Return true for any click within the window bounds
             if (mouseX >= x && mouseX <= x + windowWidth &&
@@ -230,5 +314,27 @@ export class BaseUI {
 
     handleTouchEnd(camera, touchX, touchY) {
         // No special handling needed for touch end currently
+    }
+
+    handleMouseWheel(event) {
+        // Only handle scrolling if we're in the crew tab and the window is visible
+        if (this.isWindowVisible && this.currentTab === 'Crew') {
+            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+            let x = (this.sketch.width - windowWidth) / 2;
+            let y = (this.sketch.height - windowHeight) / 2;
+            
+            // Check if mouse is over the crew content area
+            if (this.sketch.mouseX >= x && this.sketch.mouseX <= x + windowWidth &&
+                this.sketch.mouseY >= y + this.crewPropertiesStartY && 
+                this.sketch.mouseY <= y + windowHeight) {
+                
+                // Update scroll offset with a multiplier to make scrolling smoother
+                const scrollMultiplier = 1.5;
+                this.crewScrollOffset = Math.max(-this.crewMaxScrollOffset, 
+                    Math.min(0, this.crewScrollOffset + (event.deltaY * scrollMultiplier)));
+                return true;
+            }
+        }
+        return false;
     }
 } 

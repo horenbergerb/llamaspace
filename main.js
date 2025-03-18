@@ -7,6 +7,7 @@ import { MapStar } from './map-objects/map-star.js';
 import { MapPlanet } from './map-objects/map-planet.js';
 import { UIRenderer } from './renderers/info-ui-renderer.js';
 import { BaseUI } from './ui/base-ui.js';
+import { CrewMember } from './crew-member.js';
 
 let backgroundRenderer = null;
 let galaxyMapScene = null;
@@ -16,6 +17,7 @@ let camera = null;
 let controlHandler = null;
 let uiRenderer = null;
 let baseUI = null;
+let crewMembers = []; // Array to store crew members
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
@@ -25,7 +27,13 @@ var mapSketch = function(sketch) {
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
         uiRenderer = new UIRenderer(sketch);
-        baseUI = new BaseUI(sketch, galaxyMapScene.eventBus, galaxyMapScene);
+        
+        // Generate 3 crew members
+        for (let i = 0; i < 3; i++) {
+            crewMembers.push(new CrewMember());
+        }
+        
+        baseUI = new BaseUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, crewMembers);
     };
 
     sketch.setup = async function() {

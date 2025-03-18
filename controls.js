@@ -93,6 +93,10 @@ export class ControlHandler {
 
     mouseWheel(event, camera, mapScene) {
         // Check if we should handle UI scrolling first
+        if (this.baseUI && this.baseUI.handleMouseWheel(event)) {
+            return false;
+        }
+        // Then check map scene UI
         if (mapScene.handleMouseWheelMapScene(event)) {
             return false;
         }
