@@ -1,4 +1,4 @@
-export class BaseUI {
+export class ShipUI {
     constructor(sketch, eventBus, initialScene, crewMembers) {
         this.sketch = sketch;
         this.eventBus = eventBus;
