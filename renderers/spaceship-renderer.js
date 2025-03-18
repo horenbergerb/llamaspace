@@ -1,4 +1,4 @@
-import { Spaceship } from './spaceship.js';
+import { Spaceship } from '../spaceship.js';
 
 export class SpaceshipRenderer {
     constructor(sketch) {

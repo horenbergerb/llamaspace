@@ -1,13 +1,13 @@
-import { MapBackground } from './background.js'
+import { MapBackgroundRenderer } from './renderers/map-background-renderer.js'
 import { Camera } from './camera.js';
 import { ControlHandler } from './controls.js';
 import { MapScene } from './map-scene.js'
 import { Spaceship } from './spaceship.js';
 import { MapStar } from './map-star.js';
 import { MapPlanet } from './map-planet.js';
-import { UIRenderer } from './ui-renderer.js';
+import { UIRenderer } from './renderers/info-ui-renderer.js';
 
-let mapBackground = null;
+let backgroundRenderer = null;
 let galaxyMapScene = null;
 let systemMapScene = null; // New scene for when we enter a star system
 let currentScene = null; // Track which scene is active
@@ -17,7 +17,7 @@ let uiRenderer = null;
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
-        mapBackground = new MapBackground(sketch);
+        backgroundRenderer = new MapBackgroundRenderer(sketch);
         galaxyMapScene = new MapScene(sketch);
         Spaceship.preload(sketch);
         camera = new Camera(sketch);
@@ -34,7 +34,7 @@ var mapSketch = function(sketch) {
 
         camera.applyCameraTransform();
 
-        mapBackground.initializeBackground(camera);
+        backgroundRenderer.initialize(camera);
 
         generateGalaxy();
         galaxyMapScene.initializeMapScene(sketch);
@@ -52,7 +52,7 @@ var mapSketch = function(sketch) {
 
         // Background is drawn without camera transform
         // since it needs weird logic to preserve parallax
-        mapBackground.drawBackground();
+        backgroundRenderer.render(camera);
 
         camera.applyCameraTransform();
 

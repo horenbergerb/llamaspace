@@ -1,4 +1,4 @@
-import { isMouseInsideCanvas } from "./utils.js";
+import { isMouseInsideCanvas } from "./utils/utils.js";
 
 export class Camera{
     constructor(sketch) {

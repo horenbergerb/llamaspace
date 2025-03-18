@@ -36,7 +36,7 @@ export class Spaceship {
     }
 
     static preload(sketch) {
-        Spaceship.image = sketch.loadImage("spaceship.png");
+        Spaceship.image = sketch.loadImage("assets/spaceship.png");
     }
 
     constrainAngle(angle){

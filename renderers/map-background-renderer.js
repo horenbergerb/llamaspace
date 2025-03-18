@@ -14,7 +14,7 @@ export class Star {
         this.brightness = 200 + 55 * this.sketch.sin(this.sketch.frameCount * this.twinkleSpeed);
     }
 
-    drawStar() {
+    render() {
         // Drawing these is awkward because we need to (attempt) to preserve the same parallax effect at different zooms
         // That is why we need camera
         // This solution doesn't really work, but it's close enough
@@ -33,24 +33,24 @@ export class Star {
     }
 }
 
-export class MapBackground {
+export class MapBackgroundRenderer {
     constructor(sketch) {
         this.sketch = sketch;
         this.stars = [];
     }
 
-    initializeBackground(camera) {
+    initialize(camera) {
         for (let i = 0; i < 2000; i++) {
             this.stars.push(new Star(this.sketch, camera));
         }
     }
 
-    drawBackground() {
+    render(camera) {
         this.sketch.background(10);
     
         for (let star of this.stars) {
             star.update();
-            star.drawStar();
+            star.render();
         }
     }
-}
+} 
