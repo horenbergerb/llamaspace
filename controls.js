@@ -5,6 +5,7 @@ export class ControlHandler {
     constructor(sketch) {
         this.isTouchEvent = false;
         this.sketch = null;
+        this.baseUI = null;
     }
 
     touchStarted(sketch, camera, mapScene) {
@@ -13,7 +14,12 @@ export class ControlHandler {
         // Store sketch reference
         this.sketch = sketch;
 
-        // Check if touch is in UI first
+        // Check if touch is in base UI first
+        if (this.baseUI && this.baseUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
+            return false;
+        }
+
+        // Check if touch is in UI
         if (mapScene.handleTouchStartMapScene(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
         }
@@ -34,7 +40,12 @@ export class ControlHandler {
     touchMoved(sketch, camera, mapScene) {
         if (!sketch.touches || sketch.touches.length === 0) return false;
 
-        // Check if touch is in UI first
+        // Check if touch is in base UI first
+        if (this.baseUI && this.baseUI.handleTouchMove(camera, sketch.touches[0].x, sketch.touches[0].y)) {
+            return false;
+        }
+
+        // Check if touch is in UI
         if (sketch.touches.length === 1 && mapScene.handleTouchMoveMapScene(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
         }
@@ -47,6 +58,9 @@ export class ControlHandler {
         let lastTouchX = sketch.touches.length > 0 ? sketch.touches[0].x : sketch.mouseX;
         let lastTouchY = sketch.touches.length > 0 ? sketch.touches[0].y : sketch.mouseY;
         
+        if (this.baseUI) {
+            this.baseUI.handleTouchEnd(camera, lastTouchX, lastTouchY);
+        }
         mapScene.handleTouchEndMapScene(camera, lastTouchX, lastTouchY);
         
         // Only trigger mouse release if we had a single touch
@@ -62,8 +76,15 @@ export class ControlHandler {
     }
 
     mouseReleased(sketch, camera, mapScene) {
-        if (!mapScene.handleMouseReleasedMapScene(camera))
+        // Check base UI first
+        if (this.baseUI && this.baseUI.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
+            return;
+        }
+        
+        // Then check map scene UI
+        if (!mapScene.handleMouseReleasedMapScene(camera)) {
             camera.handleMouseReleasedCamera();
+        }
     }
 
     mouseDragged(camera) {
@@ -79,8 +100,9 @@ export class ControlHandler {
         return camera.handleMouseWheelCamera(event);
     }
 
-    attachEventListeners(sketch, camera, mapScene) {
+    attachEventListeners(sketch, camera, mapScene, baseUI) {
         this.sketch = sketch;
+        this.baseUI = baseUI;
         
         // Attach event listeners
         sketch.mousePressed = () => this.mousePressed(sketch, camera, mapScene);

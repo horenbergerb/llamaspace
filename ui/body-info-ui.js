@@ -30,6 +30,11 @@ export class BodyInfoUI {
         this.eventBus.on('spaceshipStateChanged', (state) => {
             this.canSetDestination = !state.inTransit;
         });
+
+        // Subscribe to close all UIs event
+        this.eventBus.on('closeAllInfoUIs', () => {
+            this.close();
+        });
     }
 
     open(body) {

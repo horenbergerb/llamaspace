@@ -6,6 +6,7 @@ import { Spaceship } from './map-objects/map-spaceship.js';
 import { MapStar } from './map-objects/map-star.js';
 import { MapPlanet } from './map-objects/map-planet.js';
 import { UIRenderer } from './renderers/info-ui-renderer.js';
+import { BaseUI } from './ui/base-ui.js';
 
 let backgroundRenderer = null;
 let galaxyMapScene = null;
@@ -14,6 +15,7 @@ let currentScene = null; // Track which scene is active
 let camera = null;
 let controlHandler = null;
 let uiRenderer = null;
+let baseUI = null;
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
@@ -23,6 +25,7 @@ var mapSketch = function(sketch) {
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
         uiRenderer = new UIRenderer(sketch);
+        baseUI = new BaseUI(sketch, galaxyMapScene.eventBus);
     };
 
     sketch.setup = async function() {
@@ -30,7 +33,7 @@ var mapSketch = function(sketch) {
         let w = sketchHolder.clientWidth;
         sketch.createCanvas(w, sketch.windowHeight*0.7);
 
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, baseUI);
 
         camera.applyCameraTransform();
 
@@ -65,6 +68,8 @@ var mapSketch = function(sketch) {
         uiRenderer.render(currentScene, camera);
 
         camera.endCameraTransform();
+
+        baseUI.render(camera);
 
         // Update state change events after rendering
         currentScene.eventBus.emit('spaceshipStateChanged', {
