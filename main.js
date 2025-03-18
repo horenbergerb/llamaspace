@@ -7,6 +7,7 @@ import { MapStar } from './map-objects/map-star.js';
 import { MapPlanet } from './map-objects/map-planet.js';
 import { UIRenderer } from './renderers/info-ui-renderer.js';
 import { ShipUI } from './ui/ship-ui.js';
+import { MissionUI } from './ui/mission-ui.js';
 import { CrewMember } from './crew-member.js';
 
 let backgroundRenderer = null;
@@ -17,6 +18,7 @@ let camera = null;
 let controlHandler = null;
 let uiRenderer = null;
 let shipUI = null;
+let missionUI = null;
 let crewMembers = []; // Array to store crew members
 
 var mapSketch = function(sketch) {
@@ -34,6 +36,7 @@ var mapSketch = function(sketch) {
         }
         
         shipUI = new ShipUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, crewMembers);
+        missionUI = new MissionUI(sketch, galaxyMapScene.eventBus, galaxyMapScene);
     };
 
     sketch.setup = async function() {
@@ -41,7 +44,7 @@ var mapSketch = function(sketch) {
         let w = sketchHolder.clientWidth;
         sketch.createCanvas(w, sketch.windowHeight*0.7);
 
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI);
 
         camera.applyCameraTransform();
 
@@ -80,6 +83,7 @@ var mapSketch = function(sketch) {
         camera.endCameraTransform();
 
         shipUI.render(camera);
+        missionUI.render(camera);
 
         // Update state change events after rendering
         currentScene.eventBus.emit('spaceshipStateChanged', {
@@ -122,7 +126,7 @@ var mapSketch = function(sketch) {
 
         // Switch to system scene
         currentScene = systemMapScene;
-        controlHandler.attachEventListeners(sketch, camera, systemMapScene, shipUI);
+        controlHandler.attachEventListeners(sketch, camera, systemMapScene, shipUI, missionUI);
         
         // Emit scene change event
         galaxyMapScene.eventBus.emit('sceneChanged', systemMapScene);
@@ -140,7 +144,7 @@ var mapSketch = function(sketch) {
     // Function to return to galaxy map
     window.returnToGalaxyMap = function() {
         currentScene = galaxyMapScene;
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI);
         // Emit scene change event
         galaxyMapScene.eventBus.emit('sceneChanged', galaxyMapScene);
     }

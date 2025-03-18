@@ -30,9 +30,15 @@ export class ShipUI {
         // Scene tracking - initialize with the provided scene
         this.currentScene = initialScene;
 
-        // Subscribe to close other UIs when this opens
-        this.eventBus.on('closeAllInfoUIs', () => {
-            // This event will be handled by other UIs
+        // Subscribe to UI visibility events
+        this.eventBus.on('shipUIOpened', () => {
+            this.isWindowVisible = true;
+        });
+        this.eventBus.on('shipUIClosed', () => {
+            this.isWindowVisible = false;
+        });
+        this.eventBus.on('missionUIOpened', () => {
+            this.isWindowVisible = false;
         });
 
         // Subscribe to scene changes
@@ -223,7 +229,11 @@ export class ShipUI {
             // Only toggle if we have a valid scene
             if (this.currentScene) {
                 this.eventBus.emit('closeAllInfoUIs');
-                this.isWindowVisible = !this.isWindowVisible;
+                if (!this.isWindowVisible) {
+                    this.eventBus.emit('shipUIOpened');
+                } else {
+                    this.eventBus.emit('shipUIClosed');
+                }
             }
             return true;
         }
@@ -237,6 +247,7 @@ export class ShipUI {
             // Check close button
             if (this.isCloseButtonClicked(mouseX, mouseY)) {
                 this.isWindowVisible = false;
+                this.eventBus.emit('shipUIClosed');
                 return true;
             }
 
@@ -331,7 +342,7 @@ export class ShipUI {
                 // Update scroll offset with a multiplier to make scrolling smoother
                 const scrollMultiplier = 1.5;
                 this.crewScrollOffset = Math.max(-this.crewMaxScrollOffset, 
-                    Math.min(0, this.crewScrollOffset + (event.deltaY * scrollMultiplier)));
+                    Math.min(0, this.crewScrollOffset - (event.deltaY * scrollMultiplier)));
                 return true;
             }
         }

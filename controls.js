@@ -6,6 +6,7 @@ export class ControlHandler {
         this.isTouchEvent = false;
         this.sketch = null;
         this.shipUI = null;
+        this.missionUI = null;
     }
 
     touchStarted(sketch, camera, mapScene) {
@@ -16,6 +17,11 @@ export class ControlHandler {
 
         // Check if touch is in ship UI first
         if (this.shipUI && this.shipUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
+            return false;
+        }
+
+        // Check if touch is in mission UI
+        if (this.missionUI && this.missionUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
         }
 
@@ -45,6 +51,11 @@ export class ControlHandler {
             return false;
         }
 
+        // Check if touch is in mission UI
+        if (this.missionUI && this.missionUI.handleTouchMove(camera, sketch.touches[0].x, sketch.touches[0].y)) {
+            return false;
+        }
+
         // Check if touch is in UI
         if (sketch.touches.length === 1 && mapScene.handleTouchMoveMapScene(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
@@ -60,6 +71,9 @@ export class ControlHandler {
         
         if (this.shipUI) {
             this.shipUI.handleTouchEnd(camera, lastTouchX, lastTouchY);
+        }
+        if (this.missionUI) {
+            this.missionUI.handleTouchEnd(camera, lastTouchX, lastTouchY);
         }
         mapScene.handleTouchEndMapScene(camera, lastTouchX, lastTouchY);
         
@@ -80,6 +94,11 @@ export class ControlHandler {
         if (this.shipUI && this.shipUI.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
             return;
         }
+
+        // Check mission UI
+        if (this.missionUI && this.missionUI.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
+            return;
+        }
         
         // Then check map scene UI
         if (!mapScene.handleMouseReleasedMapScene(camera)) {
@@ -96,6 +115,10 @@ export class ControlHandler {
         if (this.shipUI && this.shipUI.handleMouseWheel(event)) {
             return false;
         }
+        // Check mission UI scrolling
+        if (this.missionUI && this.missionUI.handleMouseWheel(event)) {
+            return false;
+        }
         // Then check map scene UI
         if (mapScene.handleMouseWheelMapScene(event)) {
             return false;
@@ -104,9 +127,10 @@ export class ControlHandler {
         return camera.handleMouseWheelCamera(event);
     }
 
-    attachEventListeners(sketch, camera, mapScene, shipUI) {
+    attachEventListeners(sketch, camera, mapScene, shipUI, missionUI) {
         this.sketch = sketch;
         this.shipUI = shipUI;
+        this.missionUI = missionUI;
         
         // Attach event listeners
         sketch.mousePressed = () => this.mousePressed(sketch, camera, mapScene);
