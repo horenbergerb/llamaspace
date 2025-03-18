@@ -15,15 +15,28 @@ export class MissionUI {
         // Close button properties
         this.closeButtonSize = 20;
 
+        // Add button properties
+        this.addButtonSize = 24;
+        this.addButtonMargin = 10;
+
+        // Back arrow properties
+        this.backArrowSize = 24;
+        this.backArrowMargin = 10;
+
+        // Page state
+        this.currentPage = 'list'; // 'list' or 'add'
+
         // Scene tracking - initialize with the provided scene
         this.currentScene = initialScene;
 
         // Subscribe to UI visibility events
         this.eventBus.on('missionUIOpened', () => {
             this.isWindowVisible = true;
+            this.currentPage = 'list'; // Reset to list page when opening
         });
         this.eventBus.on('missionUIClosed', () => {
             this.isWindowVisible = false;
+            this.currentPage = 'list'; // Reset to list page when closing
         });
         this.eventBus.on('shipUIOpened', () => {
             this.isWindowVisible = false;
@@ -116,22 +129,56 @@ export class MissionUI {
         this.sketch.line(closeX, closeY, closeX + this.closeButtonSize, closeY + this.closeButtonSize);
         this.sketch.line(closeX + this.closeButtonSize, closeY, closeX, closeY + this.closeButtonSize);
 
-        // Draw content
-        this.renderContent(x, y, windowWidth, windowHeight);
+        // Render the appropriate page based on current state
+        if (this.currentPage === 'list') {
+            this.renderMissionListPage(x, y, windowWidth, windowHeight);
+        } else {
+            this.renderAddMissionPage(x, y, windowWidth, windowHeight);
+        }
 
         this.sketch.pop();
     }
 
-    renderContent(x, y, width, height) {
+    renderMissionListPage(x, y, width, height) {
+        // Draw add button in top left
+        let addX = x + this.addButtonMargin;
+        let addY = y + this.addButtonMargin;
+        this.sketch.stroke(150);
+        this.sketch.line(addX, addY + this.addButtonSize/2, addX + this.addButtonSize, addY + this.addButtonSize/2);
+        this.sketch.line(addX + this.addButtonSize/2, addY, addX + this.addButtonSize/2, addY + this.addButtonSize);
+
+        // Draw mission list content
         this.sketch.fill(255);
         this.sketch.noStroke();
         this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
         this.sketch.textSize(14);
         
         let contentX = x + 20;
-        let contentY = y + 20;
+        let contentY = y + 60; // Start below the top buttons
 
-        // Currently blank - will be filled with mission content later
+        this.sketch.text('Mission List:', contentX, contentY);
+        // Add more mission list content here
+    }
+
+    renderAddMissionPage(x, y, width, height) {
+        // Draw back arrow in top left
+        let backX = x + this.backArrowMargin;
+        let backY = y + this.backArrowMargin;
+        this.sketch.stroke(150);
+        this.sketch.line(backX + this.backArrowSize/2, backY, backX, backY + this.backArrowSize/2);
+        this.sketch.line(backX, backY + this.backArrowSize/2, backX + this.backArrowSize/2, backY + this.backArrowSize);
+
+        // Draw add mission form content
+        this.sketch.fill(255);
+        this.sketch.noStroke();
+        this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
+        this.sketch.textSize(14);
+        
+        let contentX = x + 20;
+        let contentY = y + 60; // Start below the top buttons
+
+        this.sketch.text('Add New Mission:', contentX, contentY);
+        // Add more add mission form content here
     }
 
     handleMouseReleased(camera, mouseX, mouseY) {
@@ -162,6 +209,19 @@ export class MissionUI {
                 return true;
             }
 
+            // Handle page-specific button clicks
+            if (this.currentPage === 'list') {
+                if (this.isAddButtonClicked(mouseX, mouseY)) {
+                    this.currentPage = 'add';
+                    return true;
+                }
+            } else {
+                if (this.isBackButtonClicked(mouseX, mouseY)) {
+                    this.currentPage = 'list';
+                    return true;
+                }
+            }
+
             // Return true for any click within the window bounds
             if (mouseX >= x && mouseX <= x + windowWidth &&
                 mouseY >= y && mouseY <= y + windowHeight) {
@@ -189,6 +249,28 @@ export class MissionUI {
         
         return mouseX >= closeX && mouseX <= closeX + this.closeButtonSize &&
                mouseY >= closeY && mouseY <= closeY + this.closeButtonSize;
+    }
+
+    isAddButtonClicked(mouseX, mouseY) {
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+        let addX = x + this.addButtonMargin;
+        let addY = y + this.addButtonMargin;
+        
+        return mouseX >= addX && mouseX <= addX + this.addButtonSize &&
+               mouseY >= addY && mouseY <= addY + this.addButtonSize;
+    }
+
+    isBackButtonClicked(mouseX, mouseY) {
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+        let backX = x + this.backArrowMargin;
+        let backY = y + this.backArrowMargin;
+        
+        return mouseX >= backX && mouseX <= backX + this.backArrowSize &&
+               mouseY >= backY && mouseY <= backY + this.backArrowSize;
     }
 
     handleTouchStart(camera, touchX, touchY) {
