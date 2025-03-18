@@ -48,21 +48,28 @@ var mapSketch = function(sketch) {
     }
 
     sketch.draw = function() {
+        // Update game state
         camera.handleAutoCamera();
+        currentScene.spaceship.update();
 
-        // Background is drawn without camera transform
-        // since it needs weird logic to preserve parallax
+        // Render everything
+        // Background is drawn without camera transform since it needs weird logic to preserve parallax
         backgroundRenderer.render(camera);
 
         camera.applyCameraTransform();
 
-        // Draw the game world
-        currentScene.drawMapScene(camera);
+        // Render the game world
+        currentScene.sceneRenderer.render(currentScene, camera);
 
         // Draw UI elements on top
         uiRenderer.render(currentScene, camera);
 
         camera.endCameraTransform();
+
+        // Update state change events after rendering
+        currentScene.eventBus.emit('spaceshipStateChanged', {
+            inTransit: currentScene.spaceship.inTransit
+        });
     }
 
     function generateGalaxy() {

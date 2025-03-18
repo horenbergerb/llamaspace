@@ -5,7 +5,7 @@ import { MapStar } from './map-star.js';
 import { MapPlanet } from './map-planet.js';
 import { Spaceship } from './spaceship.js';
 import { GameEventBus } from './utils/game-events.js';
-import { SpaceshipRenderer } from './renderers/spaceship-renderer.js';
+import { MapSceneRenderer } from './renderers/map-scene-renderer.js';
 
 export class MapScene {
     constructor(sketch) {
@@ -18,7 +18,7 @@ export class MapScene {
         this.starInfoUI = new StarInfoUI(sketch, this.eventBus);
         this.planetInfoUI = new PlanetInfoUI(sketch, this.eventBus);
         this.spaceship = null;
-        this.spaceshipRenderer = new SpaceshipRenderer(sketch);
+        this.sceneRenderer = new MapSceneRenderer(sketch);
         this.selectedBody = null;
 
         // Set up event handlers
@@ -74,21 +74,8 @@ export class MapScene {
         };
     }
     
-    drawMapScene(camera) {
-        // Update all bodies
-        for (let body of this.mapBodies) {
-            body.update();
-            body.draw();
-        }
-    
-        // Update and render spaceship
-        this.spaceship.update();
-        this.spaceshipRenderer.render(this.spaceship);
-        
-        // Emit spaceship state changes during updates
-        this.eventBus.emit('spaceshipStateChanged', {
-            inTransit: this.spaceship.inTransit
-        });
+    update() {
+        // Update spaceship state is now handled in main.js
     }    
     
     getRandomBody() {
