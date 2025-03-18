@@ -6,7 +6,7 @@ import { Spaceship } from './map-objects/map-spaceship.js';
 import { MapStar } from './map-objects/map-star.js';
 import { MapPlanet } from './map-objects/map-planet.js';
 import { UIRenderer } from './renderers/info-ui-renderer.js';
-import { ShipUI } from './ui/base-ui.js';
+import { ShipUI } from './ui/ship-ui.js';
 import { CrewMember } from './crew-member.js';
 
 let backgroundRenderer = null;
