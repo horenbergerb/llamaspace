@@ -1,5 +1,5 @@
 export class BaseUI {
-    constructor(sketch, eventBus) {
+    constructor(sketch, eventBus, initialScene) {
         this.sketch = sketch;
         this.eventBus = eventBus;
         
@@ -20,9 +20,19 @@ export class BaseUI {
         // Close button properties
         this.closeButtonSize = 20;
 
+        // Scene tracking - initialize with the provided scene
+        this.currentScene = initialScene;
+
         // Subscribe to close other UIs when this opens
         this.eventBus.on('closeAllInfoUIs', () => {
             // This event will be handled by other UIs
+        });
+
+        // Subscribe to scene changes
+        this.eventBus.on('sceneChanged', (scene) => {
+            this.currentScene = scene;
+            // Close the window when changing scenes
+            this.isWindowVisible = false;
         });
     }
 
@@ -57,7 +67,7 @@ export class BaseUI {
         let x = this.buttonMargin;
         let y = this.sketch.height - this.buttonHeight - this.buttonMargin;
 
-        // Draw button background
+        // Draw button background with different color based on scene
         this.sketch.fill(40);
         this.sketch.stroke(100);
         this.sketch.strokeWeight(2);
@@ -141,8 +151,11 @@ export class BaseUI {
     handleMouseReleased(camera, mouseX, mouseY) {
         // Check ship button first (always visible)
         if (this.isShipButtonClicked(mouseX, mouseY)) {
-            this.eventBus.emit('closeAllInfoUIs');
-            this.isWindowVisible = !this.isWindowVisible;
+            // Only toggle if we have a valid scene
+            if (this.currentScene) {
+                this.eventBus.emit('closeAllInfoUIs');
+                this.isWindowVisible = !this.isWindowVisible;
+            }
             return true;
         }
 

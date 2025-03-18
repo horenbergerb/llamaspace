@@ -25,7 +25,7 @@ var mapSketch = function(sketch) {
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
         uiRenderer = new UIRenderer(sketch);
-        baseUI = new BaseUI(sketch, galaxyMapScene.eventBus);
+        baseUI = new BaseUI(sketch, galaxyMapScene.eventBus, galaxyMapScene);
     };
 
     sketch.setup = async function() {
@@ -42,6 +42,8 @@ var mapSketch = function(sketch) {
         generateGalaxy();
         galaxyMapScene.initializeMapScene(sketch);
         currentScene = galaxyMapScene; // Set initial scene
+        // Emit initial scene change event
+        galaxyMapScene.eventBus.emit('sceneChanged', galaxyMapScene);
 
         camera.endCameraTransform();
 
@@ -112,7 +114,10 @@ var mapSketch = function(sketch) {
 
         // Switch to system scene
         currentScene = systemMapScene;
-        controlHandler.attachEventListeners(sketch, camera, systemMapScene);
+        controlHandler.attachEventListeners(sketch, camera, systemMapScene, baseUI);
+        
+        // Emit scene change event
+        galaxyMapScene.eventBus.emit('sceneChanged', systemMapScene);
         
         // Reset camera and zoom in
         camera.panX = 0;
@@ -127,7 +132,9 @@ var mapSketch = function(sketch) {
     // Function to return to galaxy map
     window.returnToGalaxyMap = function() {
         currentScene = galaxyMapScene;
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, baseUI);
+        // Emit scene change event
+        galaxyMapScene.eventBus.emit('sceneChanged', galaxyMapScene);
     }
 };
 
