@@ -61,6 +61,16 @@ export class MissionUI {
         }
     }
 
+    renderButton(camera) {
+        this.renderMissionButton();
+    }
+
+    renderWindow(camera) {
+        if (this.isWindowVisible) {
+            this.renderMainWindow();
+        }
+    }
+
     renderMissionButton() {
         this.sketch.push();
         

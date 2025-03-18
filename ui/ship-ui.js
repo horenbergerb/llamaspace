@@ -73,6 +73,16 @@ export class ShipUI {
         }
     }
 
+    renderButton(camera) {
+        this.renderShipButton();
+    }
+
+    renderWindow(camera) {
+        if (this.isWindowVisible) {
+            this.renderMainWindow();
+        }
+    }
+
     renderShipButton() {
         this.sketch.push();
         

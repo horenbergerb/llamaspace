@@ -82,8 +82,13 @@ var mapSketch = function(sketch) {
 
         camera.endCameraTransform();
 
-        shipUI.render(camera);
-        missionUI.render(camera);
+        // Render UI buttons first (so they appear behind windows)
+        shipUI.renderButton(camera);
+        missionUI.renderButton(camera);
+
+        // Then render UI windows (so they appear on top)
+        shipUI.renderWindow(camera);
+        missionUI.renderWindow(camera);
 
         // Update state change events after rendering
         currentScene.eventBus.emit('spaceshipStateChanged', {
