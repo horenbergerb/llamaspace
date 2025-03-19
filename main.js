@@ -9,6 +9,7 @@ import { UIRenderer } from './renderers/info-ui-renderer.js';
 import { ShipUI } from './ui/ship-ui.js';
 import { MissionUI } from './ui/mission-ui.js';
 import { CrewMember } from './crew-member.js';
+import { Mission } from './mission.js';
 
 let backgroundRenderer = null;
 let galaxyMapScene = null;
@@ -20,6 +21,7 @@ let uiRenderer = null;
 let shipUI = null;
 let missionUI = null;
 let crewMembers = []; // Array to store crew members
+let missions = []; // Array to store missions
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
@@ -36,7 +38,7 @@ var mapSketch = function(sketch) {
         }
         
         shipUI = new ShipUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, crewMembers);
-        missionUI = new MissionUI(sketch, galaxyMapScene.eventBus, galaxyMapScene);
+        missionUI = new MissionUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, missions);
     };
 
     sketch.setup = async function() {

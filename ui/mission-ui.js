@@ -1,7 +1,10 @@
+import { Mission } from '../mission.js';
+
 export class MissionUI {
-    constructor(sketch, eventBus, initialScene) {
+    constructor(sketch, eventBus, initialScene, missions) {
         this.sketch = sketch;
         this.eventBus = eventBus;
+        this.missions = missions;
         
         // Mission button properties
         this.buttonWidth = 80;
@@ -57,6 +60,8 @@ export class MissionUI {
             this.currentPage = 'list'; // Reset to list page when opening
             this.activeTextField = null; // Reset active text field
             this.hideMobileInputs();
+            this.objectiveText = ''; // Clear text fields when opening
+            this.detailsText = '';
         });
         this.eventBus.on('missionUIClosed', () => {
             this.isWindowVisible = false;
@@ -261,7 +266,34 @@ export class MissionUI {
         let contentY = y + 60; // Start below the top buttons
 
         this.sketch.text('Mission List:', contentX, contentY);
-        // Add more mission list content here
+        contentY += 30;
+
+        // Draw each mission
+        this.missions.forEach((mission, index) => {
+            // Draw mission box
+            this.sketch.fill(60);
+            this.sketch.stroke(100);
+            this.sketch.strokeWeight(1);
+            this.sketch.rect(contentX, contentY, width - 40, 80, 3);
+
+            // Draw mission content
+            this.sketch.fill(255);
+            this.sketch.noStroke();
+            this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            this.sketch.textSize(16);
+            this.sketch.text(mission.objective, contentX + 10, contentY + 10);
+            
+            this.sketch.textSize(12);
+            this.sketch.fill(200);
+            this.sketch.text(mission.details, contentX + 10, contentY + 35);
+
+            // Draw completion status
+            this.sketch.textAlign(this.sketch.RIGHT, this.sketch.TOP);
+            this.sketch.fill(mission.completed ? '#4CAF50' : '#FFA500');
+            this.sketch.text(mission.completed ? 'Completed' : 'In Progress', contentX + width - 50, contentY + 10);
+
+            contentY += 90; // Space for next mission
+        });
     }
 
     renderAddMissionPage(x, y, width, height) {
@@ -480,7 +512,7 @@ export class MissionUI {
 
                     // If it's a click on the Create Mission button, handle it
                     if (this.isCreateButtonClicked(mouseX, mouseY)) {
-                        // TODO: Handle mission creation
+                        this.handleCreateMission();
                         return true;
                     }
                     
@@ -672,7 +704,7 @@ export class MissionUI {
 
                     // If it's a touch on the Create Mission button, handle it
                     if (this.isCreateButtonClicked(touchX, touchY)) {
-                        // TODO: Handle mission creation
+                        this.handleCreateMission();
                         return true;
                     }
                     
@@ -766,5 +798,22 @@ export class MissionUI {
         }
 
         return true;
+    }
+
+    handleCreateMission() {
+        if (this.objectiveText.trim() === '') {
+            return; // Don't create empty missions
+        }
+
+        // Create new mission
+        const mission = new Mission(this.objectiveText.trim(), this.detailsText.trim());
+        this.missions.push(mission);
+
+        // Clear input fields and return to list
+        this.objectiveText = '';
+        this.detailsText = '';
+        this.currentPage = 'list';
+        this.activeTextField = null;
+        this.hideMobileInputs();
     }
 } 
