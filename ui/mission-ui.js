@@ -30,6 +30,13 @@ export class MissionUI {
         this.createButtonHeight = 40;
         this.createButtonWidth = 150;
 
+        // Text input state
+        this.activeTextField = null; // 'objective' or 'details' or null
+        this.objectiveText = '';
+        this.detailsText = '';
+        this.cursorBlinkTimer = 0;
+        this.showCursor = true;
+
         // Scroll properties for add mission page
         this.missionScrollOffset = 0;
         this.missionMaxScrollOffset = 0;
@@ -45,13 +52,16 @@ export class MissionUI {
         this.eventBus.on('missionUIOpened', () => {
             this.isWindowVisible = true;
             this.currentPage = 'list'; // Reset to list page when opening
+            this.activeTextField = null; // Reset active text field
         });
         this.eventBus.on('missionUIClosed', () => {
             this.isWindowVisible = false;
             this.currentPage = 'list'; // Reset to list page when closing
+            this.activeTextField = null; // Reset active text field
         });
         this.eventBus.on('shipUIOpened', () => {
             this.isWindowVisible = false;
+            this.activeTextField = null; // Reset active text field
         });
 
         // Subscribe to scene changes
@@ -59,6 +69,20 @@ export class MissionUI {
             this.currentScene = scene;
             // Close the window when changing scenes
             this.isWindowVisible = false;
+            this.activeTextField = null; // Reset active text field
+        });
+
+        // Set up keyboard event listeners
+        window.addEventListener('keydown', (e) => {
+            if (this.handleKeyDown(e)) {
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keypress', (e) => {
+            if (this.handleKeyPress(e)) {
+                e.preventDefault();
+            }
         });
     }
 
@@ -221,23 +245,55 @@ export class MissionUI {
         contentY += this.labelHeight;
         
         // Draw objective text field
-        pg.fill(60);
+        pg.fill(this.activeTextField === 'objective' ? 80 : 60);
         pg.stroke(100);
         pg.strokeWeight(1);
         pg.rect(0, contentY, contentWidth, this.textFieldHeight, 3);
+
+        // Draw objective text and cursor
+        pg.fill(255);
+        pg.noStroke();
+        pg.textAlign(this.sketch.LEFT, this.sketch.CENTER);
+        pg.text(this.objectiveText, 5, contentY + this.textFieldHeight/2);
+        
+        // Draw cursor if this field is active
+        if (this.activeTextField === 'objective' && this.showCursor) {
+            const textWidth = pg.textWidth(this.objectiveText);
+            pg.stroke(255);
+            pg.line(5 + textWidth, contentY + 5, 5 + textWidth, contentY + this.textFieldHeight - 5);
+        }
+
         contentY += this.textFieldHeight + this.textFieldMargin;
 
         // Draw Mission Details field
         pg.fill(255);
         pg.noStroke();
+        pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
         pg.text('Mission Details:', 0, contentY);
         contentY += this.labelHeight;
         
         // Draw details text field (larger)
-        pg.fill(60);
+        pg.fill(this.activeTextField === 'details' ? 80 : 60);
         pg.stroke(100);
         pg.strokeWeight(1);
         pg.rect(0, contentY, contentWidth, this.textFieldHeight * 3, 3);
+
+        // Draw details text and cursor
+        pg.fill(255);
+        pg.noStroke();
+        pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
+        pg.text(this.detailsText, 5, contentY + 5);
+
+        // Draw cursor if this field is active
+        if (this.activeTextField === 'details' && this.showCursor) {
+            const lines = this.detailsText.split('\n');
+            const lastLine = lines[lines.length - 1] || '';
+            const textWidth = pg.textWidth(lastLine);
+            const textHeight = Math.max(0, (lines.length - 1)) * 16; // Only add line height for additional lines
+            pg.stroke(255);
+            pg.line(5 + textWidth, contentY + 5 + textHeight, 5 + textWidth, contentY + 5 + textHeight + 16);
+        }
+
         contentY += this.textFieldHeight * 3 + this.textFieldMargin;
 
         // Draw Create Mission button
@@ -260,6 +316,13 @@ export class MissionUI {
         // Draw the graphics buffer in the clipped region
         this.sketch.image(pg, x + 20, y + this.missionContentStartY);
         pg.remove();
+
+        // Update cursor blink state
+        this.cursorBlinkTimer++;
+        if (this.cursorBlinkTimer > 30) { // Adjust blink speed by changing this number
+            this.cursorBlinkTimer = 0;
+            this.showCursor = !this.showCursor;
+        }
 
         // Draw scroll indicator if needed
         if (this.missionMaxScrollOffset > 0) {
@@ -320,6 +383,7 @@ export class MissionUI {
                 if (this.isBackButtonClicked(mouseX, mouseY)) {
                     this.currentPage = 'list';
                     this.missionScrollOffset = 0; // Reset scroll when changing pages
+                    this.activeTextField = null; // Reset active text field
                     return true;
                 }
 
@@ -332,6 +396,20 @@ export class MissionUI {
                 if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
                     mouseY >= contentY && mouseY <= contentY + contentHeight) {
                     
+                    // Check if click is on objective text field
+                    const objectiveFieldY = contentY + this.missionScrollOffset + this.labelHeight;
+                    if (mouseY >= objectiveFieldY && mouseY <= objectiveFieldY + this.textFieldHeight) {
+                        this.activeTextField = 'objective';
+                        return true;
+                    }
+
+                    // Check if click is on details text field
+                    const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
+                    if (mouseY >= detailsFieldY && mouseY <= detailsFieldY + (this.textFieldHeight * 3)) {
+                        this.activeTextField = 'details';
+                        return true;
+                    }
+
                     // If it's a click on the Create Mission button, handle it
                     if (this.isCreateButtonClicked(mouseX, mouseY)) {
                         // TODO: Handle mission creation
@@ -348,6 +426,9 @@ export class MissionUI {
                 mouseY >= y && mouseY <= y + windowHeight) {
                 return true;
             }
+
+            // If we clicked outside the window, deactivate text fields
+            this.activeTextField = null;
         }
 
         return false;
@@ -460,5 +541,57 @@ export class MissionUI {
             }
         }
         return false;
+    }
+
+    handleKeyDown(event) {
+        if (!this.isWindowVisible || this.currentPage !== 'add' || !this.activeTextField) {
+            return false;
+        }
+
+        // Handle special keys
+        switch (event.key) {
+            case 'Backspace':
+                if (this.activeTextField === 'objective') {
+                    this.objectiveText = this.objectiveText.slice(0, -1);
+                } else if (this.activeTextField === 'details') {
+                    this.detailsText = this.detailsText.slice(0, -1);
+                }
+                return true;
+
+            case 'Enter':
+                if (this.activeTextField === 'details') {
+                    this.detailsText += '\n';
+                    return true;
+                }
+                return false;
+
+            case 'Tab':
+                // Switch between text fields
+                event.preventDefault(); // Prevent losing focus
+                this.activeTextField = this.activeTextField === 'objective' ? 'details' : 'objective';
+                return true;
+        }
+
+        return false;
+    }
+
+    handleKeyPress(event) {
+        if (!this.isWindowVisible || this.currentPage !== 'add' || !this.activeTextField) {
+            return false;
+        }
+
+        // Ignore special keys
+        if (event.key === 'Enter' || event.key === 'Tab') {
+            return false;
+        }
+
+        // Add the typed character to the appropriate text field
+        if (this.activeTextField === 'objective') {
+            this.objectiveText += event.key;
+        } else if (this.activeTextField === 'details') {
+            this.detailsText += event.key;
+        }
+
+        return true;
     }
 } 
