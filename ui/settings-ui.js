@@ -62,6 +62,19 @@ export class SettingsUI {
             this.activeTextField = null;
             this.hideMobileInputs();
         });
+
+        // Set up keyboard event listeners
+        window.addEventListener('keydown', (e) => {
+            if (this.handleKeyDown(e)) {
+                e.preventDefault();
+            }
+        });
+
+        window.addEventListener('keypress', (e) => {
+            if (this.handleKeyPress(e)) {
+                e.preventDefault();
+            }
+        });
     }
 
     createMobileInputs() {
