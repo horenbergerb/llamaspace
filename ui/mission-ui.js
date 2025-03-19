@@ -37,6 +37,9 @@ export class MissionUI {
         this.cursorBlinkTimer = 0;
         this.showCursor = true;
 
+        // Create hidden input elements for mobile
+        this.createMobileInputs();
+
         // Scroll properties for add mission page
         this.missionScrollOffset = 0;
         this.missionMaxScrollOffset = 0;
@@ -53,15 +56,18 @@ export class MissionUI {
             this.isWindowVisible = true;
             this.currentPage = 'list'; // Reset to list page when opening
             this.activeTextField = null; // Reset active text field
+            this.hideMobileInputs();
         });
         this.eventBus.on('missionUIClosed', () => {
             this.isWindowVisible = false;
             this.currentPage = 'list'; // Reset to list page when closing
             this.activeTextField = null; // Reset active text field
+            this.hideMobileInputs();
         });
         this.eventBus.on('shipUIOpened', () => {
             this.isWindowVisible = false;
             this.activeTextField = null; // Reset active text field
+            this.hideMobileInputs();
         });
 
         // Subscribe to scene changes
@@ -70,6 +76,7 @@ export class MissionUI {
             // Close the window when changing scenes
             this.isWindowVisible = false;
             this.activeTextField = null; // Reset active text field
+            this.hideMobileInputs();
         });
 
         // Set up keyboard event listeners
@@ -84,6 +91,67 @@ export class MissionUI {
                 e.preventDefault();
             }
         });
+    }
+
+    createMobileInputs() {
+        // Create objective input
+        this.objectiveInput = document.createElement('input');
+        this.objectiveInput.type = 'text';
+        this.objectiveInput.style.position = 'absolute';
+        this.objectiveInput.style.display = 'none';
+        this.objectiveInput.style.border = '1px solid #666';
+        this.objectiveInput.style.background = '#333';
+        this.objectiveInput.style.color = '#fff';
+        this.objectiveInput.style.padding = '5px';
+        this.objectiveInput.style.fontSize = '14px';
+        document.body.appendChild(this.objectiveInput);
+
+        // Create details input (textarea for multiline)
+        this.detailsInput = document.createElement('textarea');
+        this.detailsInput.style.position = 'absolute';
+        this.detailsInput.style.display = 'none';
+        this.detailsInput.style.border = '1px solid #666';
+        this.detailsInput.style.background = '#333';
+        this.detailsInput.style.color = '#fff';
+        this.detailsInput.style.padding = '5px';
+        this.detailsInput.style.fontSize = '14px';
+        this.detailsInput.style.resize = 'none';
+        document.body.appendChild(this.detailsInput);
+
+        // Add input event listeners
+        this.objectiveInput.addEventListener('input', () => {
+            this.objectiveText = this.objectiveInput.value;
+        });
+
+        this.detailsInput.addEventListener('input', () => {
+            this.detailsText = this.detailsInput.value;
+        });
+
+        // Add blur event listeners to hide inputs when focus is lost
+        this.objectiveInput.addEventListener('blur', () => {
+            setTimeout(() => this.hideMobileInputs(), 100);
+        });
+
+        this.detailsInput.addEventListener('blur', () => {
+            setTimeout(() => this.hideMobileInputs(), 100);
+        });
+    }
+
+    showMobileInput(field, x, y, width, height) {
+        const input = field === 'objective' ? this.objectiveInput : this.detailsInput;
+        input.style.left = x + 'px';
+        input.style.top = y + 'px';
+        input.style.width = width + 'px';
+        input.style.height = height + 'px';
+        input.style.display = 'block';
+        input.value = field === 'objective' ? this.objectiveText : this.detailsText;
+        input.focus();
+    }
+
+    hideMobileInputs() {
+        if (this.objectiveInput) this.objectiveInput.style.display = 'none';
+        if (this.detailsInput) this.detailsInput.style.display = 'none';
+        this.activeTextField = null;
     }
 
     // Calculate window dimensions based on sketch size
@@ -565,6 +633,7 @@ export class MissionUI {
                     this.currentPage = 'list';
                     this.missionScrollOffset = 0; // Reset scroll when changing pages
                     this.activeTextField = null; // Reset active text field
+                    this.hideMobileInputs();
                     return true;
                 }
 
@@ -581,6 +650,11 @@ export class MissionUI {
                     const objectiveFieldY = contentY + this.missionScrollOffset + this.labelHeight;
                     if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
                         this.activeTextField = 'objective';
+                        this.showMobileInput('objective', 
+                            contentX, 
+                            objectiveFieldY, 
+                            contentWidth, 
+                            this.textFieldHeight);
                         return true;
                     }
 
@@ -588,6 +662,11 @@ export class MissionUI {
                     const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
                     if (touchY >= detailsFieldY && touchY <= detailsFieldY + (this.textFieldHeight * 3)) {
                         this.activeTextField = 'details';
+                        this.showMobileInput('details', 
+                            contentX, 
+                            detailsFieldY, 
+                            contentWidth, 
+                            this.textFieldHeight * 3);
                         return true;
                     }
 
@@ -609,6 +688,7 @@ export class MissionUI {
 
             // If we touched outside the window, deactivate text fields
             this.activeTextField = null;
+            this.hideMobileInputs();
         }
 
         return false;
