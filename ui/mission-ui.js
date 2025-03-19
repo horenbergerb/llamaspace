@@ -74,6 +74,11 @@ export class MissionUI {
             this.activeTextField = null; // Reset active text field
             this.hideMobileInputs();
         });
+        this.eventBus.on('settingsUIOpened', () => {
+            this.isWindowVisible = false;
+            this.activeTextField = null; // Reset active text field
+            this.hideMobileInputs();
+        });
 
         // Subscribe to scene changes
         this.eventBus.on('sceneChanged', (scene) => {

@@ -8,6 +8,7 @@ import { MapPlanet } from './map-objects/map-planet.js';
 import { UIRenderer } from './renderers/info-ui-renderer.js';
 import { ShipUI } from './ui/ship-ui.js';
 import { MissionUI } from './ui/mission-ui.js';
+import { SettingsUI } from './ui/settings-ui.js';
 import { CrewMember } from './crew-member.js';
 import { Mission } from './mission.js';
 
@@ -20,6 +21,7 @@ let controlHandler = null;
 let uiRenderer = null;
 let shipUI = null;
 let missionUI = null;
+let settingsUI = null;
 let crewMembers = []; // Array to store crew members
 let missions = []; // Array to store missions
 
@@ -39,6 +41,7 @@ var mapSketch = function(sketch) {
         
         shipUI = new ShipUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, crewMembers);
         missionUI = new MissionUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, missions);
+        settingsUI = new SettingsUI(sketch, galaxyMapScene.eventBus);
     };
 
     sketch.setup = async function() {
@@ -46,7 +49,7 @@ var mapSketch = function(sketch) {
         let w = sketchHolder.clientWidth;
         sketch.createCanvas(w, sketch.windowHeight*0.7);
 
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI);
 
         camera.applyCameraTransform();
 
@@ -87,10 +90,12 @@ var mapSketch = function(sketch) {
         // Render UI buttons first (so they appear behind windows)
         shipUI.renderButton(camera);
         missionUI.renderButton(camera);
+        settingsUI.renderButton(camera);
 
         // Then render UI windows (so they appear on top)
         shipUI.renderWindow(camera);
         missionUI.renderWindow(camera);
+        settingsUI.renderWindow(camera);
 
         // Update state change events after rendering
         currentScene.eventBus.emit('spaceshipStateChanged', {

@@ -40,6 +40,11 @@ export class ShipUI {
         this.eventBus.on('missionUIOpened', () => {
             this.isWindowVisible = false;
         });
+        this.eventBus.on('settingsUIOpened', () => {
+            this.isWindowVisible = false;
+            this.activeTextField = null; // Reset active text field
+        });
+
 
         // Subscribe to scene changes
         this.eventBus.on('sceneChanged', (scene) => {

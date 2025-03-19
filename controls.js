@@ -7,6 +7,7 @@ export class ControlHandler {
         this.sketch = null;
         this.shipUI = null;
         this.missionUI = null;
+        this.settingsUI = null;
     }
 
     touchStarted(sketch, camera, mapScene) {
@@ -22,6 +23,11 @@ export class ControlHandler {
 
         // Check if touch is in mission UI
         if (this.missionUI && this.missionUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
+            return false;
+        }
+
+        // Check if touch is in settings UI
+        if (this.settingsUI && this.settingsUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
         }
 
@@ -56,6 +62,11 @@ export class ControlHandler {
             return false;
         }
 
+        // Check if touch is in settings UI
+        if (this.settingsUI && this.settingsUI.handleTouchMove(camera, sketch.touches[0].x, sketch.touches[0].y)) {
+            return false;
+        }
+
         // Check if touch is in UI
         if (sketch.touches.length === 1 && mapScene.handleTouchMoveMapScene(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
@@ -74,6 +85,9 @@ export class ControlHandler {
             return false;
         }
         if (this.missionUI && this.missionUI.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
+            return false;
+        }
+        if (this.settingsUI && this.settingsUI.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
             return false;
         }
         if (mapScene.handleTouchEndMapScene(camera, lastTouchX, lastTouchY)) {
@@ -102,6 +116,11 @@ export class ControlHandler {
         if (this.missionUI && this.missionUI.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
             return;
         }
+
+        // Check settings UI
+        if (this.settingsUI && this.settingsUI.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
+            return;
+        }
         
         // Then check map scene UI
         if (!mapScene.handleMouseReleasedMapScene(camera)) {
@@ -122,6 +141,10 @@ export class ControlHandler {
         if (this.missionUI && this.missionUI.handleMouseWheel(event)) {
             return false;
         }
+        // Check settings UI scrolling
+        if (this.settingsUI && this.settingsUI.handleMouseWheel(event)) {
+            return false;
+        }
         // Then check map scene UI
         if (mapScene.handleMouseWheelMapScene(event)) {
             return false;
@@ -130,10 +153,11 @@ export class ControlHandler {
         return camera.handleMouseWheelCamera(event);
     }
 
-    attachEventListeners(sketch, camera, mapScene, shipUI, missionUI) {
+    attachEventListeners(sketch, camera, mapScene, shipUI, missionUI, settingsUI) {
         this.sketch = sketch;
         this.shipUI = shipUI;
         this.missionUI = missionUI;
+        this.settingsUI = settingsUI;
         
         // Attach event listeners
         sketch.mousePressed = () => this.mousePressed(sketch, camera, mapScene);
@@ -149,5 +173,4 @@ export class ControlHandler {
             event.preventDefault();
         });
     }
-
 }
