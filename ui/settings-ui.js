@@ -19,6 +19,8 @@ export class SettingsUI {
         this.textFieldHeight = 30;
         this.textFieldMargin = 20;
         this.labelHeight = 20;
+        this.saveButtonHeight = 40;
+        this.saveButtonWidth = 150;
 
         // Text input state
         this.activeTextField = null; // 'apiKey' or null
@@ -232,6 +234,8 @@ export class SettingsUI {
             this.labelHeight + // API Key label
             this.textFieldHeight + // API Key field
             this.textFieldMargin + // Margin
+            20 + // Padding before button
+            this.saveButtonHeight + // Save button height
             20; // Extra padding
 
         // Calculate max scroll offset based on total content height
@@ -262,6 +266,25 @@ export class SettingsUI {
             pg.stroke(255);
             pg.line(5 + textWidth, contentY + 5, 5 + textWidth, contentY + this.textFieldHeight - 5);
         }
+
+        contentY += this.textFieldHeight + this.textFieldMargin;
+
+        // Draw Save button
+        let buttonY = contentY + 20; // Add some space after the API key field
+        let buttonX = (contentWidth - this.saveButtonWidth) / 2;
+        
+        // Button background
+        pg.fill(60);
+        pg.stroke(100);
+        pg.strokeWeight(1);
+        pg.rect(buttonX, buttonY, this.saveButtonWidth, this.saveButtonHeight, 5);
+
+        // Button text
+        pg.fill(255);
+        pg.noStroke();
+        pg.textAlign(this.sketch.CENTER, this.sketch.CENTER);
+        pg.textSize(14);
+        pg.text('Save Settings', buttonX + this.saveButtonWidth/2, buttonY + this.saveButtonHeight/2);
 
         // Draw the graphics buffer in the clipped region
         this.sketch.image(pg, x + 20, y + this.settingsContentStartY);
@@ -336,6 +359,12 @@ export class SettingsUI {
                     this.activeTextField = 'apiKey';
                     return true;
                 }
+
+                // Check if click is on Save button
+                if (this.isSaveButtonClicked(mouseX, mouseY)) {
+                    this.handleSaveSettings();
+                    return true;
+                }
                 
                 return true;
             }
@@ -370,6 +399,27 @@ export class SettingsUI {
         
         return mouseX >= closeX && mouseX <= closeX + this.closeButtonSize &&
                mouseY >= closeY && mouseY <= closeY + this.closeButtonSize;
+    }
+
+    isSaveButtonClicked(mouseX, mouseY) {
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+        
+        // Calculate button position including scroll offset
+        const contentX = x + 20;
+        const contentY = y + this.settingsContentStartY;
+        const buttonX = contentX + (windowWidth - 40 - this.saveButtonWidth) / 2;
+        
+        // Calculate button Y position including scroll offset
+        const buttonY = contentY + this.settingsScrollOffset + 
+            this.labelHeight + // API Key label
+            this.textFieldHeight + // API Key field
+            this.textFieldMargin + // Margin
+            20; // Padding before button
+        
+        return mouseX >= buttonX && mouseX <= buttonX + this.saveButtonWidth &&
+               mouseY >= buttonY && mouseY <= buttonY + this.saveButtonHeight;
     }
 
     handleTouchStart(camera, touchX, touchY) {
@@ -443,6 +493,12 @@ export class SettingsUI {
                         this.textFieldHeight);
                     return true;
                 }
+
+                // Check if touch ended on Save button
+                if (this.isSaveButtonClicked(touchX, touchY)) {
+                    this.handleSaveSettings();
+                    return true;
+                }
                 
                 return true;
             }
@@ -459,6 +515,17 @@ export class SettingsUI {
         }
 
         return false;
+    }
+
+    handleSaveSettings() {
+        // Save the API key
+        if (this.apiKeyText.trim() !== '') {
+            // Emit an event with the new API key
+            this.eventBus.emit('apiKeyUpdated', this.apiKeyText.trim());
+            // Close the settings window
+            this.isWindowVisible = false;
+            this.eventBus.emit('settingsUIClosed');
+        }
     }
 
     handleMouseWheel(event) {
