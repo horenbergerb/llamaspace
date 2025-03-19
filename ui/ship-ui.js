@@ -316,12 +316,20 @@ export class ShipUI {
     }
 
     handleTouchStart(camera, touchX, touchY) {
-        // Similar logic to handleMouseReleased
-        return this.handleMouseReleased(camera, touchX, touchY);
+        // Just prevent camera movement if touching the UI
+        if (this.isWindowVisible) {
+            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+            let x = (this.sketch.width - windowWidth) / 2;
+            let y = (this.sketch.height - windowHeight) / 2;
+            
+            return touchX >= x && touchX <= x + windowWidth &&
+                   touchY >= y && touchY <= y + windowHeight;
+        }
+        return false;
     }
 
     handleTouchMove(camera, touchX, touchY) {
-        // For now, just prevent camera movement if touching the UI
+        // Just prevent camera movement if touching the UI
         if (this.isWindowVisible) {
             const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
             let x = (this.sketch.width - windowWidth) / 2;
@@ -334,7 +342,53 @@ export class ShipUI {
     }
 
     handleTouchEnd(camera, touchX, touchY) {
-        // No special handling needed for touch end currently
+        // Check ship button first (always visible)
+        if (this.isShipButtonClicked(touchX, touchY)) {
+            // Only toggle if we have a valid scene
+            if (this.currentScene) {
+                this.eventBus.emit('closeAllInfoUIs');
+                if (!this.isWindowVisible) {
+                    this.eventBus.emit('shipUIOpened');
+                } else {
+                    this.eventBus.emit('shipUIClosed');
+                }
+            }
+            return true;
+        }
+
+        // If window is visible, handle window interactions
+        if (this.isWindowVisible) {
+            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+            let x = (this.sketch.width - windowWidth) / 2;
+            let y = (this.sketch.height - windowHeight) / 2;
+
+            // Check close button
+            if (this.isCloseButtonClicked(touchX, touchY)) {
+                this.isWindowVisible = false;
+                this.eventBus.emit('shipUIClosed');
+                return true;
+            }
+
+            // Check tab clicks
+            let tabWidth = windowWidth / this.tabs.length;
+            this.tabs.forEach((tab, index) => {
+                let tabX = x + (index * tabWidth);
+                if (touchX >= tabX && touchX <= tabX + tabWidth &&
+                    touchY >= y && touchY <= y + this.tabHeight) {
+                    this.currentTab = tab;
+                    // Reset scroll when changing tabs
+                    this.crewScrollOffset = 0;
+                }
+            });
+
+            // Return true for any touch within the window bounds
+            if (touchX >= x && touchX <= x + windowWidth &&
+                touchY >= y && touchY <= y + windowHeight) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     handleMouseWheel(event) {

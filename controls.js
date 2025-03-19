@@ -69,13 +69,16 @@ export class ControlHandler {
         let lastTouchX = sketch.touches.length > 0 ? sketch.touches[0].x : sketch.mouseX;
         let lastTouchY = sketch.touches.length > 0 ? sketch.touches[0].y : sketch.mouseY;
         
-        if (this.shipUI) {
-            this.shipUI.handleTouchEnd(camera, lastTouchX, lastTouchY);
+        // Handle UI touch events first and return if they handle the touch
+        if (this.shipUI && this.shipUI.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
+            return false;
         }
-        if (this.missionUI) {
-            this.missionUI.handleTouchEnd(camera, lastTouchX, lastTouchY);
+        if (this.missionUI && this.missionUI.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
+            return false;
         }
-        mapScene.handleTouchEndMapScene(camera, lastTouchX, lastTouchY);
+        if (mapScene.handleTouchEndMapScene(camera, lastTouchX, lastTouchY)) {
+            return false;
+        }
         
         // Only trigger mouse release if we had a single touch
         if (!sketch.touches || sketch.touches.length === 0) {

@@ -500,12 +500,20 @@ export class MissionUI {
     }
 
     handleTouchStart(camera, touchX, touchY) {
-        // Similar logic to handleMouseReleased
-        return this.handleMouseReleased(camera, touchX, touchY);
+        // Just prevent camera movement if touching the UI
+        if (this.isWindowVisible) {
+            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+            let x = (this.sketch.width - windowWidth) / 2;
+            let y = (this.sketch.height - windowHeight) / 2;
+            
+            return touchX >= x && touchX <= x + windowWidth &&
+                   touchY >= y && touchY <= y + windowHeight;
+        }
+        return false;
     }
 
     handleTouchMove(camera, touchX, touchY) {
-        // For now, just prevent camera movement if touching the UI
+        // Just prevent camera movement if touching the UI
         if (this.isWindowVisible) {
             const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
             let x = (this.sketch.width - windowWidth) / 2;
@@ -518,7 +526,92 @@ export class MissionUI {
     }
 
     handleTouchEnd(camera, touchX, touchY) {
-        // No special handling needed for touch end currently
+        // Check mission button first (always visible)
+        if (this.isMissionButtonClicked(touchX, touchY)) {
+            // Only toggle if we have a valid scene
+            if (this.currentScene) {
+                this.eventBus.emit('closeAllInfoUIs');
+                if (!this.isWindowVisible) {
+                    this.eventBus.emit('missionUIOpened');
+                } else {
+                    this.eventBus.emit('missionUIClosed');
+                }
+            }
+            return true;
+        }
+
+        // If window is visible, handle window interactions
+        if (this.isWindowVisible) {
+            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+            let x = (this.sketch.width - windowWidth) / 2;
+            let y = (this.sketch.height - windowHeight) / 2;
+
+            // Check close button
+            if (this.isCloseButtonClicked(touchX, touchY)) {
+                this.isWindowVisible = false;
+                this.eventBus.emit('missionUIClosed');
+                return true;
+            }
+
+            // Handle page-specific button clicks
+            if (this.currentPage === 'list') {
+                if (this.isAddButtonClicked(touchX, touchY)) {
+                    this.currentPage = 'add';
+                    this.missionScrollOffset = 0; // Reset scroll when changing pages
+                    return true;
+                }
+            } else {
+                if (this.isBackButtonClicked(touchX, touchY)) {
+                    this.currentPage = 'list';
+                    this.missionScrollOffset = 0; // Reset scroll when changing pages
+                    this.activeTextField = null; // Reset active text field
+                    return true;
+                }
+
+                // Check if touch ended within the content area
+                const contentX = x + 20;
+                const contentY = y + this.missionContentStartY;
+                const contentWidth = windowWidth - 40;
+                const contentHeight = windowHeight - this.missionContentStartY - 20;
+
+                if (touchX >= contentX && touchX <= contentX + contentWidth &&
+                    touchY >= contentY && touchY <= contentY + contentHeight) {
+                    
+                    // Check if touch ended on objective text field
+                    const objectiveFieldY = contentY + this.missionScrollOffset + this.labelHeight;
+                    if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
+                        this.activeTextField = 'objective';
+                        return true;
+                    }
+
+                    // Check if touch ended on details text field
+                    const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
+                    if (touchY >= detailsFieldY && touchY <= detailsFieldY + (this.textFieldHeight * 3)) {
+                        this.activeTextField = 'details';
+                        return true;
+                    }
+
+                    // If it's a touch on the Create Mission button, handle it
+                    if (this.isCreateButtonClicked(touchX, touchY)) {
+                        // TODO: Handle mission creation
+                        return true;
+                    }
+                    
+                    return true;
+                }
+            }
+
+            // Return true for any touch within the window bounds
+            if (touchX >= x && touchX <= x + windowWidth &&
+                touchY >= y && touchY <= y + windowHeight) {
+                return true;
+            }
+
+            // If we touched outside the window, deactivate text fields
+            this.activeTextField = null;
+        }
+
+        return false;
     }
 
     handleMouseWheel(event) {
