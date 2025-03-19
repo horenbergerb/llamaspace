@@ -256,44 +256,78 @@ export class MissionUI {
         this.sketch.line(addX, addY + this.addButtonSize/2, addX + this.addButtonSize, addY + this.addButtonSize/2);
         this.sketch.line(addX + this.addButtonSize/2, addY, addX + this.addButtonSize/2, addY + this.addButtonSize);
 
-        // Draw mission list content
-        this.sketch.fill(255);
-        this.sketch.noStroke();
-        this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
-        this.sketch.textSize(14);
+        // Create a graphics buffer for the content section
+        const contentWidth = width - 40; // Account for margins
+        const contentHeight = height - this.missionContentStartY - 20; // Leave some bottom padding
+        const pg = this.sketch.createGraphics(contentWidth, contentHeight);
+        pg.background(0, 0, 0, 0);
+
+        // Set up the graphics context
+        pg.fill(255);
+        pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
+        pg.textSize(14);
+
+        // Calculate total content height
+        const missionHeight = 90; // Height of each mission box
+        const totalContentHeight = (this.missions.length * missionHeight) + 30; // Add some padding
+
+        // Calculate max scroll offset based on total content height
+        this.missionMaxScrollOffset = Math.max(0, totalContentHeight - contentHeight + 20);
+
+        // Draw mission list title
+        pg.text('Mission List:', 0, this.missionScrollOffset);
         
-        let contentX = x + 20;
-        let contentY = y + 60; // Start below the top buttons
+        // Draw each mission with scroll offset
+        let contentY = this.missionScrollOffset + 30;
 
-        this.sketch.text('Mission List:', contentX, contentY);
-        contentY += 30;
-
-        // Draw each mission
         this.missions.forEach((mission, index) => {
             // Draw mission box
-            this.sketch.fill(60);
-            this.sketch.stroke(100);
-            this.sketch.strokeWeight(1);
-            this.sketch.rect(contentX, contentY, width - 40, 80, 3);
+            pg.fill(60);
+            pg.stroke(100);
+            pg.strokeWeight(1);
+            pg.rect(0, contentY, contentWidth, 80, 3);
 
             // Draw mission content
-            this.sketch.fill(255);
-            this.sketch.noStroke();
-            this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
-            this.sketch.textSize(16);
-            this.sketch.text(mission.objective, contentX + 10, contentY + 10);
+            pg.fill(255);
+            pg.noStroke();
+            pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            pg.textSize(16);
+            pg.text(mission.objective, 10, contentY + 10);
             
-            this.sketch.textSize(12);
-            this.sketch.fill(200);
-            this.sketch.text(mission.details, contentX + 10, contentY + 35);
+            pg.textSize(12);
+            pg.fill(200);
+            pg.text(mission.details, 10, contentY + 35);
 
             // Draw completion status
-            this.sketch.textAlign(this.sketch.RIGHT, this.sketch.TOP);
-            this.sketch.fill(mission.completed ? '#4CAF50' : '#FFA500');
-            this.sketch.text(mission.completed ? 'Completed' : 'In Progress', contentX + width - 50, contentY + 10);
+            pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
+            pg.fill(mission.completed ? '#4CAF50' : '#FFA500');
+            pg.text(mission.completed ? 'Completed' : 'In Progress', contentWidth - 10, contentY + 10);
 
-            contentY += 90; // Space for next mission
+            contentY += missionHeight;
         });
+
+        // Draw the graphics buffer in the clipped region
+        this.sketch.image(pg, x + 20, y + this.missionContentStartY);
+        pg.remove();
+
+        // Draw scroll indicator if needed
+        if (this.missionMaxScrollOffset > 0) {
+            // Calculate the visible portion ratio
+            const visibleRatio = contentHeight / totalContentHeight;
+            // Calculate scroll bar height based on the ratio of visible content
+            const scrollBarHeight = Math.max(30, contentHeight * visibleRatio);
+            
+            // Calculate scroll position as a percentage (0 to 1)
+            const scrollPercent = Math.abs(this.missionScrollOffset) / this.missionMaxScrollOffset;
+            // Calculate available scroll distance (content height minus scroll bar height)
+            const availableScrollDistance = contentHeight - scrollBarHeight;
+            // Calculate final scroll bar position
+            const scrollBarY = y + this.missionContentStartY + (availableScrollDistance * scrollPercent);
+            
+            this.sketch.fill(150, 150, 150, 100);
+            this.sketch.noStroke();
+            this.sketch.rect(x + width - 8, scrollBarY, 4, scrollBarHeight, 2);
+        }
     }
 
     renderAddMissionPage(x, y, width, height) {
@@ -727,8 +761,8 @@ export class MissionUI {
     }
 
     handleMouseWheel(event) {
-        // Only handle scrolling if we're in the add mission page and the window is visible
-        if (this.isWindowVisible && this.currentPage === 'add') {
+        // Only handle scrolling if the window is visible
+        if (this.isWindowVisible) {
             const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
             let x = (this.sketch.width - windowWidth) / 2;
             let y = (this.sketch.height - windowHeight) / 2;
