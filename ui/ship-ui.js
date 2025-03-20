@@ -1,7 +1,8 @@
-export class ShipUI {
+import { BaseWindowUI } from './base-window-ui.js';
+
+export class ShipUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, crewMembers) {
-        this.sketch = sketch;
-        this.eventBus = eventBus;
+        super(sketch, eventBus, initialScene);
         this.crewMembers = crewMembers;
         
         // Ship button properties
@@ -22,13 +23,10 @@ export class ShipUI {
         this.closeButtonSize = 20;
 
         // Scroll properties for crew tab
-        this.crewScrollOffset = 0;
-        this.crewMaxScrollOffset = 0;
+        this.scrollOffset = 0;
+        this.maxScrollOffset = 0;
         this.crewPropertiesHeight = 0;
         this.crewPropertiesStartY = 60; // Start below tabs
-
-        // Scene tracking - initialize with the provided scene
-        this.currentScene = initialScene;
 
         // Subscribe to UI visibility events
         this.eventBus.on('shipUIOpened', () => {
@@ -44,7 +42,6 @@ export class ShipUI {
             this.isWindowVisible = false;
             this.activeTextField = null; // Reset active text field
         });
-
 
         // Subscribe to scene changes
         this.eventBus.on('sceneChanged', (scene) => {
@@ -112,19 +109,18 @@ export class ShipUI {
     }
 
     renderMainWindow() {
-        this.sketch.push();
-        
+        //Doesn't call super.renderMainWindow() because it draws close button after tabs
         const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-        
-        // Center the window
         let x = (this.sketch.width - windowWidth) / 2;
         let y = (this.sketch.height - windowHeight) / 2;
 
         // Draw window background
+        this.sketch.push();
         this.sketch.fill(40);
         this.sketch.stroke(100);
         this.sketch.strokeWeight(2);
         this.sketch.rect(x, y, windowWidth, windowHeight, 5);
+        this.sketch.pop();
 
         // Draw tabs
         let tabWidth = windowWidth / this.tabs.length;
@@ -145,17 +141,16 @@ export class ShipUI {
             this.sketch.pop();
         });
 
-        // Draw close button
+        // Draw close button on top of everything
         let closeX = x + windowWidth - this.closeButtonSize - 10;
         let closeY = y + 10;
         this.sketch.stroke(150);
+        this.sketch.strokeWeight(2);
         this.sketch.line(closeX, closeY, closeX + this.closeButtonSize, closeY + this.closeButtonSize);
         this.sketch.line(closeX + this.closeButtonSize, closeY, closeX, closeY + this.closeButtonSize);
 
         // Draw content based on current tab
         this.renderTabContent(x, y + this.tabHeight, windowWidth, windowHeight - this.tabHeight);
-
-        this.sketch.pop();
     }
 
     renderTabContent(x, y, width, height) {
@@ -196,7 +191,7 @@ export class ShipUI {
             }
 
             // Draw crew members into the graphics buffer
-            let infoY = this.crewScrollOffset;
+            let infoY = this.scrollOffset;
 
             for (const crew of this.crewMembers) {
                 // Draw crew member name and race
@@ -223,18 +218,10 @@ export class ShipUI {
             pg.remove();
 
             // Calculate max scroll offset based on total content height
-            this.crewMaxScrollOffset = Math.max(0, totalHeight - contentHeight);
+            this.maxScrollOffset = Math.max(0, totalHeight - contentHeight);
 
-            // Draw scroll indicator if needed
-            if (this.crewMaxScrollOffset > 0) {
-                const scrollPercent = -this.crewScrollOffset / this.crewMaxScrollOffset;
-                const scrollBarHeight = Math.max(30, (contentHeight / totalHeight) * contentHeight);
-                const scrollBarY = y + (height - scrollBarHeight) * scrollPercent;
-                
-                this.sketch.fill(150, 150, 150, 100);
-                this.sketch.noStroke();
-                this.sketch.rect(x + width - 8, scrollBarY, 4, scrollBarHeight, 2);
-            }
+            // Draw scroll indicator
+            this.renderScrollIndicator(x, y, width, height, totalHeight, contentHeight);
         }
     }
 
@@ -274,22 +261,9 @@ export class ShipUI {
                     mouseY >= y && mouseY <= y + this.tabHeight) {
                     this.currentTab = tab;
                     // Reset scroll when changing tabs
-                    this.crewScrollOffset = 0;
+                    this.scrollOffset = 0;
                 }
             });
-
-            // Handle crew tab scrolling
-            if (this.currentTab === 'Crew') {
-                const contentY = y + this.crewPropertiesStartY;
-                if (mouseX >= x && mouseX <= x + windowWidth &&
-                    mouseY >= contentY && mouseY <= y + windowHeight) {
-                    // Handle mouse wheel scrolling
-                    if (this.sketch.mouseWheel) {
-                        this.crewScrollOffset = Math.max(-this.crewMaxScrollOffset, 
-                            Math.min(0, this.crewScrollOffset + this.sketch.mouseWheel));
-                    }
-                }
-            }
 
             // Return true for any click within the window bounds
             if (mouseX >= x && mouseX <= x + windowWidth &&
@@ -307,43 +281,6 @@ export class ShipUI {
         
         return mouseX >= x && mouseX <= x + this.buttonWidth &&
                mouseY >= y && mouseY <= y + this.buttonHeight;
-    }
-
-    isCloseButtonClicked(mouseX, mouseY) {
-        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-        let x = (this.sketch.width - windowWidth) / 2;
-        let y = (this.sketch.height - windowHeight) / 2;
-        let closeX = x + windowWidth - this.closeButtonSize - 10;
-        let closeY = y + 10;
-        
-        return mouseX >= closeX && mouseX <= closeX + this.closeButtonSize &&
-               mouseY >= closeY && mouseY <= closeY + this.closeButtonSize;
-    }
-
-    handleTouchStart(camera, touchX, touchY) {
-        // Just prevent camera movement if touching the UI
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            return touchX >= x && touchX <= x + windowWidth &&
-                   touchY >= y && touchY <= y + windowHeight;
-        }
-        return false;
-    }
-
-    handleTouchMove(camera, touchX, touchY) {
-        // Just prevent camera movement if touching the UI
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            return touchX >= x && touchX <= x + windowWidth &&
-                   touchY >= y && touchY <= y + windowHeight;
-        }
-        return false;
     }
 
     handleTouchEnd(camera, touchX, touchY) {
@@ -382,7 +319,7 @@ export class ShipUI {
                     touchY >= y && touchY <= y + this.tabHeight) {
                     this.currentTab = tab;
                     // Reset scroll when changing tabs
-                    this.crewScrollOffset = 0;
+                    this.scrollOffset = 0;
                 }
             });
 
@@ -393,28 +330,6 @@ export class ShipUI {
             }
         }
 
-        return false;
-    }
-
-    handleMouseWheel(event) {
-        // Only handle scrolling if we're in the crew tab and the window is visible
-        if (this.isWindowVisible && this.currentTab === 'Crew') {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            // Check if mouse is over the crew content area
-            if (this.sketch.mouseX >= x && this.sketch.mouseX <= x + windowWidth &&
-                this.sketch.mouseY >= y + this.crewPropertiesStartY && 
-                this.sketch.mouseY <= y + windowHeight) {
-                
-                // Update scroll offset with a multiplier to make scrolling smoother
-                const scrollMultiplier = 1.5;
-                this.crewScrollOffset = Math.max(-this.crewMaxScrollOffset, 
-                    Math.min(0, this.crewScrollOffset - (event.deltaY * scrollMultiplier)));
-                return true;
-            }
-        }
         return false;
     }
 } 

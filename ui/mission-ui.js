@@ -1,9 +1,9 @@
 import { Mission } from '../mission.js';
+import { BaseWindowUI } from './base-window-ui.js';
 
-export class MissionUI {
+export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {
-        this.sketch = sketch;
-        this.eventBus = eventBus;
+        super(sketch, eventBus, initialScene);
         this.missions = missions;
         
         // Mission button properties
@@ -44,15 +44,12 @@ export class MissionUI {
         this.createMobileInputs();
 
         // Scroll properties for add mission page
-        this.missionScrollOffset = 0;
-        this.missionMaxScrollOffset = 0;
-        this.missionContentStartY = 60; // Start below top buttons
+        this.scrollOffset = 0;
+        this.maxScrollOffset = 0;
+        this.contentStartY = 60; // Start below top buttons
 
         // Page state
         this.currentPage = 'list'; // 'list' or 'add'
-
-        // Scene tracking - initialize with the provided scene
-        this.currentScene = initialScene;
 
         // Subscribe to UI visibility events
         this.eventBus.on('missionUIOpened', () => {
@@ -222,26 +219,11 @@ export class MissionUI {
     }
 
     renderMainWindow() {
-        this.sketch.push();
+        super.renderMainWindow();
         
         const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-        
-        // Center the window
         let x = (this.sketch.width - windowWidth) / 2;
         let y = (this.sketch.height - windowHeight) / 2;
-
-        // Draw window background
-        this.sketch.fill(40);
-        this.sketch.stroke(100);
-        this.sketch.strokeWeight(2);
-        this.sketch.rect(x, y, windowWidth, windowHeight, 5);
-
-        // Draw close button
-        let closeX = x + windowWidth - this.closeButtonSize - 10;
-        let closeY = y + 10;
-        this.sketch.stroke(150);
-        this.sketch.line(closeX, closeY, closeX + this.closeButtonSize, closeY + this.closeButtonSize);
-        this.sketch.line(closeX + this.closeButtonSize, closeY, closeX, closeY + this.closeButtonSize);
 
         // Render the appropriate page based on current state
         if (this.currentPage === 'list') {
@@ -249,8 +231,6 @@ export class MissionUI {
         } else {
             this.renderAddMissionPage(x, y, windowWidth, windowHeight);
         }
-
-        this.sketch.pop();
     }
 
     renderMissionListPage(x, y, width, height) {
@@ -263,7 +243,7 @@ export class MissionUI {
 
         // Create a graphics buffer for the content section
         const contentWidth = width - 40; // Account for margins
-        const contentHeight = height - this.missionContentStartY - 20; // Leave some bottom padding
+        const contentHeight = height - this.contentStartY - 20; // Leave some bottom padding
         const pg = this.sketch.createGraphics(contentWidth, contentHeight);
         pg.background(0, 0, 0, 0);
 
@@ -277,13 +257,13 @@ export class MissionUI {
         const totalContentHeight = (this.missions.length * missionHeight) + 30; // Add some padding
 
         // Calculate max scroll offset based on total content height
-        this.missionMaxScrollOffset = Math.max(0, totalContentHeight - contentHeight + 20);
+        this.maxScrollOffset = Math.max(0, totalContentHeight - contentHeight + 20);
 
         // Draw mission list title
-        pg.text('Mission List:', 0, this.missionScrollOffset);
+        pg.text('Mission List:', 0, this.scrollOffset);
         
         // Draw each mission with scroll offset
-        let contentY = this.missionScrollOffset + 30;
+        let contentY = this.scrollOffset + 30;
 
         this.missions.forEach((mission, index) => {
             // Draw mission box
@@ -312,27 +292,11 @@ export class MissionUI {
         });
 
         // Draw the graphics buffer in the clipped region
-        this.sketch.image(pg, x + 20, y + this.missionContentStartY);
+        this.sketch.image(pg, x + 20, y + this.contentStartY);
         pg.remove();
 
-        // Draw scroll indicator if needed
-        if (this.missionMaxScrollOffset > 0) {
-            // Calculate the visible portion ratio
-            const visibleRatio = contentHeight / totalContentHeight;
-            // Calculate scroll bar height based on the ratio of visible content
-            const scrollBarHeight = Math.max(30, contentHeight * visibleRatio);
-            
-            // Calculate scroll position as a percentage (0 to 1)
-            const scrollPercent = Math.abs(this.missionScrollOffset) / this.missionMaxScrollOffset;
-            // Calculate available scroll distance (content height minus scroll bar height)
-            const availableScrollDistance = contentHeight - scrollBarHeight;
-            // Calculate final scroll bar position
-            const scrollBarY = y + this.missionContentStartY + (availableScrollDistance * scrollPercent);
-            
-            this.sketch.fill(150, 150, 150, 100);
-            this.sketch.noStroke();
-            this.sketch.rect(x + width - 8, scrollBarY, 4, scrollBarHeight, 2);
-        }
+        // Draw scroll indicator
+        this.renderScrollIndicator(x, y, width, height, totalContentHeight, contentHeight);
     }
 
     renderAddMissionPage(x, y, width, height) {
@@ -352,7 +316,7 @@ export class MissionUI {
 
         // Create a graphics buffer for the content section
         const contentWidth = width - 40; // Account for margins
-        const contentHeight = height - this.missionContentStartY - 20; // Leave some bottom padding
+        const contentHeight = height - this.contentStartY - 20; // Leave some bottom padding
         const pg = this.sketch.createGraphics(contentWidth, contentHeight);
         pg.background(0, 0, 0, 0);
         
@@ -374,10 +338,10 @@ export class MissionUI {
             20; // Padding after button
 
         // Calculate max scroll offset based on total content height
-        this.missionMaxScrollOffset = Math.max(0, totalContentHeight - contentHeight + 20);
+        this.maxScrollOffset = Math.max(0, totalContentHeight - contentHeight + 20);
 
         // Now draw content with scroll offset
-        let contentY = this.missionScrollOffset;
+        let contentY = this.scrollOffset;
 
         // Draw Mission Objective field
         pg.text('Mission Objective:', 0, contentY);
@@ -453,34 +417,14 @@ export class MissionUI {
         pg.text('Create Mission', buttonX + this.createButtonWidth/2, buttonY + this.createButtonHeight/2);
 
         // Draw the graphics buffer in the clipped region
-        this.sketch.image(pg, x + 20, y + this.missionContentStartY);
+        this.sketch.image(pg, x + 20, y + this.contentStartY);
         pg.remove();
 
-        // Update cursor blink state
-        this.cursorBlinkTimer++;
-        if (this.cursorBlinkTimer > 30) { // Adjust blink speed by changing this number
-            this.cursorBlinkTimer = 0;
-            this.showCursor = !this.showCursor;
-        }
+        // Draw scroll indicator
+        this.renderScrollIndicator(x, y, width, height, totalContentHeight, contentHeight);
 
-        // Draw scroll indicator if needed
-        if (this.missionMaxScrollOffset > 0) {
-            // Calculate the visible portion ratio
-            const visibleRatio = contentHeight / totalContentHeight;
-            // Calculate scroll bar height based on the ratio of visible content
-            const scrollBarHeight = Math.max(30, contentHeight * visibleRatio);
-            
-            // Calculate scroll position as a percentage (0 to 1)
-            const scrollPercent = Math.abs(this.missionScrollOffset) / this.missionMaxScrollOffset;
-            // Calculate available scroll distance (content height minus scroll bar height)
-            const availableScrollDistance = contentHeight - scrollBarHeight;
-            // Calculate final scroll bar position
-            const scrollBarY = y + this.missionContentStartY + (availableScrollDistance * scrollPercent);
-            
-            this.sketch.fill(150, 150, 150, 100);
-            this.sketch.noStroke();
-            this.sketch.rect(x + width - 8, scrollBarY, 4, scrollBarHeight, 2);
-        }
+        // Update cursor blink state
+        this.updateCursorBlink();
     }
 
     handleMouseReleased(camera, mouseX, mouseY) {
@@ -515,28 +459,28 @@ export class MissionUI {
             if (this.currentPage === 'list') {
                 if (this.isAddButtonClicked(mouseX, mouseY)) {
                     this.currentPage = 'add';
-                    this.missionScrollOffset = 0; // Reset scroll when changing pages
+                    this.scrollOffset = 0; // Reset scroll when changing pages
                     return true;
                 }
             } else {
                 if (this.isBackButtonClicked(mouseX, mouseY)) {
                     this.currentPage = 'list';
-                    this.missionScrollOffset = 0; // Reset scroll when changing pages
+                    this.scrollOffset = 0; // Reset scroll when changing pages
                     this.activeTextField = null; // Reset active text field
                     return true;
                 }
 
                 // Check if click is within the content area
                 const contentX = x + 20;
-                const contentY = y + this.missionContentStartY;
+                const contentY = y + this.contentStartY;
                 const contentWidth = windowWidth - 40;
-                const contentHeight = windowHeight - this.missionContentStartY - 20;
+                const contentHeight = windowHeight - this.contentStartY - 20;
 
                 if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
                     mouseY >= contentY && mouseY <= contentY + contentHeight) {
                     
                     // Check if click is on objective text field
-                    const objectiveFieldY = contentY + this.missionScrollOffset + this.labelHeight;
+                    const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
                     if (mouseY >= objectiveFieldY && mouseY <= objectiveFieldY + this.textFieldHeight) {
                         this.activeTextField = 'objective';
                         return true;
@@ -581,17 +525,6 @@ export class MissionUI {
                mouseY >= y && mouseY <= y + this.buttonHeight;
     }
 
-    isCloseButtonClicked(mouseX, mouseY) {
-        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-        let x = (this.sketch.width - windowWidth) / 2;
-        let y = (this.sketch.height - windowHeight) / 2;
-        let closeX = x + windowWidth - this.closeButtonSize - 10;
-        let closeY = y + 10;
-        
-        return mouseX >= closeX && mouseX <= closeX + this.closeButtonSize &&
-               mouseY >= closeY && mouseY <= closeY + this.closeButtonSize;
-    }
-
     isAddButtonClicked(mouseX, mouseY) {
         const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
         let x = (this.sketch.width - windowWidth) / 2;
@@ -621,11 +554,11 @@ export class MissionUI {
         
         // Calculate button position including scroll offset
         const contentX = x + 20;
-        const contentY = y + this.missionContentStartY;
+        const contentY = y + this.contentStartY;
         const buttonX = contentX + (windowWidth - 40 - this.createButtonWidth) / 2;
         
         // Calculate button Y position including scroll offset
-        const buttonY = contentY + this.missionScrollOffset + 
+        const buttonY = contentY + this.scrollOffset + 
             this.labelHeight + // Objective label
             this.textFieldHeight + // Objective field
             this.textFieldMargin + // Margin
@@ -636,32 +569,6 @@ export class MissionUI {
         
         return mouseX >= buttonX && mouseX <= buttonX + this.createButtonWidth &&
                mouseY >= buttonY && mouseY <= buttonY + this.createButtonHeight;
-    }
-
-    handleTouchStart(camera, touchX, touchY) {
-        // Just prevent camera movement if touching the UI
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            return touchX >= x && touchX <= x + windowWidth &&
-                   touchY >= y && touchY <= y + windowHeight;
-        }
-        return false;
-    }
-
-    handleTouchMove(camera, touchX, touchY) {
-        // Just prevent camera movement if touching the UI
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            return touchX >= x && touchX <= x + windowWidth &&
-                   touchY >= y && touchY <= y + windowHeight;
-        }
-        return false;
     }
 
     handleTouchEnd(camera, touchX, touchY) {
@@ -696,13 +603,13 @@ export class MissionUI {
             if (this.currentPage === 'list') {
                 if (this.isAddButtonClicked(touchX, touchY)) {
                     this.currentPage = 'add';
-                    this.missionScrollOffset = 0; // Reset scroll when changing pages
+                    this.scrollOffset = 0; // Reset scroll when changing pages
                     return true;
                 }
             } else {
                 if (this.isBackButtonClicked(touchX, touchY)) {
                     this.currentPage = 'list';
-                    this.missionScrollOffset = 0; // Reset scroll when changing pages
+                    this.scrollOffset = 0; // Reset scroll when changing pages
                     this.activeTextField = null; // Reset active text field
                     this.hideMobileInputs();
                     return true;
@@ -710,15 +617,15 @@ export class MissionUI {
 
                 // Check if touch ended within the content area
                 const contentX = x + 20;
-                const contentY = y + this.missionContentStartY;
+                const contentY = y + this.contentStartY;
                 const contentWidth = windowWidth - 40;
-                const contentHeight = windowHeight - this.missionContentStartY - 20;
+                const contentHeight = windowHeight - this.contentStartY - 20;
 
                 if (touchX >= contentX && touchX <= contentX + contentWidth &&
                     touchY >= contentY && touchY <= contentY + contentHeight) {
                     
                     // Check if touch ended on objective text field
-                    const objectiveFieldY = contentY + this.missionScrollOffset + this.labelHeight;
+                    const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
                     if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
                         this.activeTextField = 'objective';
                         this.showMobileInput('objective', 
@@ -765,26 +672,21 @@ export class MissionUI {
         return false;
     }
 
-    handleMouseWheel(event) {
-        // Only handle scrolling if the window is visible
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            // Check if mouse is over the content area
-            if (this.sketch.mouseX >= x && this.sketch.mouseX <= x + windowWidth &&
-                this.sketch.mouseY >= y + this.missionContentStartY && 
-                this.sketch.mouseY <= y + windowHeight - 20) {
-                
-                // Update scroll offset with a multiplier to make scrolling smoother
-                const scrollMultiplier = 1.5;
-                this.missionScrollOffset = Math.max(-this.missionMaxScrollOffset, 
-                    Math.min(0, this.missionScrollOffset - (event.deltaY * scrollMultiplier)));
-                return true;
-            }
+    handleCreateMission() {
+        if (this.objectiveText.trim() === '') {
+            return; // Don't create empty missions
         }
-        return false;
+
+        // Create new mission
+        const mission = new Mission(this.objectiveText.trim(), this.detailsText.trim());
+        this.missions.push(mission);
+
+        // Clear input fields and return to list
+        this.objectiveText = '';
+        this.detailsText = '';
+        this.currentPage = 'list';
+        this.activeTextField = null;
+        this.hideMobileInputs();
     }
 
     handleKeyDown(event) {
@@ -837,22 +739,5 @@ export class MissionUI {
         }
 
         return true;
-    }
-
-    handleCreateMission() {
-        if (this.objectiveText.trim() === '') {
-            return; // Don't create empty missions
-        }
-
-        // Create new mission
-        const mission = new Mission(this.objectiveText.trim(), this.detailsText.trim());
-        this.missions.push(mission);
-
-        // Clear input fields and return to list
-        this.objectiveText = '';
-        this.detailsText = '';
-        this.currentPage = 'list';
-        this.activeTextField = null;
-        this.hideMobileInputs();
     }
 } 

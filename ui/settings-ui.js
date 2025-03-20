@@ -1,9 +1,9 @@
 import { TextGeneratorOpenRouter } from '../text-gen-openrouter.js';
+import { BaseWindowUI } from './base-window-ui.js';
 
-export class SettingsUI {
+export class SettingsUI extends BaseWindowUI {
     constructor(sketch, eventBus) {
-        this.sketch = sketch;
-        this.eventBus = eventBus;
+        super(sketch, eventBus, null); // Settings UI doesn't need scene tracking
         
         // Settings button properties
         this.buttonWidth = 40;
@@ -66,9 +66,9 @@ export class SettingsUI {
         this.createMobileInputs();
 
         // Scroll properties
-        this.settingsScrollOffset = 0;
-        this.settingsMaxScrollOffset = 0;
-        this.settingsContentStartY = 60; // Start below top buttons
+        this.scrollOffset = 0;
+        this.maxScrollOffset = 0;
+        this.contentStartY = 60; // Start below top buttons
 
         // Subscribe to UI visibility events
         this.eventBus.on('settingsUIOpened', () => {
@@ -224,26 +224,13 @@ export class SettingsUI {
     }
 
     renderMainWindow() {
-        this.sketch.push();
+        super.renderMainWindow();
         
         const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
         
         // Center the window
         let x = (this.sketch.width - windowWidth) / 2;
         let y = (this.sketch.height - windowHeight) / 2;
-
-        // Draw window background
-        this.sketch.fill(40);
-        this.sketch.stroke(100);
-        this.sketch.strokeWeight(2);
-        this.sketch.rect(x, y, windowWidth, windowHeight, 5);
-
-        // Draw close button
-        let closeX = x + windowWidth - this.closeButtonSize - 10;
-        let closeY = y + 10;
-        this.sketch.stroke(150);
-        this.sketch.line(closeX, closeY, closeX + this.closeButtonSize, closeY + this.closeButtonSize);
-        this.sketch.line(closeX + this.closeButtonSize, closeY, closeX, closeY + this.closeButtonSize);
 
         // Draw title
         this.sketch.fill(255);
@@ -254,7 +241,7 @@ export class SettingsUI {
 
         // Create a graphics buffer for the content section
         const contentWidth = windowWidth - 40; // Account for margins
-        const contentHeight = windowHeight - this.settingsContentStartY - 20; // Leave some bottom padding
+        const contentHeight = windowHeight - this.contentStartY - 20; // Leave some bottom padding
         const pg = this.sketch.createGraphics(contentWidth, contentHeight);
         pg.background(0, 0, 0, 0);
         
@@ -273,11 +260,8 @@ export class SettingsUI {
             this.saveButtonHeight + // Save button height
             20; // Extra padding
 
-        // Calculate max scroll offset based on total content height
-        this.settingsMaxScrollOffset = Math.max(0, totalContentHeight - contentHeight + 20);
-
         // Draw content with scroll offset
-        let contentY = this.settingsScrollOffset;
+        let contentY = this.scrollOffset;
 
         // Draw API Key field
         pg.text('OpenRouter API Key:', 0, contentY);
@@ -341,36 +325,17 @@ export class SettingsUI {
         pg.text('Save Settings', buttonX + this.saveButtonWidth/2, buttonY + this.saveButtonHeight/2);
 
         // Draw the graphics buffer in the clipped region
-        this.sketch.image(pg, x + 20, y + this.settingsContentStartY);
+        this.sketch.image(pg, x + 20, y + this.contentStartY);
         pg.remove();
 
-        // Draw scroll indicator if needed
-        if (this.settingsMaxScrollOffset > 0) {
-            // Calculate the visible portion ratio
-            const visibleRatio = contentHeight / totalContentHeight;
-            // Calculate scroll bar height based on the ratio of visible content
-            const scrollBarHeight = Math.max(30, contentHeight * visibleRatio);
-            
-            // Calculate scroll position as a percentage (0 to 1)
-            const scrollPercent = Math.abs(this.settingsScrollOffset) / this.settingsMaxScrollOffset;
-            // Calculate available scroll distance (content height minus scroll bar height)
-            const availableScrollDistance = contentHeight - scrollBarHeight;
-            // Calculate final scroll bar position
-            const scrollBarY = y + this.settingsContentStartY + (availableScrollDistance * scrollPercent);
-            
-            this.sketch.fill(150, 150, 150, 100);
-            this.sketch.noStroke();
-            this.sketch.rect(x + windowWidth - 8, scrollBarY, 4, scrollBarHeight, 2);
-        }
+        // Calculate max scroll offset based on total content height
+        this.maxScrollOffset = Math.max(0, totalContentHeight - contentHeight);
+
+        // Draw scroll indicator
+        this.renderScrollIndicator(x, y, windowWidth, windowHeight, totalContentHeight, contentHeight);
 
         // Update cursor blink state
-        this.cursorBlinkTimer++;
-        if (this.cursorBlinkTimer > 30) {
-            this.cursorBlinkTimer = 0;
-            this.showCursor = !this.showCursor;
-        }
-
-        this.sketch.pop();
+        this.updateCursorBlink();
     }
 
     handleMouseReleased(camera, mouseX, mouseY) {
@@ -400,15 +365,15 @@ export class SettingsUI {
 
             // Check if click is within the content area
             const contentX = x + 20;
-            const contentY = y + this.settingsContentStartY;
+            const contentY = y + this.contentStartY;
             const contentWidth = windowWidth - 40;
-            const contentHeight = windowHeight - this.settingsContentStartY - 20;
+            const contentHeight = windowHeight - this.contentStartY - 20;
 
             if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
                 mouseY >= contentY && mouseY <= contentY + contentHeight) {
                 
                 // Check if click is on API key text field
-                const apiKeyFieldY = contentY + this.settingsScrollOffset + this.labelHeight;
+                const apiKeyFieldY = contentY + this.scrollOffset + this.labelHeight;
                 if (mouseY >= apiKeyFieldY && mouseY <= apiKeyFieldY + this.textFieldHeight) {
                     this.activeTextField = 'apiKey';
                     return true;
@@ -444,16 +409,6 @@ export class SettingsUI {
                mouseY >= y && mouseY <= y + this.buttonHeight;
     }
 
-    isCloseButtonClicked(mouseX, mouseY) {
-        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-        let x = (this.sketch.width - windowWidth) / 2;
-        let y = (this.sketch.height - windowHeight) / 2;
-        let closeX = x + windowWidth - this.closeButtonSize - 10;
-        let closeY = y + 10;
-        
-        return mouseX >= closeX && mouseX <= closeX + this.closeButtonSize &&
-               mouseY >= closeY && mouseY <= closeY + this.closeButtonSize;
-    }
 
     isSaveButtonClicked(mouseX, mouseY) {
         const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
@@ -462,44 +417,20 @@ export class SettingsUI {
         
         // Calculate button position including scroll offset
         const contentX = x + 20;
-        const contentY = y + this.settingsContentStartY;
+        const contentY = y + this.contentStartY;
         const buttonX = contentX + (windowWidth - 40 - this.saveButtonWidth) / 2;
         
         // Calculate button Y position including scroll offset
-        const buttonY = contentY + this.settingsScrollOffset + 
+        const buttonY = contentY + this.scrollOffset + 
             this.labelHeight + // API Key label
             this.textFieldHeight + // API Key field
             this.textFieldMargin + // Margin
-            20; // Padding before button
+            20 + // Status text height
+            20 + // Padding before button
+            20; // Extra padding
         
         return mouseX >= buttonX && mouseX <= buttonX + this.saveButtonWidth &&
                mouseY >= buttonY && mouseY <= buttonY + this.saveButtonHeight;
-    }
-
-    handleTouchStart(camera, touchX, touchY) {
-        // Just prevent camera movement if touching the UI
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            return touchX >= x && touchX <= x + windowWidth &&
-                   touchY >= y && touchY <= y + windowHeight;
-        }
-        return false;
-    }
-
-    handleTouchMove(camera, touchX, touchY) {
-        // Just prevent camera movement if touching the UI
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            return touchX >= x && touchX <= x + windowWidth &&
-                   touchY >= y && touchY <= y + windowHeight;
-        }
-        return false;
     }
 
     handleTouchEnd(camera, touchX, touchY) {
@@ -529,15 +460,15 @@ export class SettingsUI {
 
             // Check if touch ended within the content area
             const contentX = x + 20;
-            const contentY = y + this.settingsContentStartY;
+            const contentY = y + this.contentStartY;
             const contentWidth = windowWidth - 40;
-            const contentHeight = windowHeight - this.settingsContentStartY - 20;
+            const contentHeight = windowHeight - this.contentStartY - 20;
 
             if (touchX >= contentX && touchX <= contentX + contentWidth &&
                 touchY >= contentY && touchY <= contentY + contentHeight) {
                 
                 // Check if touch ended on API key text field
-                const apiKeyFieldY = contentY + this.settingsScrollOffset + this.labelHeight;
+                const apiKeyFieldY = contentY + this.scrollOffset + this.labelHeight;
                 if (touchY >= apiKeyFieldY && touchY <= apiKeyFieldY + this.textFieldHeight) {
                     this.activeTextField = 'apiKey';
                     this.showMobileInput(
@@ -582,28 +513,6 @@ export class SettingsUI {
             this.isWindowVisible = false;
             this.eventBus.emit('settingsUIClosed');
         }
-    }
-
-    handleMouseWheel(event) {
-        // Only handle scrolling if the window is visible
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            // Check if mouse is over the content area
-            if (this.sketch.mouseX >= x && this.sketch.mouseX <= x + windowWidth &&
-                this.sketch.mouseY >= y + this.settingsContentStartY && 
-                this.sketch.mouseY <= y + windowHeight - 20) {
-                
-                // Update scroll offset with a multiplier to make scrolling smoother
-                const scrollMultiplier = 1.5;
-                this.settingsScrollOffset = Math.max(-this.settingsMaxScrollOffset, 
-                    Math.min(0, this.settingsScrollOffset - (event.deltaY * scrollMultiplier)));
-                return true;
-            }
-        }
-        return false;
     }
 
     handleKeyDown(event) {
