@@ -11,6 +11,7 @@ import { MissionUI } from './ui/mission-ui.js';
 import { SettingsUI } from './ui/settings-ui.js';
 import { CrewMember } from './crew-member.js';
 import { Mission } from './mission.js';
+import { TextGeneratorOpenRouter } from './text-gen-openrouter.js';
 
 let backgroundRenderer = null;
 let galaxyMapScene = null;
@@ -24,6 +25,7 @@ let missionUI = null;
 let settingsUI = null;
 let crewMembers = []; // Array to store crew members
 let missions = []; // Array to store missions
+let textGenerator = null; // Instance of TextGeneratorOpenRouter
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
@@ -42,6 +44,25 @@ var mapSketch = function(sketch) {
         shipUI = new ShipUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, crewMembers);
         missionUI = new MissionUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, missions);
         settingsUI = new SettingsUI(sketch, galaxyMapScene.eventBus);
+
+        // Subscribe to API key updates
+        galaxyMapScene.eventBus.on('apiKeyUpdated', async (apiKey) => {
+            // Create or update the text generator with the new API key
+            textGenerator = new TextGeneratorOpenRouter(apiKey);
+            
+            // Test the API key with a simple completion
+            console.log("Testing API key with a simple completion...");
+            try {
+                await textGenerator.generateText(
+                    "Say 'API key test successful!' if you receive this message.",
+                    (text) => console.log("Response:", text),
+                    0.7,  // Lower temperature for more deterministic response
+                    50    // Small max tokens for quick test
+                );
+            } catch (error) {
+                console.error("Error testing API key:", error);
+            }
+        });
     };
 
     sketch.setup = async function() {
