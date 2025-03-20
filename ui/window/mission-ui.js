@@ -394,28 +394,44 @@ export class MissionUI extends BaseWindowUI {
         this.sketch.fill(0, 0, 0, 200);
         this.sketch.noStroke();
         
-        // Calculate text dimensions
+        // Calculate text dimensions with wrapping
         this.sketch.textSize(12);
-        const textWidth = this.sketch.textWidth(this.hoveredStep.text);
+        const maxTooltipWidth = 200; // Maximum width for tooltip
         const padding = 5;
-        const tooltipWidth = textWidth + (padding * 2);
-        const tooltipHeight = 20;
+        const lineHeight = 16;
         
-        // Position tooltip above the node
-        const tooltipX = this.hoveredStep.x - (tooltipWidth / 2);
-        const tooltipY = this.hoveredStep.y - tooltipHeight - 10;
+        // Create a temporary graphics buffer for text wrapping
+        const pg = this.sketch.createGraphics(maxTooltipWidth, 100);
+        pg.textSize(12);
+        const wrappedText = this.wrapText(pg, this.hoveredStep.text, maxTooltipWidth - (padding * 2));
+        const lines = wrappedText.split('\n');
+        pg.remove();
+        
+        // Calculate tooltip dimensions
+        const tooltipWidth = Math.min(maxTooltipWidth, this.sketch.textWidth(this.hoveredStep.text) + (padding * 2));
+        const tooltipHeight = (lines.length * lineHeight) + (padding * 2);
+        
+        // Calculate initial tooltip position
+        let tooltipX = this.hoveredStep.x - (tooltipWidth / 2);
+        let tooltipY = this.hoveredStep.y - tooltipHeight - 10;
+        
+        // Adjust position to keep tooltip within screen bounds
+        tooltipX = Math.max(padding, Math.min(tooltipX, this.sketch.width - tooltipWidth - padding));
+        tooltipY = Math.max(padding, Math.min(tooltipY, this.sketch.height - tooltipHeight - padding));
         
         // Draw tooltip background with rounded corners
         this.sketch.rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 5);
         
-        // Draw tooltip text
+        // Draw tooltip text, line by line
         this.sketch.fill(255);
-        this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
-        this.sketch.text(
-            this.hoveredStep.text,
-            tooltipX + (tooltipWidth / 2),
-            tooltipY + (tooltipHeight / 2)
-        );
+        this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
+        lines.forEach((line, index) => {
+            this.sketch.text(
+                line,
+                tooltipX + padding,
+                tooltipY + padding + (index * lineHeight)
+            );
+        });
         
         this.sketch.pop();
         
