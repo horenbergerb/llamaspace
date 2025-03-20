@@ -562,6 +562,18 @@ export class SettingsUI {
                     this.apiKeyText = this.apiKeyText.slice(0, -1);
                 }
                 return true;
+
+            case 'v':
+                // Handle paste (Ctrl+V)
+                if (event.ctrlKey || event.metaKey) {
+                    navigator.clipboard.readText().then(text => {
+                        if (this.activeTextField === 'apiKey') {
+                            this.apiKeyText += text;
+                        }
+                    });
+                    return true;
+                }
+                return false;
         }
 
         return false;
