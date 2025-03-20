@@ -74,17 +74,14 @@ export class TextGeneratorOpenRouter {
 
                 for (const line of lines) {
                     if (line.trim() === '') continue;
-                    console.log('Received line:', line);
                     
                     if (line.startsWith('data: ')) {
                         const data = line.slice(6); // Remove 'data: ' prefix
                         if (data === '[DONE]') {
-                            console.log('Received [DONE] message');
                             continue;
                         }
                         try {
                             const jsonData = JSON.parse(data);
-                            console.log('Parsed JSON:', jsonData);
                             
                             // Check if we have a delta with content property (even if empty)
                             if (jsonData.choices && 
@@ -93,7 +90,6 @@ export class TextGeneratorOpenRouter {
                                 const newContent = jsonData.choices[0].delta.content;
                                 // Only process and update if there's actual content
                                 if (newContent) {
-                                    console.log('New content:', newContent);
                                     streamedText += newContent;
                                     streamHandler(streamedText);
                                 } else {

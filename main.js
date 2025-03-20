@@ -50,18 +50,6 @@ var mapSketch = function(sketch) {
             // Create or update the text generator with the new API key
             textGenerator = new TextGeneratorOpenRouter(apiKey);
             
-            // Test the API key with a simple completion
-            console.log("Testing API key with a simple completion...");
-            try {
-                await textGenerator.generateText(
-                    "Say 'API key test successful!' if you receive this message.",
-                    (text) => console.log("Response:", text),
-                    0.7,  // Lower temperature for more deterministic response
-                    50    // Small max tokens for quick test
-                );
-            } catch (error) {
-                console.error("Error testing API key:", error);
-            }
         });
     };
 

@@ -1,3 +1,5 @@
+import { TextGeneratorOpenRouter } from '../text-gen-openrouter.js';
+
 export class SettingsUI {
     constructor(sketch, eventBus) {
         this.sketch = sketch;
@@ -28,6 +30,10 @@ export class SettingsUI {
         this.cursorBlinkTimer = 0;
         this.showCursor = true;
 
+        // Connection status
+        this.connectionStatus = null; // null, 'connected', or 'disconnected'
+        this.connectionError = null; // Error message if disconnected
+
         // Load saved API key if it exists
         const savedApiKey = localStorage.getItem('openRouterApiKey');
         if (savedApiKey) {
@@ -35,6 +41,26 @@ export class SettingsUI {
             // Emit the API key event on startup if we have a saved key
             this.eventBus.emit('apiKeyUpdated', savedApiKey);
         }
+
+        // Subscribe to API key updates to test connection
+        this.eventBus.on('apiKeyUpdated', async (apiKey) => {
+            this.connectionStatus = 'testing';
+            const textGenerator = new TextGeneratorOpenRouter(apiKey);
+            try {
+                await textGenerator.generateText(
+                    "Say 'API key test successful!' if you receive this message.",
+                    (text) => {},
+                    0.7,
+                    50
+                );
+                this.connectionStatus = 'connected';
+                this.connectionError = null;
+            } catch (error) {
+                this.connectionStatus = 'disconnected';
+                this.connectionError = error.message;
+                console.error("Error testing API key:", error);
+            }
+        });
 
         // Create hidden input elements for mobile
         this.createMobileInputs();
@@ -242,6 +268,7 @@ export class SettingsUI {
             this.labelHeight + // API Key label
             this.textFieldHeight + // API Key field
             this.textFieldMargin + // Margin
+            20 + // Status text height
             20 + // Padding before button
             this.saveButtonHeight + // Save button height
             20; // Extra padding
@@ -275,7 +302,26 @@ export class SettingsUI {
             pg.line(5 + textWidth, contentY + 5, 5 + textWidth, contentY + this.textFieldHeight - 5);
         }
 
-        contentY += this.textFieldHeight + this.textFieldMargin;
+        contentY += this.textFieldHeight + 10;
+
+        // Draw connection status
+        pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
+        if (this.connectionStatus === 'connected') {
+            pg.fill(0, 255, 0);
+            pg.text('Connected', 5, contentY);
+        } else if (this.connectionStatus === 'disconnected') {
+            pg.fill(255, 0, 0);
+            pg.text('Disconnected', 5, contentY);
+            if (this.connectionError) {
+                pg.textSize(12);
+                pg.text(this.connectionError, 5, contentY + 15);
+            }
+        } else if (this.connectionStatus === 'testing') {
+            pg.fill(255, 255, 0);
+            pg.text('Testing connection...', 5, contentY);
+        }
+
+        contentY += this.textFieldMargin + 10;
 
         // Draw Save button
         let buttonY = contentY + 20; // Add some space after the API key field
