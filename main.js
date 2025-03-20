@@ -51,6 +51,9 @@ var mapSketch = function(sketch) {
             textGenerator = new TextGeneratorOpenRouter(apiKey);
             
         });
+
+        // Emit initial crew update
+        galaxyMapScene.eventBus.emit('crewUpdated', crewMembers);
     };
 
     sketch.setup = async function() {

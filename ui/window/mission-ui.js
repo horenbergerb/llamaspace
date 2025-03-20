@@ -7,6 +7,7 @@ export class MissionUI extends BaseWindowUI {
         super(sketch, eventBus, initialScene);
         this.missions = missions;
         this.textGenerator = null; // Will be set when API key is available
+        this.crewMembers = []; // Will be populated from event
         
         // Mission button properties
         this.buttonWidth = 80;
@@ -34,6 +35,10 @@ export class MissionUI extends BaseWindowUI {
         this.labelHeight = 20;
         this.createButtonHeight = 40;
         this.createButtonWidth = 150;
+
+        // Dropdown properties
+        this.selectedCrewIndex = -1;
+        this.isDropdownOpen = false;
 
         // Text input state
         this.activeTextField = null; // 'objective' or 'details' or null
@@ -105,6 +110,14 @@ export class MissionUI extends BaseWindowUI {
         // Subscribe to API key updates
         this.eventBus.on('apiKeyUpdated', (apiKey) => {
             this.textGenerator = new TextGeneratorOpenRouter(apiKey);
+        });
+
+        // Subscribe to crew updates
+        this.eventBus.on('crewUpdated', (crew) => {
+            this.crewMembers = crew;
+            if (this.selectedCrewIndex >= this.crewMembers.length) {
+                this.selectedCrewIndex = -1;
+            }
         });
 
         // Set up keyboard event listeners
@@ -316,6 +329,13 @@ export class MissionUI extends BaseWindowUI {
             pg.fill(mission.completed ? '#4CAF50' : '#FFA500');
             pg.text(mission.completed ? 'Completed' : 'In Progress', contentWidth - 10, contentY + 10);
 
+            // Draw assigned crew member
+            if (mission.assignedCrew) {
+                pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
+                pg.fill(150);
+                pg.text(`Assigned to: ${mission.assignedCrew.name}`, contentWidth - 10, contentY + 30);
+            }
+
             // Draw step graph
             if (mission.steps && mission.steps.length > 0) {
                 const graphStartX = 10;
@@ -484,6 +504,9 @@ export class MissionUI extends BaseWindowUI {
             this.labelHeight + // Details label
             this.textFieldHeight * 3 + // Details field
             this.textFieldMargin + // Margin
+            this.labelHeight + // Crew Member label
+            this.textFieldHeight + // Crew Member field
+            this.textFieldMargin + // Margin
             20 + // Padding before button
             this.createButtonHeight + // Button height
             20; // Padding after button
@@ -519,7 +542,7 @@ export class MissionUI extends BaseWindowUI {
 
         contentY += this.textFieldHeight + this.textFieldMargin;
 
-        // Draw Mission Details field
+        // Draw Mission Details field and text
         pg.fill(255);
         pg.noStroke();
         pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
@@ -543,15 +566,68 @@ export class MissionUI extends BaseWindowUI {
             const lines = this.detailsText.split('\n');
             const lastLine = lines[lines.length - 1] || '';
             const textWidth = pg.textWidth(lastLine);
-            const textHeight = Math.max(0, (lines.length - 1)) * 16; // Only add line height for additional lines
+            const textHeight = Math.max(0, (lines.length - 1)) * 16;
             pg.stroke(255);
             pg.line(5 + textWidth, contentY + 5 + textHeight, 5 + textWidth, contentY + 5 + textHeight + 16);
         }
 
         contentY += this.textFieldHeight * 3 + this.textFieldMargin;
 
+        // Draw Crew Assignment dropdown
+        pg.fill(255);
+        pg.noStroke();
+        pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
+        pg.text('Assign To:', 0, contentY);
+        contentY += this.labelHeight;
+
+        // Draw dropdown
+        pg.fill(this.isDropdownOpen ? 80 : 60);
+        pg.stroke(100);
+        pg.strokeWeight(1);
+        pg.rect(0, contentY, contentWidth, this.textFieldHeight, 3);
+
+        // Draw selected crew member or placeholder
+        pg.fill(255);
+        pg.noStroke();
+        pg.textAlign(this.sketch.LEFT, this.sketch.CENTER);
+        const selectedText = this.selectedCrewIndex >= 0 
+            ? this.crewMembers[this.selectedCrewIndex].name 
+            : 'Select crew member...';
+        pg.text(selectedText, 5, contentY + this.textFieldHeight/2);
+
+        // Draw dropdown arrow
+        pg.stroke(255);
+        pg.strokeWeight(2);
+        const arrowX = contentWidth - 20;
+        const arrowY = contentY + this.textFieldHeight/2;
+        pg.line(arrowX, arrowY - 3, arrowX + 5, arrowY + 3);
+        pg.line(arrowX + 10, arrowY - 3, arrowX + 5, arrowY + 3);
+
+        // Draw dropdown options if open
+        if (this.isDropdownOpen && this.crewMembers.length > 0) {
+            const dropdownHeight = this.crewMembers.length * this.textFieldHeight;
+            pg.fill(80);
+            pg.stroke(100);
+            pg.rect(0, contentY + this.textFieldHeight, contentWidth, dropdownHeight, 3);
+
+            this.crewMembers.forEach((crew, index) => {
+                const optionY = contentY + this.textFieldHeight + (index * this.textFieldHeight);
+                if (index === this.selectedCrewIndex) {
+                    pg.fill(100);
+                    pg.noStroke();
+                    pg.rect(0, optionY, contentWidth, this.textFieldHeight);
+                }
+                pg.fill(255);
+                pg.noStroke();
+                pg.textAlign(this.sketch.LEFT, this.sketch.CENTER);
+                pg.text(crew.name, 5, optionY + this.textFieldHeight/2);
+            });
+        }
+
+        contentY += this.textFieldHeight + (this.isDropdownOpen ? this.crewMembers.length * this.textFieldHeight : 0) + this.textFieldMargin;
+
         // Draw Create Mission button
-        let buttonY = contentY + 20; // Add some space after the details field
+        let buttonY = contentY + 20;
         let buttonX = (contentWidth - this.createButtonWidth) / 2;
         
         // Button background
@@ -656,18 +732,42 @@ export class MissionUI extends BaseWindowUI {
                 if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
                     mouseY >= contentY && mouseY <= contentY + contentHeight) {
                     
-                    // Check if click is on objective text field
+                    // Calculate field positions including scroll offset
                     const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
+                    const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
+                    const dropdownY = detailsFieldY + this.textFieldHeight * 3 + this.textFieldMargin + this.labelHeight;
+
+                    // Check if click is on objective text field
                     if (mouseY >= objectiveFieldY && mouseY <= objectiveFieldY + this.textFieldHeight) {
                         this.activeTextField = 'objective';
                         return true;
                     }
 
                     // Check if click is on details text field
-                    const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
                     if (mouseY >= detailsFieldY && mouseY <= detailsFieldY + (this.textFieldHeight * 3)) {
                         this.activeTextField = 'details';
                         return true;
+                    }
+
+                    // Check if click is on crew dropdown
+                    if (mouseY >= dropdownY && mouseY <= dropdownY + this.textFieldHeight) {
+                        this.isDropdownOpen = !this.isDropdownOpen;
+                        return true;
+                    }
+
+                    // Check if click is on dropdown options
+                    if (this.isDropdownOpen) {
+                        const optionsStartY = dropdownY + this.textFieldHeight;
+                        const optionsEndY = optionsStartY + (this.crewMembers.length * this.textFieldHeight);
+                        
+                        if (mouseY >= optionsStartY && mouseY <= optionsEndY) {
+                            const clickedIndex = Math.floor((mouseY - optionsStartY) / this.textFieldHeight);
+                            if (clickedIndex >= 0 && clickedIndex < this.crewMembers.length) {
+                                this.selectedCrewIndex = clickedIndex;
+                                this.isDropdownOpen = false;
+                                return true;
+                            }
+                        }
                     }
 
                     // If it's a click on the Create Mission button, handle it
@@ -676,7 +776,6 @@ export class MissionUI extends BaseWindowUI {
                         return true;
                     }
                     
-                    // Return true for any click within the content area to prevent content disappearing
                     return true;
                 }
             }
@@ -690,6 +789,9 @@ export class MissionUI extends BaseWindowUI {
             // If we clicked outside the window, deactivate text fields
             this.activeTextField = null;
         }
+
+        // Close dropdown if clicking outside
+        this.isDropdownOpen = false;
 
         return false;
     }
@@ -742,6 +844,10 @@ export class MissionUI extends BaseWindowUI {
             this.labelHeight + // Details label
             this.textFieldHeight * 3 + // Details field
             this.textFieldMargin + // Margin
+            this.labelHeight + // Crew Member label
+            this.textFieldHeight + // Crew Member field
+            this.textFieldMargin + // Margin
+
             20; // Padding before button
         
         return mouseX >= buttonX && mouseX <= buttonX + this.createButtonWidth &&
@@ -801,8 +907,12 @@ export class MissionUI extends BaseWindowUI {
                 if (touchX >= contentX && touchX <= contentX + contentWidth &&
                     touchY >= contentY && touchY <= contentY + contentHeight) {
                     
-                    // Check if touch ended on objective text field
+                    // Calculate field positions including scroll offset
                     const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
+                    const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
+                    const dropdownY = detailsFieldY + this.textFieldHeight * 3 + this.textFieldMargin + this.labelHeight;
+
+                    // Check if touch ended on objective text field
                     if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
                         this.activeTextField = 'objective';
                         this.showMobileInput('objective', 
@@ -814,7 +924,6 @@ export class MissionUI extends BaseWindowUI {
                     }
 
                     // Check if touch ended on details text field
-                    const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
                     if (touchY >= detailsFieldY && touchY <= detailsFieldY + (this.textFieldHeight * 3)) {
                         this.activeTextField = 'details';
                         this.showMobileInput('details', 
@@ -823,6 +932,27 @@ export class MissionUI extends BaseWindowUI {
                             contentWidth, 
                             this.textFieldHeight * 3);
                         return true;
+                    }
+
+                    // Check if touch ended on crew dropdown
+                    if (touchY >= dropdownY && touchY <= dropdownY + this.textFieldHeight) {
+                        this.isDropdownOpen = !this.isDropdownOpen;
+                        return true;
+                    }
+
+                    // Check if touch ended on dropdown options
+                    if (this.isDropdownOpen) {
+                        const optionsStartY = dropdownY + this.textFieldHeight;
+                        const optionsEndY = optionsStartY + (this.crewMembers.length * this.textFieldHeight);
+                        
+                        if (touchY >= optionsStartY && touchY <= optionsEndY) {
+                            const clickedIndex = Math.floor((touchY - optionsStartY) / this.textFieldHeight);
+                            if (clickedIndex >= 0 && clickedIndex < this.crewMembers.length) {
+                                this.selectedCrewIndex = clickedIndex;
+                                this.isDropdownOpen = false;
+                                return true;
+                            }
+                        }
                     }
 
                     // If it's a touch on the Create Mission button, handle it
@@ -846,6 +976,9 @@ export class MissionUI extends BaseWindowUI {
             this.hideMobileInputs();
         }
 
+        // Close dropdown if touching outside
+        this.isDropdownOpen = false;
+
         return false;
     }
 
@@ -855,7 +988,11 @@ export class MissionUI extends BaseWindowUI {
         }
 
         // Create new mission
-        const mission = new Mission(this.objectiveText.trim(), this.detailsText.trim());
+        const mission = new Mission(
+            this.objectiveText.trim(), 
+            this.detailsText.trim(),
+            this.selectedCrewIndex >= 0 ? this.crewMembers[this.selectedCrewIndex] : null
+        );
         
         // Generate steps if text generator is available
         if (this.textGenerator) {
@@ -874,6 +1011,7 @@ export class MissionUI extends BaseWindowUI {
         // Clear input fields and return to list
         this.objectiveText = '';
         this.detailsText = '';
+        this.selectedCrewIndex = -1;
         this.currentPage = 'list';
         this.activeTextField = null;
         this.hideMobileInputs();

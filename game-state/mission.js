@@ -1,14 +1,19 @@
 export class Mission {
-    constructor(objective, details) {
+    constructor(objective, details, assignedCrew = null) {
         this.objective = objective;
         this.details = details;
         this.steps = [];
         this.completed = false;
         this.createdAt = new Date();
+        this.assignedCrew = assignedCrew;
     }
 
     complete() {
         this.completed = true;
+    }
+
+    assignTo(crewMember) {
+        this.assignedCrew = crewMember;
     }
 
     async generateSteps(textGenerator) {
@@ -58,7 +63,8 @@ Keep steps clear and actionable. Number of steps should reflect task complexity.
             details: this.details,
             completed: this.completed,
             createdAt: this.createdAt,
-            steps: this.steps
+            steps: this.steps,
+            assignedCrew: this.assignedCrew
         };
     }
 } 
