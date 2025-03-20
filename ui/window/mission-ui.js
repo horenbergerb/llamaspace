@@ -1,10 +1,12 @@
 import { Mission } from '../../game-state/mission.js';
 import { BaseWindowUI } from './base-window-ui.js';
+import { TextGeneratorOpenRouter } from '../../text-gen-openrouter.js';
 
 export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {
         super(sketch, eventBus, initialScene);
         this.missions = missions;
+        this.textGenerator = null; // Will be set when API key is available
         
         // Mission button properties
         this.buttonWidth = 80;
@@ -39,6 +41,9 @@ export class MissionUI extends BaseWindowUI {
         this.detailsText = '';
         this.cursorBlinkTimer = 0;
         this.showCursor = true;
+
+        // Step graph state
+        this.hoveredStep = null;
 
         // Create hidden input elements for mobile
         this.createMobileInputs();
@@ -84,6 +89,11 @@ export class MissionUI extends BaseWindowUI {
             this.isWindowVisible = false;
             this.activeTextField = null; // Reset active text field
             this.hideMobileInputs();
+        });
+
+        // Subscribe to API key updates
+        this.eventBus.on('apiKeyUpdated', (apiKey) => {
+            this.textGenerator = new TextGeneratorOpenRouter(apiKey);
         });
 
         // Set up keyboard event listeners
@@ -276,17 +286,54 @@ export class MissionUI extends BaseWindowUI {
             pg.fill(255);
             pg.noStroke();
             pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
-            pg.textSize(16);
-            pg.text(mission.objective, 10, contentY + 10);
             
+            // Draw objective with wrapping
+            pg.textSize(16);
+            const maxObjectiveWidth = contentWidth - 120; // Leave space for status
+            const wrappedObjective = this.wrapText(pg, mission.objective, maxObjectiveWidth);
+            pg.text(wrappedObjective, 10, contentY + 10);
+            
+            // Draw details with wrapping
             pg.textSize(12);
             pg.fill(200);
-            pg.text(mission.details, 10, contentY + 35);
+            const maxDetailsWidth = contentWidth - 20;
+            const wrappedDetails = this.wrapText(pg, mission.details, maxDetailsWidth);
+            pg.text(wrappedDetails, 10, contentY + 35);
 
             // Draw completion status
             pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
             pg.fill(mission.completed ? '#4CAF50' : '#FFA500');
             pg.text(mission.completed ? 'Completed' : 'In Progress', contentWidth - 10, contentY + 10);
+
+            // Draw step graph
+            if (mission.steps && mission.steps.length > 0) {
+                const graphStartX = 10;
+                const graphY = contentY + 60;
+                const nodeSpacing = Math.min(30, (contentWidth - 20) / mission.steps.length);
+                const nodeRadius = 4;
+
+                mission.steps.forEach((step, stepIndex) => {
+                    const nodeX = graphStartX + (stepIndex * nodeSpacing);
+
+                    // Draw connecting line to next node
+                    if (stepIndex < mission.steps.length - 1) {
+                        pg.stroke(100);
+                        pg.strokeWeight(1);
+                        pg.line(nodeX + nodeRadius, graphY, 
+                               nodeX + nodeSpacing - nodeRadius, graphY);
+                    }
+
+                    // Draw node
+                    pg.noStroke();
+                    pg.fill(mission.completed ? '#4CAF50' : '#FFA500');
+                    pg.circle(nodeX, graphY, nodeRadius * 2);
+
+                    // Store node position for tooltip handling
+                    const absoluteX = x + 20 + nodeX;
+                    const absoluteY = y + this.contentStartY + graphY;
+                    this.checkStepNodeHover(absoluteX, absoluteY, nodeRadius, step);
+                });
+            }
 
             contentY += missionHeight;
         });
@@ -297,6 +344,83 @@ export class MissionUI extends BaseWindowUI {
 
         // Draw scroll indicator
         this.renderScrollIndicator(x, y, width, height, totalContentHeight, contentHeight);
+
+        // Draw step tooltip if hovering
+        this.renderStepTooltip();
+    }
+
+    wrapText(pg, text, maxWidth) {
+        if (!text) return '';
+        
+        const words = text.split(' ');
+        let lines = [];
+        let currentLine = words[0];
+
+        for (let i = 1; i < words.length; i++) {
+            const word = words[i];
+            const width = pg.textWidth(currentLine + ' ' + word);
+            if (width < maxWidth) {
+                currentLine += ' ' + word;
+            } else {
+                lines.push(currentLine);
+                currentLine = word;
+            }
+        }
+        lines.push(currentLine);
+
+        return lines.join('\n');
+    }
+
+    checkStepNodeHover(nodeX, nodeY, nodeRadius, stepText) {
+        const mouseX = this.sketch.mouseX;
+        const mouseY = this.sketch.mouseY;
+        const dist = this.sketch.dist(mouseX, mouseY, nodeX, nodeY);
+        
+        if (dist <= nodeRadius * 2) {
+            this.hoveredStep = {
+                x: nodeX,
+                y: nodeY,
+                text: stepText
+            };
+        }
+    }
+
+    renderStepTooltip() {
+        if (!this.hoveredStep) return;
+
+        this.sketch.push();
+        
+        // Draw tooltip background
+        this.sketch.fill(0, 0, 0, 200);
+        this.sketch.noStroke();
+        
+        // Calculate text dimensions
+        this.sketch.textSize(12);
+        const textWidth = this.sketch.textWidth(this.hoveredStep.text);
+        const padding = 5;
+        const tooltipWidth = textWidth + (padding * 2);
+        const tooltipHeight = 20;
+        
+        // Position tooltip above the node
+        const tooltipX = this.hoveredStep.x - (tooltipWidth / 2);
+        const tooltipY = this.hoveredStep.y - tooltipHeight - 10;
+        
+        // Draw tooltip background with rounded corners
+        this.sketch.rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 5);
+        
+        // Draw tooltip text
+        this.sketch.fill(255);
+        this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
+        this.sketch.text(
+            this.hoveredStep.text,
+            tooltipX + (tooltipWidth / 2),
+            tooltipY + (tooltipHeight / 2)
+        );
+        
+        this.sketch.pop();
+        
+        // Reset hover state for next frame
+        this.hoveredStep = null;
     }
 
     renderAddMissionPage(x, y, width, height) {
@@ -672,13 +796,23 @@ export class MissionUI extends BaseWindowUI {
         return false;
     }
 
-    handleCreateMission() {
+    async handleCreateMission() {
         if (this.objectiveText.trim() === '') {
             return; // Don't create empty missions
         }
 
         // Create new mission
         const mission = new Mission(this.objectiveText.trim(), this.detailsText.trim());
+        
+        // Generate steps if text generator is available
+        if (this.textGenerator) {
+            try {
+                await mission.generateSteps(this.textGenerator);
+            } catch (error) {
+                console.error('Failed to generate mission steps:', error);
+            }
+        }
+
         this.missions.push(mission);
 
         // Clear input fields and return to list
