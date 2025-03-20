@@ -1,5 +1,5 @@
 export class TextGeneratorOpenRouter {
-    constructor(apiKey, model = "anthropic/claude-3-sonnet") {
+    constructor(apiKey, model = "mistralai/mistral-large-2411") {
         this.stopGeneration = false;
         this.apiKey = apiKey;
         this.model = model;
@@ -24,6 +24,8 @@ export class TextGeneratorOpenRouter {
             },
             body: JSON.stringify({
                 model: this.model,
+                "provider": {"order": ["Mistral"],
+                    "allow_fallbacks": false},
                 messages: [
                     {
                         role: "user",
@@ -33,7 +35,6 @@ export class TextGeneratorOpenRouter {
                 temperature: temperature,
                 max_tokens: maxTokens,
                 stream: true,
-                allow_fallbacks: false
             }),
         };
 
