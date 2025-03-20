@@ -28,6 +28,14 @@ export class SettingsUI {
         this.cursorBlinkTimer = 0;
         this.showCursor = true;
 
+        // Load saved API key if it exists
+        const savedApiKey = localStorage.getItem('openRouterApiKey');
+        if (savedApiKey) {
+            this.apiKeyText = savedApiKey;
+            // Emit the API key event on startup if we have a saved key
+            this.eventBus.emit('apiKeyUpdated', savedApiKey);
+        }
+
         // Create hidden input elements for mobile
         this.createMobileInputs();
 
@@ -520,6 +528,8 @@ export class SettingsUI {
     handleSaveSettings() {
         // Save the API key
         if (this.apiKeyText.trim() !== '') {
+            // Save to localStorage
+            localStorage.setItem('openRouterApiKey', this.apiKeyText.trim());
             // Emit an event with the new API key
             this.eventBus.emit('apiKeyUpdated', this.apiKeyText.trim());
             // Close the settings window
