@@ -45,6 +45,10 @@ export class MissionUI extends BaseWindowUI {
         // Step graph state
         this.hoveredStep = null;
 
+        // Loading state
+        this.isGeneratingMission = false;
+        this.loadingAngle = 0;
+
         // Create hidden input elements for mobile
         this.createMobileInputs();
 
@@ -55,6 +59,13 @@ export class MissionUI extends BaseWindowUI {
 
         // Page state
         this.currentPage = 'list'; // 'list' or 'add'
+
+        // Set up animation frame callback
+        this.sketch.registerMethod('pre', () => {
+            if (this.isGeneratingMission) {
+                this.loadingAngle += 10; // Rotate 10 degrees per frame
+            }
+        });
 
         // Subscribe to UI visibility events
         this.eventBus.on('missionUIOpened', () => {
@@ -549,12 +560,38 @@ export class MissionUI extends BaseWindowUI {
         pg.strokeWeight(1);
         pg.rect(buttonX, buttonY, this.createButtonWidth, this.createButtonHeight, 5);
 
-        // Button text
+        // Button text and/or loading indicator
         pg.fill(255);
         pg.noStroke();
         pg.textAlign(this.sketch.CENTER, this.sketch.CENTER);
         pg.textSize(14);
-        pg.text('Create Mission', buttonX + this.createButtonWidth/2, buttonY + this.createButtonHeight/2);
+        
+        if (this.isGeneratingMission) {
+            // Draw loading spinner
+            const centerX = buttonX + this.createButtonWidth/2;
+            const centerY = buttonY + this.createButtonHeight/2;
+            const radius = 10;
+            
+            // Draw spinning arc
+            pg.stroke(255);
+            pg.noFill();
+            pg.strokeWeight(2);
+            pg.arc(
+                centerX, 
+                centerY, 
+                radius * 2, 
+                radius * 2, 
+                this.loadingAngle * Math.PI/180, 
+                (this.loadingAngle + 270) * Math.PI/180
+            );
+            
+            // Draw "Generating..." text
+            pg.noStroke();
+            pg.fill(255);
+            pg.text('Generating...', centerX, centerY + radius * 2 + 5);
+        } else {
+            pg.text('Create Mission', buttonX + this.createButtonWidth/2, buttonY + this.createButtonHeight/2);
+        }
 
         // Draw the graphics buffer in the clipped region
         this.sketch.image(pg, x + 20, y + this.contentStartY);
@@ -823,9 +860,12 @@ export class MissionUI extends BaseWindowUI {
         // Generate steps if text generator is available
         if (this.textGenerator) {
             try {
+                this.isGeneratingMission = true;
                 await mission.generateSteps(this.textGenerator);
             } catch (error) {
                 console.error('Failed to generate mission steps:', error);
+            } finally {
+                this.isGeneratingMission = false;
             }
         }
 
