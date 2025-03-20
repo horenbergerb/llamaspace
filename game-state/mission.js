@@ -30,7 +30,9 @@ Break down this task into a number of steps based on its complexity. The number 
 Objective: ${this.objective}
 Additional Details: ${this.details}
 
+Start by determining the difficulty of the task. Rate the difficulty from 1 to 10. 10 is nearly impossible, 5 is harder than average, 1 is a trivial task. You should create the same number of steps as the difficulty rating.
 Format your response exactly like this, with one step per line starting with a number and period:
+Difficulty: X
 1. First step here
 2. Second step here
 etc.
@@ -48,6 +50,7 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
 
             // Parse the steps from the response
             const stepLines = stepsText.split('\n');
+            const difficultyLine = stepLines.shift(); // Remove the difficulty line
             this.steps = stepLines
                 .map(line => {
                     // Match lines that start with a number followed by a period
