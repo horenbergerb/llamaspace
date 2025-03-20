@@ -983,8 +983,8 @@ export class MissionUI extends BaseWindowUI {
     }
 
     async handleCreateMission() {
-        if (this.objectiveText.trim() === '') {
-            return; // Don't create empty missions
+        if (this.objectiveText.trim() === '' || this.selectedCrewIndex == 0) {
+            return;
         }
 
         // Create new mission
