@@ -1,4 +1,4 @@
-import { TextGeneratorOpenRouter } from '../text-gen-openrouter.js';
+import { TextGeneratorOpenRouter } from '../../text-gen-openrouter.js';
 import { BaseWindowUI } from './base-window-ui.js';
 
 export class SettingsUI extends BaseWindowUI {

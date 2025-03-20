@@ -6,11 +6,11 @@ import { Spaceship } from './map-objects/map-spaceship.js';
 import { MapStar } from './map-objects/map-star.js';
 import { MapPlanet } from './map-objects/map-planet.js';
 import { UIRenderer } from './renderers/info-ui-renderer.js';
-import { ShipUI } from './ui/ship-ui.js';
-import { MissionUI } from './ui/mission-ui.js';
-import { SettingsUI } from './ui/settings-ui.js';
-import { CrewMember } from './crew-member.js';
-import { Mission } from './mission.js';
+import { ShipUI } from './ui/window/ship-ui.js';
+import { MissionUI } from './ui/window/mission-ui.js';
+import { SettingsUI } from './ui/window/settings-ui.js';
+import { CrewMember } from './game-state/crew-member.js';
+import { Mission } from './game-state/mission.js';
 import { TextGeneratorOpenRouter } from './text-gen-openrouter.js';
 
 let backgroundRenderer = null;

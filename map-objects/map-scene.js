@@ -1,6 +1,6 @@
 import { KDTree } from '../utils/k-d-tree.js';
-import { StarInfoUI } from '../ui/star-info-ui.js';
-import { PlanetInfoUI } from '../ui/planet-info-ui.js';
+import { StarInfoUI } from '../ui/info/star-info-ui.js';
+import { PlanetInfoUI } from '../ui/info/planet-info-ui.js';
 import { MapStar } from './map-star.js';
 import { MapPlanet } from './map-planet.js';
 import { Spaceship } from './map-spaceship.js';

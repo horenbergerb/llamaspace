@@ -1,4 +1,4 @@
-import { Mission } from '../mission.js';
+import { Mission } from '../../game-state/mission.js';
 import { BaseWindowUI } from './base-window-ui.js';
 
 export class MissionUI extends BaseWindowUI {
