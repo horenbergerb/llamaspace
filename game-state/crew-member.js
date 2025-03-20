@@ -1,15 +1,15 @@
 export class CrewMember {
     constructor() {
         this.races = {
-            "Human": ["Alex Carter", "Mei Tanaka", "Javier Castillo", "Aisha Patel"],
-            "Skaari": ["Tekkari", "S'kaal", "Rythrek", "Vaaresh"],
-            "Gorvath": ["Durnak", "Thorrun", "Kralth", "Umbrak"],
-            "Rylthian": ["Eilois", "Naith", "Ouvren", "Yzrii"],
-            "Kha'Torii": ["Ch'taxx", "Vith'kaar", "Xyrrik", "J’zekk"],
-            "Vorr'Xal": ["Sylthos", "Vessren", "Tho’mal", "Xiraal"],
-            "Drell'Ka": ["Ssarkesh", "Vyorran", "Tzakis", "Ozzeth"],
-            "Ulzeri": ["Ithli", "Quoro", "Zheln", "Pa’ati"],
-            "Brakari": ["Unit-7", "Ryn", "K-4S", "Theta", "Voxis"]
+            "Human": { "names": ["Alex Carter", "Mei Tanaka", "Javier Castillo", "Aisha Patel"], "description": "Versatile and adaptive, humans are known for their resilience and ability to excel in various disciplines." },
+            "Skaari": { "names": ["Tekkari", "S'kaal", "Rythrek", "Vaaresh"], "description": "An avian species with keen eyesight and exceptional navigational instincts, the Skaari are proud and disciplined." },
+            "Gorvath": { "names": ["Durnak", "Thorrun", "Kralth", "Umbrak"], "description": "Massive, rock-based beings with slow but deliberate movements, Gorvath are known for their patience and endurance." },
+            "Rylthian": { "names": ["Eilois", "Naith", "Ouvren", "Yzrii"], "description": "Jellyfish-like creatures composed of bioelectric energy, Rylthians communicate through pulses of light and are highly analytical." },
+            "Kha'Torii": { "names": ["Ch'taxx", "Vith'kaar", "Xyrrik", "J’zekk"], "description": "Insectoid warriors with a strong sense of loyalty, the Kha'Torii are fast, aggressive, and fiercely independent." },
+            "Vorr'Xal": { "names": ["Sylthos", "Vessren", "Tho’mal", "Xiraal"], "description": "Plant-based beings with deep connections to their environments, Vorr'Xal value patience and long-term planning." },
+            "Drell'Ka": { "names": ["Ssarkesh", "Vyorran", "Tzakis", "Ozzeth"], "description": "Reptilian hunters with a strong warrior culture, Drell'Ka are resilient, tactical, and deeply spiritual." },
+            "Ulzeri": { "names": ["Ithli", "Quoro", "Zheln", "Pa’ati"], "description": "Amphibious beings known for their adaptability and lateral problem-solving skills, often thriving in aquatic environments." },
+            "Brakari": { "names": ["Unit-7", "Ryn", "K-4S", "Theta", "Voxis"], "description": "Once purely synthetic, the Brakari have evolved into bio-mechanical beings with logical yet emerging emotional depth." }
         };
 
         this.skills = [
@@ -38,7 +38,7 @@ export class CrewMember {
         };
 
         this.race = this.getRandomKey(this.races);
-        this.name = this.getRandomElement(this.races[this.race]);
+        this.name = this.getRandomElement(this.races[this.race]["names"]);
         this.skillLevels = this.generateSkillLevels();
         this.demeanor = this.generateDemeanor();
     }
