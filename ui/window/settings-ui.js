@@ -1,5 +1,6 @@
 import { TextGeneratorOpenRouter } from '../../text-gen-openrouter.js';
 import { BaseWindowUI } from './base-window-ui.js';
+import { TextBox } from './text-box.js';
 
 export class SettingsUI extends BaseWindowUI {
     constructor(sketch, eventBus) {
@@ -21,11 +22,12 @@ export class SettingsUI extends BaseWindowUI {
         this.saveButtonHeight = 40;
         this.saveButtonWidth = 150;
 
-        // Text input state
-        this.activeTextField = null; // 'apiKey' or null
-        this.apiKeyText = '';
-        this.cursorBlinkTimer = 0;
-        this.showCursor = true;
+        // Create text box for API key
+        this.apiKeyTextBox = new TextBox(sketch, eventBus, {
+            width: 400,
+            height: this.textFieldHeight,
+            placeholder: 'Enter your OpenRouter API key'
+        });
 
         // Connection status
         this.connectionStatus = null; // null, 'connected', or 'disconnected'
@@ -34,7 +36,7 @@ export class SettingsUI extends BaseWindowUI {
         // Load saved API key if it exists
         const savedApiKey = localStorage.getItem('openRouterApiKey');
         if (savedApiKey) {
-            this.apiKeyText = savedApiKey;
+            this.apiKeyTextBox.setText(savedApiKey);
             // Emit the API key event on startup if we have a saved key
             this.eventBus.emit('apiKeyUpdated', savedApiKey);
         }
@@ -59,9 +61,6 @@ export class SettingsUI extends BaseWindowUI {
             }
         });
 
-        // Create hidden input elements for mobile
-        this.createMobileInputs();
-
         // Scroll properties
         this.scrollOffset = 0;
         this.maxScrollOffset = 0;
@@ -70,30 +69,25 @@ export class SettingsUI extends BaseWindowUI {
         // Subscribe to UI visibility events
         this.eventBus.on('settingsUIOpened', () => {
             this.isWindowVisible = true;
-            this.activeTextField = null; // Reset active text field
-            this.hideMobileInputs();
+            this.apiKeyTextBox.setActive(false);
         });
         this.eventBus.on('settingsUIClosed', () => {
             this.isWindowVisible = false;
-            this.activeTextField = null; // Reset active text field
-            this.hideMobileInputs();
+            this.apiKeyTextBox.setActive(false);
         });
         this.eventBus.on('missionUIOpened', () => {
             this.isWindowVisible = false;
-            this.activeTextField = null;
-            this.hideMobileInputs();
+            this.apiKeyTextBox.setActive(false);
         });
         this.eventBus.on('shipUIOpened', () => {
             this.isWindowVisible = false;
-            this.activeTextField = null;
-            this.hideMobileInputs();
+            this.apiKeyTextBox.setActive(false);
         });
 
         // Subscribe to close all UIs event
         this.eventBus.on('closeAllInfoUIs', () => {
             this.isWindowVisible = false;
-            this.activeTextField = null;
-            this.hideMobileInputs();
+            this.apiKeyTextBox.setActive(false);
         });
 
         // Set up keyboard event listeners
@@ -108,45 +102,6 @@ export class SettingsUI extends BaseWindowUI {
                 e.preventDefault();
             }
         });
-    }
-
-    createMobileInputs() {
-        // Create API key input
-        this.apiKeyInput = document.createElement('input');
-        this.apiKeyInput.type = 'text';
-        this.apiKeyInput.style.position = 'absolute';
-        this.apiKeyInput.style.display = 'none';
-        this.apiKeyInput.style.border = '1px solid #666';
-        this.apiKeyInput.style.background = '#333';
-        this.apiKeyInput.style.color = '#fff';
-        this.apiKeyInput.style.padding = '5px';
-        this.apiKeyInput.style.fontSize = '14px';
-        document.body.appendChild(this.apiKeyInput);
-
-        // Add input event listeners
-        this.apiKeyInput.addEventListener('input', () => {
-            this.apiKeyText = this.apiKeyInput.value;
-        });
-
-        // Add blur event listener to hide input when focus is lost
-        this.apiKeyInput.addEventListener('blur', () => {
-            setTimeout(() => this.hideMobileInputs(), 100);
-        });
-    }
-
-    showMobileInput(x, y, width, height) {
-        this.apiKeyInput.style.left = x + 'px';
-        this.apiKeyInput.style.top = y + 'px';
-        this.apiKeyInput.style.width = width + 'px';
-        this.apiKeyInput.style.height = height + 'px';
-        this.apiKeyInput.style.display = 'block';
-        this.apiKeyInput.value = this.apiKeyText;
-        this.apiKeyInput.focus();
-    }
-
-    hideMobileInputs() {
-        if (this.apiKeyInput) this.apiKeyInput.style.display = 'none';
-        this.activeTextField = null;
     }
 
     // Calculate window dimensions based on sketch size
@@ -264,24 +219,11 @@ export class SettingsUI extends BaseWindowUI {
         pg.text('OpenRouter API Key:', 0, contentY);
         contentY += this.labelHeight;
         
-        // Draw API key text field
-        pg.fill(this.activeTextField === 'apiKey' ? 80 : 60);
-        pg.stroke(100);
-        pg.strokeWeight(1);
-        pg.rect(0, contentY, contentWidth, this.textFieldHeight, 3);
-
-        // Draw API key text and cursor
-        pg.fill(255);
-        pg.noStroke();
-        pg.textAlign(this.sketch.LEFT, this.sketch.CENTER);
-        pg.text(this.apiKeyText, 5, contentY + this.textFieldHeight/2);
-        
-        // Draw cursor if this field is active
-        if (this.activeTextField === 'apiKey' && this.showCursor) {
-            const textWidth = pg.textWidth(this.apiKeyText);
-            pg.stroke(255);
-            pg.line(5 + textWidth, contentY + 5, 5 + textWidth, contentY + this.textFieldHeight - 5);
-        }
+        // Draw API key text box
+        pg.push();
+        pg.translate(0, contentY);
+        this.apiKeyTextBox.render(0, 0, pg);
+        pg.pop();
 
         contentY += this.textFieldHeight + 10;
 
@@ -330,9 +272,6 @@ export class SettingsUI extends BaseWindowUI {
 
         // Draw scroll indicator
         this.renderScrollIndicator(x, y, windowWidth, windowHeight, totalContentHeight, contentHeight);
-
-        // Update cursor blink state
-        this.updateCursorBlink();
     }
 
     handleMouseReleased(camera, mouseX, mouseY) {
@@ -369,10 +308,10 @@ export class SettingsUI extends BaseWindowUI {
             if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
                 mouseY >= contentY && mouseY <= contentY + contentHeight) {
                 
-                // Check if click is on API key text field
+                // Check if click is on API key text box
                 const apiKeyFieldY = contentY + this.scrollOffset + this.labelHeight;
                 if (mouseY >= apiKeyFieldY && mouseY <= apiKeyFieldY + this.textFieldHeight) {
-                    this.activeTextField = 'apiKey';
+                    this.apiKeyTextBox.handleClick(mouseX - contentX, mouseY - apiKeyFieldY);
                     return true;
                 }
 
@@ -391,8 +330,8 @@ export class SettingsUI extends BaseWindowUI {
                 return true;
             }
 
-            // If we clicked outside the window, deactivate text fields
-            this.activeTextField = null;
+            // If we clicked outside the window, deactivate text box
+            this.apiKeyTextBox.setActive(false);
         }
 
         return false;
@@ -405,7 +344,6 @@ export class SettingsUI extends BaseWindowUI {
         return mouseX >= x && mouseX <= x + this.buttonWidth &&
                mouseY >= y && mouseY <= y + this.buttonHeight;
     }
-
 
     isSaveButtonClicked(mouseX, mouseY) {
         const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
@@ -464,15 +402,10 @@ export class SettingsUI extends BaseWindowUI {
             if (touchX >= contentX && touchX <= contentX + contentWidth &&
                 touchY >= contentY && touchY <= contentY + contentHeight) {
                 
-                // Check if touch ended on API key text field
+                // Check if touch ended on API key text box
                 const apiKeyFieldY = contentY + this.scrollOffset + this.labelHeight;
                 if (touchY >= apiKeyFieldY && touchY <= apiKeyFieldY + this.textFieldHeight) {
-                    this.activeTextField = 'apiKey';
-                    this.showMobileInput(
-                        contentX, 
-                        apiKeyFieldY, 
-                        contentWidth, 
-                        this.textFieldHeight);
+                    this.apiKeyTextBox.handleTouchEnd(touchX - contentX, touchY - apiKeyFieldY);
                     return true;
                 }
 
@@ -491,9 +424,8 @@ export class SettingsUI extends BaseWindowUI {
                 return true;
             }
 
-            // If we touched outside the window, deactivate text fields
-            this.activeTextField = null;
-            this.hideMobileInputs();
+            // If we touched outside the window, deactivate text box
+            this.apiKeyTextBox.setActive(false);
         }
 
         return false;
@@ -501,11 +433,12 @@ export class SettingsUI extends BaseWindowUI {
 
     handleSaveSettings() {
         // Save the API key
-        if (this.apiKeyText.trim() !== '') {
+        const apiKey = this.apiKeyTextBox.getText().trim();
+        if (apiKey !== '') {
             // Save to localStorage
-            localStorage.setItem('openRouterApiKey', this.apiKeyText.trim());
+            localStorage.setItem('openRouterApiKey', apiKey);
             // Emit an event with the new API key
-            this.eventBus.emit('apiKeyUpdated', this.apiKeyText.trim());
+            this.eventBus.emit('apiKeyUpdated', apiKey);
             // Close the settings window
             this.isWindowVisible = false;
             this.eventBus.emit('settingsUIClosed');
@@ -513,49 +446,18 @@ export class SettingsUI extends BaseWindowUI {
     }
 
     handleKeyDown(event) {
-        if (!this.isWindowVisible || !this.activeTextField) {
+        if (!this.isWindowVisible) {
             return false;
         }
 
-        // Handle special keys
-        switch (event.key) {
-            case 'Backspace':
-                if (this.activeTextField === 'apiKey') {
-                    this.apiKeyText = this.apiKeyText.slice(0, -1);
-                }
-                return true;
-
-            case 'v':
-                // Handle paste (Ctrl+V)
-                if (event.ctrlKey || event.metaKey) {
-                    navigator.clipboard.readText().then(text => {
-                        if (this.activeTextField === 'apiKey') {
-                            this.apiKeyText += text;
-                        }
-                    });
-                    return true;
-                }
-                return false;
-        }
-
-        return false;
+        return this.apiKeyTextBox.handleKeyDown(event);
     }
 
     handleKeyPress(event) {
-        if (!this.isWindowVisible || !this.activeTextField) {
+        if (!this.isWindowVisible) {
             return false;
         }
 
-        // Ignore special keys
-        if (event.key === 'Enter' || event.key === 'Tab') {
-            return false;
-        }
-
-        // Add the typed character to the API key field
-        if (this.activeTextField === 'apiKey') {
-            this.apiKeyText += event.key;
-        }
-
-        return true;
+        return this.apiKeyTextBox.handleKeyPress(event);
     }
 } 

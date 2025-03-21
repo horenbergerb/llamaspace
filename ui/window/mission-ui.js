@@ -2,6 +2,7 @@ import { Mission } from '../../game-state/mission.js';
 import { BaseWindowUI } from './base-window-ui.js';
 import { TextGeneratorOpenRouter } from '../../text-gen-openrouter.js';
 import { TextButton } from './text-button.js';
+import { TextBox } from './text-box.js';
 
 export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {
@@ -39,22 +40,23 @@ export class MissionUI extends BaseWindowUI {
         this.selectedCrewIndex = -1;
         this.isDropdownOpen = false;
 
-        // Text input state
-        this.activeTextField = null; // 'objective' or 'details' or null
-        this.objectiveText = '';
-        this.detailsText = '';
-        this.cursorBlinkTimer = 0;
-        this.showCursor = true;
+        // Create text boxes
+        this.objectiveTextBox = new TextBox(sketch, eventBus, {
+            width: 400,
+            height: this.textFieldHeight,
+            placeholder: ''
+        });
 
-        // Step graph state
-        this.hoveredStep = null;
+        this.detailsTextBox = new TextBox(sketch, eventBus, {
+            width: 400,
+            height: this.textFieldHeight * 3,
+            multiline: true,
+            placeholder: ''
+        });
 
         // Loading state
         this.isGeneratingMission = false;
         this.loadingAngle = 0;
-
-        // Create hidden input elements for mobile
-        this.createMobileInputs();
 
         // Scroll properties for add mission page
         this.scrollOffset = 0;
@@ -78,26 +80,26 @@ export class MissionUI extends BaseWindowUI {
         this.eventBus.on('missionUIOpened', () => {
             this.isWindowVisible = true;
             this.currentPage = 'list'; // Reset to list page when opening
-            this.activeTextField = null; // Reset active text field
-            this.hideMobileInputs();
-            this.objectiveText = ''; // Clear text fields when opening
-            this.detailsText = '';
+            this.objectiveTextBox.setActive(false);
+            this.detailsTextBox.setActive(false);
+            this.objectiveTextBox.setText(''); // Clear text fields when opening
+            this.detailsTextBox.setText('');
         });
         this.eventBus.on('missionUIClosed', () => {
             this.isWindowVisible = false;
             this.currentPage = 'list'; // Reset to list page when closing
-            this.activeTextField = null; // Reset active text field
-            this.hideMobileInputs();
+            this.objectiveTextBox.setActive(false);
+            this.detailsTextBox.setActive(false);
         });
         this.eventBus.on('shipUIOpened', () => {
             this.isWindowVisible = false;
-            this.activeTextField = null; // Reset active text field
-            this.hideMobileInputs();
+            this.objectiveTextBox.setActive(false);
+            this.detailsTextBox.setActive(false);
         });
         this.eventBus.on('settingsUIOpened', () => {
             this.isWindowVisible = false;
-            this.activeTextField = null; // Reset active text field
-            this.hideMobileInputs();
+            this.objectiveTextBox.setActive(false);
+            this.detailsTextBox.setActive(false);
         });
 
         // Subscribe to scene changes
@@ -105,8 +107,8 @@ export class MissionUI extends BaseWindowUI {
             this.currentScene = scene;
             // Close the window when changing scenes
             this.isWindowVisible = false;
-            this.activeTextField = null; // Reset active text field
-            this.hideMobileInputs();
+            this.objectiveTextBox.setActive(false);
+            this.detailsTextBox.setActive(false);
         });
 
         // Subscribe to system enter/exit events
@@ -118,8 +120,8 @@ export class MissionUI extends BaseWindowUI {
             this.isInSystemScene = false;
             // Close the window when returning to galaxy
             this.isWindowVisible = false;
-            this.activeTextField = null;
-            this.hideMobileInputs();
+            this.objectiveTextBox.setActive(false);
+            this.detailsTextBox.setActive(false);
         });
 
         // Subscribe to API key updates
@@ -244,24 +246,11 @@ export class MissionUI extends BaseWindowUI {
         this.contentBuffer.text('Mission Objective:', 0, contentY);
         contentY += this.labelHeight;
         
-        // Draw objective text field
-        this.contentBuffer.fill(this.activeTextField === 'objective' ? 80 : 60);
-        this.contentBuffer.stroke(100);
-        this.contentBuffer.strokeWeight(1);
-        this.contentBuffer.rect(0, contentY, contentWidth, this.textFieldHeight, 3);
-
-        // Draw objective text and cursor
-        this.contentBuffer.fill(255);
-        this.contentBuffer.noStroke();
-        this.contentBuffer.textAlign(this.sketch.LEFT, this.sketch.CENTER);
-        this.contentBuffer.text(this.objectiveText, 5, contentY + this.textFieldHeight/2);
-        
-        // Draw cursor if this field is active
-        if (this.activeTextField === 'objective' && this.showCursor) {
-            const textWidth = this.contentBuffer.textWidth(this.objectiveText);
-            this.contentBuffer.stroke(255);
-            this.contentBuffer.line(5 + textWidth, contentY + 5, 5 + textWidth, contentY + this.textFieldHeight - 5);
-        }
+        // Draw objective text box
+        this.contentBuffer.push();
+        this.contentBuffer.translate(0, contentY);
+        this.objectiveTextBox.render(0, 0, this.contentBuffer);
+        this.contentBuffer.pop();
 
         contentY += this.textFieldHeight + this.textFieldMargin;
 
@@ -272,27 +261,11 @@ export class MissionUI extends BaseWindowUI {
         this.contentBuffer.text('Mission Details:', 0, contentY);
         contentY += this.labelHeight;
         
-        // Draw details text field (larger)
-        this.contentBuffer.fill(this.activeTextField === 'details' ? 80 : 60);
-        this.contentBuffer.stroke(100);
-        this.contentBuffer.strokeWeight(1);
-        this.contentBuffer.rect(0, contentY, contentWidth, this.textFieldHeight * 3, 3);
-
-        // Draw details text and cursor
-        this.contentBuffer.fill(255);
-        this.contentBuffer.noStroke();
-        this.contentBuffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
-        this.contentBuffer.text(this.detailsText, 5, contentY + 5);
-
-        // Draw cursor if this field is active
-        if (this.activeTextField === 'details' && this.showCursor) {
-            const lines = this.detailsText.split('\n');
-            const lastLine = lines[lines.length - 1] || '';
-            const textWidth = this.contentBuffer.textWidth(lastLine);
-            const textHeight = Math.max(0, (lines.length - 1)) * 16;
-            this.contentBuffer.stroke(255);
-            this.contentBuffer.line(5 + textWidth, contentY + 5 + textHeight, 5 + textWidth, contentY + 5 + textHeight + 16);
-        }
+        // Draw details text box
+        this.contentBuffer.push();
+        this.contentBuffer.translate(0, contentY);
+        this.detailsTextBox.render(0, 0, this.contentBuffer);
+        this.contentBuffer.pop();
 
         contentY += this.textFieldHeight * 3 + this.textFieldMargin;
 
@@ -373,9 +346,6 @@ export class MissionUI extends BaseWindowUI {
 
         // Draw scroll indicator
         this.renderScrollIndicator(x, y, width, height, totalContentHeight, contentHeight);
-
-        // Update cursor blink state
-        this.updateCursorBlink();
     }
 
     handleMouseReleased(camera, mouseX, mouseY) {
@@ -411,7 +381,8 @@ export class MissionUI extends BaseWindowUI {
                 if (this.isBackButtonClicked(mouseX, mouseY)) {
                     this.currentPage = 'list';
                     this.scrollOffset = 0; // Reset scroll when changing pages
-                    this.activeTextField = null; // Reset active text field
+                    this.objectiveTextBox.setActive(false);
+                    this.detailsTextBox.setActive(false);
                     return true;
                 }
 
@@ -429,15 +400,17 @@ export class MissionUI extends BaseWindowUI {
                     const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
                     const dropdownY = detailsFieldY + this.textFieldHeight * 3 + this.textFieldMargin + this.labelHeight;
 
-                    // Check if click is on objective text field
+                    // Check if click is on objective text box
                     if (mouseY >= objectiveFieldY && mouseY <= objectiveFieldY + this.textFieldHeight) {
-                        this.activeTextField = 'objective';
+                        this.objectiveTextBox.handleClick(mouseX - contentX, mouseY - objectiveFieldY);
+                        this.detailsTextBox.setActive(false); // Deactivate details box
                         return true;
                     }
 
-                    // Check if click is on details text field
+                    // Check if click is on details text box
                     if (mouseY >= detailsFieldY && mouseY <= detailsFieldY + (this.textFieldHeight * 3)) {
-                        this.activeTextField = 'details';
+                        this.detailsTextBox.handleClick(mouseX - contentX, mouseY - detailsFieldY);
+                        this.objectiveTextBox.setActive(false); // Deactivate objective box
                         return true;
                     }
 
@@ -477,8 +450,9 @@ export class MissionUI extends BaseWindowUI {
                 return true;
             }
 
-            // If we clicked outside the window, deactivate text fields
-            this.activeTextField = null;
+            // If we clicked outside the window, deactivate text boxes
+            this.objectiveTextBox.setActive(false);
+            this.detailsTextBox.setActive(false);
         }
 
         // Close dropdown if clicking outside
@@ -520,8 +494,8 @@ export class MissionUI extends BaseWindowUI {
                 if (this.isBackButtonClicked(touchX, touchY)) {
                     this.currentPage = 'list';
                     this.scrollOffset = 0; // Reset scroll when changing pages
-                    this.activeTextField = null; // Reset active text field
-                    this.hideMobileInputs();
+                    this.objectiveTextBox.setActive(false);
+                    this.detailsTextBox.setActive(false);
                     return true;
                 }
 
@@ -539,25 +513,17 @@ export class MissionUI extends BaseWindowUI {
                     const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
                     const dropdownY = detailsFieldY + this.textFieldHeight * 3 + this.textFieldMargin + this.labelHeight;
 
-                    // Check if touch ended on objective text field
+                    // Check if touch ended on objective text box
                     if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
-                        this.activeTextField = 'objective';
-                        this.showMobileInput('objective', 
-                            contentX, 
-                            objectiveFieldY, 
-                            contentWidth, 
-                            this.textFieldHeight);
+                        this.objectiveTextBox.handleTouchEnd(touchX - contentX, touchY - objectiveFieldY);
+                        this.detailsTextBox.setActive(false); // Deactivate details box
                         return true;
                     }
 
-                    // Check if touch ended on details text field
+                    // Check if touch ended on details text box
                     if (touchY >= detailsFieldY && touchY <= detailsFieldY + (this.textFieldHeight * 3)) {
-                        this.activeTextField = 'details';
-                        this.showMobileInput('details', 
-                            contentX, 
-                            detailsFieldY, 
-                            contentWidth, 
-                            this.textFieldHeight * 3);
+                        this.detailsTextBox.handleTouchEnd(touchX - contentX, touchY - detailsFieldY);
+                        this.objectiveTextBox.setActive(false); // Deactivate objective box
                         return true;
                     }
 
@@ -597,9 +563,9 @@ export class MissionUI extends BaseWindowUI {
                 return true;
             }
 
-            // If we touched outside the window, deactivate text fields
-            this.activeTextField = null;
-            this.hideMobileInputs();
+            // If we touched outside the window, deactivate text boxes
+            this.objectiveTextBox.setActive(false);
+            this.detailsTextBox.setActive(false);
         }
 
         // Close dropdown if touching outside
@@ -608,79 +574,60 @@ export class MissionUI extends BaseWindowUI {
         return false;
     }
 
-    createMobileInputs() {
-        // Create objective input
-        this.objectiveInput = document.createElement('input');
-        this.objectiveInput.type = 'text';
-        this.objectiveInput.style.position = 'absolute';
-        this.objectiveInput.style.display = 'none';
-        this.objectiveInput.style.border = '1px solid #666';
-        this.objectiveInput.style.background = '#333';
-        this.objectiveInput.style.color = '#fff';
-        this.objectiveInput.style.padding = '5px';
-        this.objectiveInput.style.fontSize = '14px';
-        document.body.appendChild(this.objectiveInput);
+    handleKeyDown(event) {
+        if (!this.isWindowVisible || this.currentPage !== 'add') {
+            return false;
+        }
 
-        // Create details input (textarea for multiline)
-        this.detailsInput = document.createElement('textarea');
-        this.detailsInput.style.position = 'absolute';
-        this.detailsInput.style.display = 'none';
-        this.detailsInput.style.border = '1px solid #666';
-        this.detailsInput.style.background = '#333';
-        this.detailsInput.style.color = '#fff';
-        this.detailsInput.style.padding = '5px';
-        this.detailsInput.style.fontSize = '14px';
-        this.detailsInput.style.resize = 'none';
-        document.body.appendChild(this.detailsInput);
-
-        // Add input event listeners
-        this.objectiveInput.addEventListener('input', () => {
-            this.objectiveText = this.objectiveInput.value;
-        });
-
-        this.detailsInput.addEventListener('input', () => {
-            this.detailsText = this.detailsInput.value;
-        });
-
-        // Add blur event listeners to hide inputs when focus is lost
-        this.objectiveInput.addEventListener('blur', () => {
-            setTimeout(() => this.hideMobileInputs(), 100);
-        });
-
-        this.detailsInput.addEventListener('blur', () => {
-            setTimeout(() => this.hideMobileInputs(), 100);
-        });
+        return this.objectiveTextBox.handleKeyDown(event) || 
+               this.detailsTextBox.handleKeyDown(event);
     }
 
-    showMobileInput(field, x, y, width, height) {
-        const input = field === 'objective' ? this.objectiveInput : this.detailsInput;
-        input.style.left = x + 'px';
-        input.style.top = y + 'px';
-        input.style.width = width + 'px';
-        input.style.height = height + 'px';
-        input.style.display = 'block';
-        input.value = field === 'objective' ? this.objectiveText : this.detailsText;
-        input.focus();
+    handleKeyPress(event) {
+        if (!this.isWindowVisible || this.currentPage !== 'add') {
+            return false;
+        }
+
+        return this.objectiveTextBox.handleKeyPress(event) || 
+               this.detailsTextBox.handleKeyPress(event);
     }
 
-    hideMobileInputs() {
-        if (this.objectiveInput) this.objectiveInput.style.display = 'none';
-        if (this.detailsInput) this.detailsInput.style.display = 'none';
-        this.activeTextField = null;
-    }
-
-    // Calculate window dimensions based on sketch size
-    getWindowDimensions() {
-        // Width: 80% of sketch width, but capped at 800px
-        const maxWidth = 800;
-        const width = Math.min(this.sketch.width * 0.8, maxWidth);
+    async handleCreateMission() {
+        const objective = this.objectiveTextBox.getText().trim();
+        const details = this.detailsTextBox.getText().trim();
         
-        // Height: 70% of sketch height, with minimum margin of 40px top and bottom
-        const minMargin = 40;
-        const maxHeight = this.sketch.height - (minMargin * 2);
-        const height = Math.min(this.sketch.height * 0.7, maxHeight);
+        if (objective === '' || this.selectedCrewIndex < 0) {
+            return;
+        }
+
+        // Create new mission
+        const mission = new Mission(
+            objective,
+            details,
+            this.selectedCrewIndex >= 0 ? this.crewMembers[this.selectedCrewIndex] : null
+        );
         
-        return { width, height };
+        // Generate steps if text generator is available
+        if (this.textGenerator) {
+            try {
+                this.isGeneratingMission = true;
+                await mission.generateSteps(this.textGenerator);
+            } catch (error) {
+                console.error('Failed to generate mission steps:', error);
+            } finally {
+                this.isGeneratingMission = false;
+            }
+        }
+
+        this.missions.push(mission);
+
+        // Clear input fields and return to list
+        this.objectiveTextBox.setText('');
+        this.detailsTextBox.setText('');
+        this.selectedCrewIndex = -1;
+        this.currentPage = 'list';
+        this.objectiveTextBox.setActive(false);
+        this.detailsTextBox.setActive(false);
     }
 
     render(camera) {
@@ -921,93 +868,6 @@ export class MissionUI extends BaseWindowUI {
         this.hoveredStep = null;
     }
 
-    async handleCreateMission() {
-        if (this.objectiveText.trim() === '' || this.selectedCrewIndex < 0) {
-            return;
-        }
-
-        // Create new mission
-        const mission = new Mission(
-            this.objectiveText.trim(), 
-            this.detailsText.trim(),
-            this.selectedCrewIndex >= 0 ? this.crewMembers[this.selectedCrewIndex] : null
-        );
-        
-        // Generate steps if text generator is available
-        if (this.textGenerator) {
-            try {
-                this.isGeneratingMission = true;
-                await mission.generateSteps(this.textGenerator);
-            } catch (error) {
-                console.error('Failed to generate mission steps:', error);
-            } finally {
-                this.isGeneratingMission = false;
-            }
-        }
-
-        this.missions.push(mission);
-
-        // Clear input fields and return to list
-        this.objectiveText = '';
-        this.detailsText = '';
-        this.selectedCrewIndex = -1;
-        this.currentPage = 'list';
-        this.activeTextField = null;
-        this.hideMobileInputs();
-    }
-
-    handleKeyDown(event) {
-        if (!this.isWindowVisible || this.currentPage !== 'add' || !this.activeTextField) {
-            return false;
-        }
-
-        // Handle special keys
-        switch (event.key) {
-            case 'Backspace':
-                if (this.activeTextField === 'objective') {
-                    this.objectiveText = this.objectiveText.slice(0, -1);
-                } else if (this.activeTextField === 'details') {
-                    this.detailsText = this.detailsText.slice(0, -1);
-                }
-                return true;
-
-            case 'Enter':
-                if (this.activeTextField === 'details') {
-                    this.detailsText += '\n';
-                    return true;
-                }
-                return false;
-
-            case 'Tab':
-                // Switch between text fields
-                event.preventDefault(); // Prevent losing focus
-                this.activeTextField = this.activeTextField === 'objective' ? 'details' : 'objective';
-                return true;
-        }
-
-        return false;
-    }
-
-    handleKeyPress(event) {
-        if (!this.isWindowVisible || this.currentPage !== 'add' || !this.activeTextField) {
-            return false;
-        }
-
-        // Ignore special keys
-        if (event.key === 'Enter' || event.key === 'Tab') {
-            return false;
-        }
-
-        // Add the typed character to the appropriate text field
-        if (this.activeTextField === 'objective') {
-            this.objectiveText += event.key;
-        } else if (this.activeTextField === 'details') {
-            this.detailsText += event.key;
-        }
-
-        return true;
-    }
-
     isAddButtonClicked(mouseX, mouseY) {
         const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
         let x = (this.sketch.width - windowWidth) / 2;
@@ -1028,5 +888,19 @@ export class MissionUI extends BaseWindowUI {
         
         return mouseX >= backX && mouseX <= backX + this.backArrowSize &&
                mouseY >= backY && mouseY <= backY + this.backArrowSize;
+    }
+
+    // Calculate window dimensions based on sketch size
+    getWindowDimensions() {
+        // Width: 80% of sketch width, but capped at 800px
+        const maxWidth = 800;
+        const width = Math.min(this.sketch.width * 0.8, maxWidth);
+        
+        // Height: 70% of sketch height, with minimum margin of 40px top and bottom
+        const minMargin = 40;
+        const maxHeight = this.sketch.height - (minMargin * 2);
+        const height = Math.min(this.sketch.height * 0.7, maxHeight);
+        
+        return { width, height };
     }
 } 
