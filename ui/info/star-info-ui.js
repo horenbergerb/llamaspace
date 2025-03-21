@@ -86,31 +86,4 @@ export class StarInfoUI extends BodyInfoUI {
             this.sketch.pop();
         }
     }
-
-    handleMouseReleased(camera, mouseX, mouseY) {
-        if (!this.isVisible) return false;
-
-        let mouseXTransformed = (mouseX - camera.panX) / camera.scaleFactor;
-        let mouseYTransformed = (mouseY - camera.panY) / camera.scaleFactor;
-
-        // Check if this is the central star in system view
-        if (this.body && this.inSystemMap && 
-            this.body.baseX === this.sketch.width / 2 && 
-            this.body.baseY === this.sketch.height / 2) {
-            
-            // Check Return to Galaxy button
-            let returnX = this.uiX + this.uiWidth / 2 - 60;
-            let returnY = this.uiY + this.uiHeight - 70;
-            if (mouseXTransformed >= returnX && 
-                mouseXTransformed <= returnX + 120 && 
-                mouseYTransformed >= returnY && 
-                mouseYTransformed <= returnY + 25) {
-                this.eventBus.emit('returnToGalaxy');
-                this.close();
-                return true;
-            }
-        }
-
-        return super.handleMouseReleased(camera, mouseX, mouseY);
-    }
 } 
