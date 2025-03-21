@@ -12,9 +12,16 @@ export class Spaceship {
     static DECELERATION = 0.09;  // Deceleration per frame (adjusted for deltaTime)
     static MIN_SPEED = 0.8;  // Minimum speed during transit (adjusted for deltaTime)
 
-    constructor(sketch, eventBus) {
+    constructor(sketch) {
         this.sketch = sketch;
-        this.eventBus = eventBus;
+        this.x = 0;
+        this.y = 0;
+        this.angle = 0;
+        this.speed = 0;
+        this.orbitBody = null;
+        this.inTransit = false;
+        this.inSystemMap = false;
+        this.eventBus = null; // Will be set by main.js
 
         // Angle of the ship with respect to the body it orbits
         this.orbitAngle = 0; 
@@ -26,14 +33,10 @@ export class Spaceship {
         this.spaceshipY = 0;
 
         this.destinationSet = false;
-        this.inTransit = false;
         this.transitAngle = 0;
         this.transitSpeed = 0;
         this.newOrbitBody = null;
         this.prevDist = null;
-
-        // Track which map we're in
-        this.inSystemMap = false;
     }
 
     static preload(sketch) {
@@ -186,9 +189,11 @@ export class Spaceship {
 
     setInTransit(inTransit) {
         this.inTransit = inTransit;
-        this.eventBus.emit('spaceshipStateChanged', {
-            inTransit: this.inTransit
-        });
+        if (this.eventBus) {
+            this.eventBus.emit('spaceshipStateChanged', {
+                inTransit: this.inTransit
+            });
+        }
     }
 
     completeTransit() {

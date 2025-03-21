@@ -4,15 +4,14 @@ import { PlanetInfoUI } from '../ui/info/planet-info-ui.js';
 import { MapStar } from './map-star.js';
 import { MapPlanet } from './map-planet.js';
 import { Spaceship } from './map-spaceship.js';
-import { GameEventBus } from '../utils/game-events.js';
 import { MapSceneRenderer } from '../renderers/map-scene-renderer.js';
 
 export class MapScene {
-    constructor(sketch, spaceship) {
+    constructor(sketch, spaceship, eventBus) {
         this.sketch = sketch;
         this.mapBodies = []; // Array for navigable bodies
         this.pressStartTime = null;
-        this.eventBus = new GameEventBus();
+        this.eventBus = eventBus; // Use provided event bus
         
         // Create UI with event bus
         this.starInfoUI = new StarInfoUI(sketch, this.eventBus);
@@ -27,16 +26,6 @@ export class MapScene {
                 console.log(`Setting course for ${body.name}...`);
                 this.spaceship.setOrbitBody(body);
             }
-        });
-
-        this.eventBus.on('enterSystem', (body) => {
-            console.log(`Entering System ${body.name}...`);
-            window.enterStarSystem(body);
-        });
-
-        this.eventBus.on('returnToGalaxy', () => {
-            console.log('Returning to galaxy map...');
-            window.returnToGalaxyMap();
         });
 
         this.eventBus.on('research', (body) => {

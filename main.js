@@ -12,6 +12,10 @@ import { SettingsUI } from './ui/window/settings-ui.js';
 import { CrewMember } from './game-state/crew-member.js';
 import { Mission } from './game-state/mission.js';
 import { TextGeneratorOpenRouter } from './text-gen-openrouter.js';
+import { GameEventBus } from './utils/game-events.js';
+
+// Create global event bus
+const globalEventBus = new GameEventBus();
 
 let backgroundRenderer = null;
 let spaceship = null;
@@ -34,8 +38,8 @@ var mapSketch = function(sketch) {
         backgroundRenderer = new MapBackgroundRenderer(sketch);
         Spaceship.preload(sketch);
         spaceship = new Spaceship(sketch);
-        galaxyMapScene = new MapScene(sketch, spaceship);
-        spaceship.eventBus = galaxyMapScene.eventBus;
+        spaceship.eventBus = globalEventBus; // Use global event bus
+        galaxyMapScene = new MapScene(sketch, spaceship, globalEventBus);
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
         uiRenderer = new UIRenderer(sketch);
@@ -45,19 +49,28 @@ var mapSketch = function(sketch) {
             crewMembers.push(new CrewMember());
         }
         
-        shipUI = new ShipUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, crewMembers);
-        missionUI = new MissionUI(sketch, galaxyMapScene.eventBus, galaxyMapScene, missions);
-        settingsUI = new SettingsUI(sketch, galaxyMapScene.eventBus);
+        shipUI = new ShipUI(sketch, globalEventBus, galaxyMapScene, crewMembers);
+        missionUI = new MissionUI(sketch, globalEventBus, galaxyMapScene, missions);
+        settingsUI = new SettingsUI(sketch, globalEventBus);
 
         // Subscribe to API key updates
-        galaxyMapScene.eventBus.on('apiKeyUpdated', async (apiKey) => {
+        globalEventBus.on('apiKeyUpdated', async (apiKey) => {
             // Create or update the text generator with the new API key
             textGenerator = new TextGeneratorOpenRouter(apiKey);
-            
+        });
+
+        globalEventBus.on('enterSystem', (body) => {
+            console.log(`Entering System ${body.name}...`);
+            enterStarSystem(body);
+        });
+
+        globalEventBus.on('returnToGalaxy', () => {
+            console.log('Returning to galaxy map...');
+            returnToGalaxyMap();
         });
 
         // Emit initial crew update
-        galaxyMapScene.eventBus.emit('crewUpdated', crewMembers);
+        globalEventBus.emit('crewUpdated', crewMembers);
     };
 
     sketch.setup = async function() {
@@ -75,7 +88,7 @@ var mapSketch = function(sketch) {
         galaxyMapScene.initializeMapScene(sketch);
         currentScene = galaxyMapScene; // Set initial scene
         // Emit initial scene change event
-        galaxyMapScene.eventBus.emit('sceneChanged', galaxyMapScene);
+        globalEventBus.emit('sceneChanged', galaxyMapScene);
 
         camera.endCameraTransform();
 
@@ -123,7 +136,7 @@ var mapSketch = function(sketch) {
 
     // Function to enter a star's system
     function enterStarSystem(star) {
-        systemMapScene = new MapScene(sketch, spaceship);
+        systemMapScene = new MapScene(sketch, spaceship, globalEventBus);
         
         // Create a centered version of the star for the system view
         let centralStar = new MapStar(sketch);
@@ -149,7 +162,6 @@ var mapSketch = function(sketch) {
         systemMapScene.initializeMapScene(sketch, spaceship);
         systemMapScene.setInSystemView(true);
 
-
         // Switch to system scene
         currentScene = systemMapScene;
         controlHandler.attachEventListeners(sketch, camera, systemMapScene, shipUI, missionUI);
@@ -157,10 +169,9 @@ var mapSketch = function(sketch) {
         galaxyOrbitStar = star;
 
         spaceship.setInSystemMap(true);
-        spaceship.eventBus = systemMapScene.eventBus;
 
         // Emit scene change event
-        galaxyMapScene.eventBus.emit('sceneChanged', systemMapScene);
+        globalEventBus.emit('sceneChanged', systemMapScene);
         
         // Reset camera and zoom in
         camera.panX = 0;
@@ -169,20 +180,16 @@ var mapSketch = function(sketch) {
         camera.setAutoCamera(centralStar.baseX, centralStar.baseY, 2.0);
     }
 
-    // Attach the enterStarSystem function to the window object
-    window.enterStarSystem = enterStarSystem;
-
     // Function to return to galaxy map
     window.returnToGalaxyMap = function() {
         currentScene = galaxyMapScene;
         controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI);
 
-        spaceship.eventBus = galaxyMapScene.eventBus;
         spaceship.setOrbitBody(galaxyOrbitStar, true);
         spaceship.setInSystemMap(false);
 
         // Emit scene change event
-        galaxyMapScene.eventBus.emit('sceneChanged', galaxyMapScene);
+        globalEventBus.emit('sceneChanged', galaxyMapScene);
 
         // Reset camera and zoom in
         camera.panX = 0;
