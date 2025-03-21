@@ -12,8 +12,9 @@ export class Spaceship {
     static DECELERATION = 0.09;  // Deceleration per frame (adjusted for deltaTime)
     static MIN_SPEED = 0.8;  // Minimum speed during transit (adjusted for deltaTime)
 
-    constructor(sketch) {
+    constructor(sketch, eventBus) {
         this.sketch = sketch;
+        this.eventBus = eventBus;
 
         // Angle of the ship with respect to the body it orbits
         this.orbitAngle = 0; 
@@ -56,9 +57,11 @@ export class Spaceship {
         this.inSystemMap = isInSystem;
     }
 
-    setOrbitBody(newOrbitBody) {
-        if (!this.orbitBody) {
+    setOrbitBody(newOrbitBody, teleport = false) {
+        if (!this.orbitBody || teleport) {
             this.orbitBody = newOrbitBody;
+            this.setInTransit(false);
+            this.destinationSet = false;
             return;
         }
 
@@ -68,9 +71,8 @@ export class Spaceship {
         this.newOrbitBody = newOrbitBody;
 
         // In system map, start transit immediately
-        if (this.inSystemMap) {
+        if (this.inSystemMap) 
             this.startImmediateTransit();
-        }
     }
 
     calculateInitialTransitAngle(target) {
@@ -80,7 +82,7 @@ export class Spaceship {
     }
 
     startImmediateTransit() {
-        this.inTransit = true;
+        this.setInTransit(true);
         this.spaceshipAngle = this.transitAngle + Math.PI / 2;
     }
 
@@ -105,7 +107,8 @@ export class Spaceship {
     }
 
     updateSpaceshipInTransit() {
-        this.inTransit = true;
+        if (!this.inTransit)
+            this.setInTransit(true);
         
         const distToTarget = this.calculateDistanceToTarget();
         
@@ -181,8 +184,15 @@ export class Spaceship {
         }
     }
 
+    setInTransit(inTransit) {
+        this.inTransit = inTransit;
+        this.eventBus.emit('spaceshipStateChanged', {
+            inTransit: this.inTransit
+        });
+    }
+
     completeTransit() {
-        this.inTransit = false;
+        this.setInTransit(false);
         this.destinationSet = false;
         this.orbitBody = this.newOrbitBody;
         this.transitSpeed = 0;

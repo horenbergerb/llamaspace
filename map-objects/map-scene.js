@@ -8,7 +8,7 @@ import { GameEventBus } from '../utils/game-events.js';
 import { MapSceneRenderer } from '../renderers/map-scene-renderer.js';
 
 export class MapScene {
-    constructor(sketch) {
+    constructor(sketch, spaceship) {
         this.sketch = sketch;
         this.mapBodies = []; // Array for navigable bodies
         this.pressStartTime = null;
@@ -17,7 +17,7 @@ export class MapScene {
         // Create UI with event bus
         this.starInfoUI = new StarInfoUI(sketch, this.eventBus);
         this.planetInfoUI = new PlanetInfoUI(sketch, this.eventBus);
-        this.spaceship = null;
+        this.spaceship = spaceship;
         this.sceneRenderer = new MapSceneRenderer(sketch);
         this.selectedBody = null;
 
@@ -57,21 +57,13 @@ export class MapScene {
 
     initializeMapScene() {
         this.starTree = new KDTree(this.mapBodies);
-        this.spaceship = new Spaceship(this.sketch);
         
         // Emit initial spaceship state
         this.eventBus.emit('spaceshipStateChanged', {
             inTransit: this.spaceship.inTransit
         });
 
-        // Set up observer for spaceship state changes
-        const originalSetOrbitBody = this.spaceship.setOrbitBody;
-        this.spaceship.setOrbitBody = (body) => {
-            originalSetOrbitBody.call(this.spaceship, body);
-            this.eventBus.emit('spaceshipStateChanged', {
-                inTransit: this.spaceship.inTransit
-            });
-        };
+
     }
     
     update() {
@@ -98,7 +90,6 @@ export class MapScene {
     setInSystemView(isInSystem) {
         this.starInfoUI.inSystemMap = isInSystem;
         this.planetInfoUI.inSystemMap = isInSystem;
-        this.spaceship.setInSystemMap(isInSystem);
     }
 
     handleMousePressedMapScene() {

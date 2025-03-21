@@ -14,6 +14,8 @@ import { Mission } from './game-state/mission.js';
 import { TextGeneratorOpenRouter } from './text-gen-openrouter.js';
 
 let backgroundRenderer = null;
+let spaceship = null;
+let galaxyOrbitStar = null;
 let galaxyMapScene = null;
 let systemMapScene = null; // New scene for when we enter a star system
 let currentScene = null; // Track which scene is active
@@ -30,8 +32,10 @@ let textGenerator = null; // Instance of TextGeneratorOpenRouter
 var mapSketch = function(sketch) {
     sketch.preload = function() {
         backgroundRenderer = new MapBackgroundRenderer(sketch);
-        galaxyMapScene = new MapScene(sketch);
         Spaceship.preload(sketch);
+        spaceship = new Spaceship(sketch);
+        galaxyMapScene = new MapScene(sketch, spaceship);
+        spaceship.eventBus = galaxyMapScene.eventBus;
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
         uiRenderer = new UIRenderer(sketch);
@@ -76,14 +80,15 @@ var mapSketch = function(sketch) {
         camera.endCameraTransform();
 
         // Start at a random star and configure the camera to autopan to it
-        galaxyMapScene.spaceship.setOrbitBody(galaxyMapScene.getRandomBody(), false);
-        camera.setAutoCamera(galaxyMapScene.spaceship.orbitBody.baseX, galaxyMapScene.spaceship.orbitBody.baseY, 1.0);
+        galaxyOrbitStar = galaxyMapScene.getRandomBody();
+        spaceship.setOrbitBody(galaxyOrbitStar, true);
+        camera.setAutoCamera(spaceship.orbitBody.baseX, spaceship.orbitBody.baseY, 1.0);
     }
 
     sketch.draw = function() {
         // Update game state
         camera.handleAutoCamera();
-        currentScene.spaceship.update();
+        spaceship.update();
 
         // Render everything
         // Background is drawn without camera transform since it needs weird logic to preserve parallax
@@ -108,11 +113,6 @@ var mapSketch = function(sketch) {
         shipUI.renderWindow(camera);
         missionUI.renderWindow(camera);
         settingsUI.renderWindow(camera);
-
-        // Update state change events after rendering
-        currentScene.eventBus.emit('spaceshipStateChanged', {
-            inTransit: currentScene.spaceship.inTransit
-        });
     }
 
     function generateGalaxy() {
@@ -123,7 +123,7 @@ var mapSketch = function(sketch) {
 
     // Function to enter a star's system
     function enterStarSystem(star) {
-        systemMapScene = new MapScene(sketch);
+        systemMapScene = new MapScene(sketch, spaceship);
         
         // Create a centered version of the star for the system view
         let centralStar = new MapStar(sketch);
@@ -143,22 +143,29 @@ var mapSketch = function(sketch) {
                 systemMapScene.mapBodies.push(planet);
             }
         }
-        
-        systemMapScene.initializeMapScene(sketch);
-        systemMapScene.spaceship.setOrbitBody(centralStar, false);
+
+        spaceship.setOrbitBody(centralStar, true);
+
+        systemMapScene.initializeMapScene(sketch, spaceship);
         systemMapScene.setInSystemView(true);
+
 
         // Switch to system scene
         currentScene = systemMapScene;
         controlHandler.attachEventListeners(sketch, camera, systemMapScene, shipUI, missionUI);
-        
+
+        galaxyOrbitStar = star;
+
+        spaceship.setInSystemMap(true);
+        spaceship.eventBus = systemMapScene.eventBus;
+
         // Emit scene change event
         galaxyMapScene.eventBus.emit('sceneChanged', systemMapScene);
         
         // Reset camera and zoom in
         camera.panX = 0;
         camera.panY = 0;
-        camera.scaleFactor = 1.0;
+        camera.scaleFactor = 0.5;
         camera.setAutoCamera(centralStar.baseX, centralStar.baseY, 2.0);
     }
 
@@ -169,8 +176,19 @@ var mapSketch = function(sketch) {
     window.returnToGalaxyMap = function() {
         currentScene = galaxyMapScene;
         controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI);
+
+        spaceship.eventBus = galaxyMapScene.eventBus;
+        spaceship.setOrbitBody(galaxyOrbitStar, true);
+        spaceship.setInSystemMap(false);
+
         // Emit scene change event
         galaxyMapScene.eventBus.emit('sceneChanged', galaxyMapScene);
+
+        // Reset camera and zoom in
+        camera.panX = 0;
+        camera.panY = 0;
+        camera.scaleFactor = 0.5;
+        camera.setAutoCamera(galaxyOrbitStar.baseX, galaxyOrbitStar.baseY, 1.0);
     }
 };
 
