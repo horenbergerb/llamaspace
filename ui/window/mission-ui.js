@@ -8,6 +8,7 @@ export class MissionUI extends BaseWindowUI {
         this.missions = missions;
         this.textGenerator = null; // Will be set when API key is available
         this.crewMembers = []; // Will be populated from event
+        this.isInSystemScene = false; // Track if we're in a system scene
         
         // Mission button properties
         this.buttonWidth = 80;
@@ -104,6 +105,19 @@ export class MissionUI extends BaseWindowUI {
             // Close the window when changing scenes
             this.isWindowVisible = false;
             this.activeTextField = null; // Reset active text field
+            this.hideMobileInputs();
+        });
+
+        // Subscribe to system enter/exit events
+        this.eventBus.on('enterSystem', () => {
+            this.isInSystemScene = true;
+        });
+
+        this.eventBus.on('returnToGalaxy', () => {
+            this.isInSystemScene = false;
+            // Close the window when returning to galaxy
+            this.isWindowVisible = false;
+            this.activeTextField = null;
             this.hideMobileInputs();
         });
 
@@ -230,6 +244,9 @@ export class MissionUI extends BaseWindowUI {
     }
 
     renderMissionButton() {
+        // Don't render the button if we're not in a system scene
+        if (!this.isInSystemScene) return;
+
         this.sketch.push();
         
         // Position in bottom left, next to ship button
@@ -681,6 +698,9 @@ export class MissionUI extends BaseWindowUI {
     }
 
     handleMouseReleased(camera, mouseX, mouseY) {
+        // Don't handle clicks if we're not in a system scene
+        if (!this.isInSystemScene) return false;
+
         // Check mission button first (always visible)
         if (this.isMissionButtonClicked(mouseX, mouseY)) {
             // Only toggle if we have a valid scene
@@ -855,6 +875,9 @@ export class MissionUI extends BaseWindowUI {
     }
 
     handleTouchEnd(camera, touchX, touchY) {
+        // Don't handle touches if we're not in a system scene
+        if (!this.isInSystemScene) return false;
+
         // Check mission button first (always visible)
         if (this.isMissionButtonClicked(touchX, touchY)) {
             // Only toggle if we have a valid scene
