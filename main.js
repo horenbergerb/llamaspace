@@ -162,7 +162,7 @@ var mapSketch = function(sketch) {
 
         // Switch to system scene
         currentScene = systemMapScene;
-        controlHandler.attachEventListeners(sketch, camera, systemMapScene, shipUI, missionUI);
+        controlHandler.attachEventListeners(sketch, camera, systemMapScene, shipUI, missionUI, settingsUI);
 
         galaxyOrbitStar = star;
 
@@ -181,7 +181,7 @@ var mapSketch = function(sketch) {
     // Function to return to galaxy map
     window.returnToGalaxyMap = function() {
         currentScene = galaxyMapScene;
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI);
 
         spaceship.setOrbitBody(galaxyOrbitStar, true);
         spaceship.setInSystemMap(false);
