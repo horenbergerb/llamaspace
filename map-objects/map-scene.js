@@ -46,12 +46,6 @@ export class MapScene {
 
     initializeMapScene() {
         this.starTree = new KDTree(this.mapBodies);
-        
-        // Emit initial spaceship state
-        this.eventBus.emit('spaceshipStateChanged', {
-            inTransit: this.spaceship.inTransit
-        });
-
 
     }
     

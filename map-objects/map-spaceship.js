@@ -65,6 +65,9 @@ export class Spaceship {
             this.orbitBody = newOrbitBody;
             this.setInTransit(false);
             this.destinationSet = false;
+            this.newOrbitBody = null;
+            this.transitSpeed = 0;
+            this.prevDist = null;
             return;
         }
 
