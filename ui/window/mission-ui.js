@@ -90,16 +90,22 @@ export class MissionUI extends BaseWindowUI {
             this.currentPage = 'list'; // Reset to list page when closing
             this.objectiveTextBox.setActive(false);
             this.detailsTextBox.setActive(false);
+            this.objectiveTextBox.hideMobileInput();
+            this.detailsTextBox.hideMobileInput();
         });
         this.eventBus.on('shipUIOpened', () => {
             this.isWindowVisible = false;
             this.objectiveTextBox.setActive(false);
             this.detailsTextBox.setActive(false);
+            this.objectiveTextBox.hideMobileInput();
+            this.detailsTextBox.hideMobileInput();
         });
         this.eventBus.on('settingsUIOpened', () => {
             this.isWindowVisible = false;
             this.objectiveTextBox.setActive(false);
             this.detailsTextBox.setActive(false);
+            this.objectiveTextBox.hideMobileInput();
+            this.detailsTextBox.hideMobileInput();
         });
 
         // Subscribe to scene changes
@@ -109,6 +115,8 @@ export class MissionUI extends BaseWindowUI {
             this.isWindowVisible = false;
             this.objectiveTextBox.setActive(false);
             this.detailsTextBox.setActive(false);
+            this.objectiveTextBox.hideMobileInput();
+            this.detailsTextBox.hideMobileInput();
         });
 
         // Subscribe to system enter/exit events
@@ -122,6 +130,8 @@ export class MissionUI extends BaseWindowUI {
             this.isWindowVisible = false;
             this.objectiveTextBox.setActive(false);
             this.detailsTextBox.setActive(false);
+            this.objectiveTextBox.hideMobileInput();
+            this.detailsTextBox.hideMobileInput();
         });
 
         // Subscribe to API key updates

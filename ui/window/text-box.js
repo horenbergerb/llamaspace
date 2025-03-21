@@ -23,9 +23,19 @@ export class TextBox {
         // Mobile input support
         this.mobileInput = null;
         this.createMobileInput();
+
+        // Subscribe to window close events
+        this.eventBus.on('closeAllInfoUIs', () => {
+            this.hideMobileInput();
+        });
     }
 
     createMobileInput() {
+        // Remove existing input if it exists
+        if (this.mobileInput) {
+            this.mobileInput.remove();
+        }
+
         if (this.options.multiline) {
             this.mobileInput = document.createElement('textarea');
             this.mobileInput.style.resize = 'none';
@@ -34,39 +44,86 @@ export class TextBox {
             this.mobileInput.type = 'text';
         }
 
-        this.mobileInput.style.position = 'absolute';
+        this.mobileInput.style.position = 'fixed';
         this.mobileInput.style.display = 'none';
         this.mobileInput.style.border = '1px solid #666';
         this.mobileInput.style.background = '#333';
         this.mobileInput.style.color = '#fff';
         this.mobileInput.style.padding = '5px';
         this.mobileInput.style.fontSize = '14px';
+        this.mobileInput.style.zIndex = '9999';
+        this.mobileInput.style.opacity = '0'; // Make it invisible but still functional
         document.body.appendChild(this.mobileInput);
 
         // Add input event listener
-        this.mobileInput.addEventListener('input', () => {
+        this.mobileInput.addEventListener('input', (e) => {
+            e.stopPropagation();
             this.text = this.mobileInput.value;
+            this.cursorPosition = this.mobileInput.selectionStart;
+        });
+
+        // Add keydown event listener for backspace
+        this.mobileInput.addEventListener('keydown', (e) => {
+            e.stopPropagation();
+            if (e.key === 'Backspace') {
+                e.preventDefault(); // Prevent default backspace behavior
+                if (this.cursorPosition > 0) {
+                    this.text = this.text.slice(0, this.cursorPosition - 1) + this.text.slice(this.cursorPosition);
+                    this.cursorPosition--;
+                    this.mobileInput.value = this.text;
+                    this.mobileInput.setSelectionRange(this.cursorPosition, this.cursorPosition);
+                }
+            }
+        });
+
+        // Add keypress event listener to prevent duplicate events
+        this.mobileInput.addEventListener('keypress', (e) => {
+            e.stopPropagation();
+            e.preventDefault(); // Prevent default keypress behavior
         });
 
         // Add blur event listener
-        this.mobileInput.addEventListener('blur', () => {
+        this.mobileInput.addEventListener('blur', (e) => {
+            e.stopPropagation();
             setTimeout(() => this.hideMobileInput(), 100);
         });
     }
 
     showMobileInput(x, y, width, height) {
-        this.mobileInput.style.left = x + 'px';
-        this.mobileInput.style.top = y + 'px';
+        // Get the current scroll position and viewport dimensions
+        const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        // Calculate the position to ensure the input is visible
+        let inputX = x + scrollX;
+        let inputY = y + scrollY;
+        
+        // Adjust position if it would go off screen
+        if (inputX + width > viewportWidth) {
+            inputX = viewportWidth - width;
+        }
+        if (inputY + height > viewportHeight) {
+            inputY = viewportHeight - height;
+        }
+        
+        // Position the input element
+        this.mobileInput.style.left = inputX + 'px';
+        this.mobileInput.style.top = inputY + 'px';
         this.mobileInput.style.width = width + 'px';
         this.mobileInput.style.height = height + 'px';
         this.mobileInput.style.display = 'block';
         this.mobileInput.value = this.text;
+        this.mobileInput.setSelectionRange(this.cursorPosition, this.cursorPosition);
         this.mobileInput.focus();
     }
 
     hideMobileInput() {
         if (this.mobileInput) {
             this.mobileInput.style.display = 'none';
+            this.mobileInput.value = '';
+            this.mobileInput.blur();
         }
         this.active = false;
     }
@@ -215,6 +272,8 @@ export class TextBox {
                          y >= 0 && y <= this.options.height;
         
         if (isTouched) {
+            // Hide any other mobile inputs first
+            this.eventBus.emit('hideAllMobileInputs');
             this.active = true;
             this.showMobileInput(x, y, this.options.width, this.options.height);
         } else {
@@ -227,6 +286,11 @@ export class TextBox {
 
     handleKeyDown(event) {
         if (!this.active) return false;
+
+        // If we're using mobile input, don't handle keyboard events
+        if (this.mobileInput && this.mobileInput.style.display !== 'none') {
+            return false;
+        }
 
         switch (event.key) {
             case 'Backspace':
@@ -272,6 +336,11 @@ export class TextBox {
 
     handleKeyPress(event) {
         if (!this.active) return false;
+
+        // If we're using mobile input, don't handle keyboard events
+        if (this.mobileInput && this.mobileInput.style.display !== 'none') {
+            return false;
+        }
 
         // Ignore special keys
         if (event.key === 'Enter' || event.key === 'Tab') {
