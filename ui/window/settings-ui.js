@@ -1,6 +1,7 @@
 import { TextGeneratorOpenRouter } from '../../text-gen-openrouter.js';
 import { BaseWindowUI } from './base-window-ui.js';
 import { TextBox } from './text-box.js';
+import { TextButton } from './text-button.js';
 
 export class SettingsUI extends BaseWindowUI {
     constructor(sketch, eventBus) {
@@ -28,6 +29,9 @@ export class SettingsUI extends BaseWindowUI {
             height: this.textFieldHeight,
             placeholder: 'Enter your OpenRouter API key'
         });
+
+        // Create save button
+        this.saveButton = null; // Will be created in renderMainWindow
 
         // Connection status
         this.connectionStatus = null; // null, 'connected', or 'disconnected'
@@ -246,22 +250,23 @@ export class SettingsUI extends BaseWindowUI {
 
         contentY += this.textFieldMargin + 10;
 
-        // Draw Save button
-        let buttonY = contentY + 20; // Add some space after the API key field
-        let buttonX = (contentWidth - this.saveButtonWidth) / 2;
+        // Create and render Save button
+        const buttonX = (contentWidth - this.saveButtonWidth) / 2;
+        const buttonY = contentY + 20;
         
-        // Button background
-        pg.fill(60);
-        pg.stroke(100);
-        pg.strokeWeight(1);
-        pg.rect(buttonX, buttonY, this.saveButtonWidth, this.saveButtonHeight, 5);
+        this.saveButton = new TextButton(
+            this.sketch,
+            buttonX,
+            buttonY,
+            this.saveButtonWidth,
+            this.saveButtonHeight,
+            'Save Settings',
+            () => this.handleSaveSettings(),
+            pg
+        );
 
-        // Button text
-        pg.fill(255);
-        pg.noStroke();
-        pg.textAlign(this.sketch.CENTER, this.sketch.CENTER);
-        pg.textSize(14);
-        pg.text('Save Settings', buttonX + this.saveButtonWidth/2, buttonY + this.saveButtonHeight/2);
+        // Render the Save button
+        this.saveButton.render();
 
         // Draw the graphics buffer in the clipped region
         this.sketch.image(pg, x + 20, y + this.contentStartY);
@@ -316,8 +321,7 @@ export class SettingsUI extends BaseWindowUI {
                 }
 
                 // Check if click is on Save button
-                if (this.isSaveButtonClicked(mouseX, mouseY)) {
-                    this.handleSaveSettings();
+                if (this.saveButton && this.saveButton.handleClick(mouseX - contentX, mouseY - contentY)) {
                     return true;
                 }
                 
@@ -343,29 +347,6 @@ export class SettingsUI extends BaseWindowUI {
         
         return mouseX >= x && mouseX <= x + this.buttonWidth &&
                mouseY >= y && mouseY <= y + this.buttonHeight;
-    }
-
-    isSaveButtonClicked(mouseX, mouseY) {
-        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-        let x = (this.sketch.width - windowWidth) / 2;
-        let y = (this.sketch.height - windowHeight) / 2;
-        
-        // Calculate button position including scroll offset
-        const contentX = x + 20;
-        const contentY = y + this.contentStartY;
-        const buttonX = contentX + (windowWidth - 40 - this.saveButtonWidth) / 2;
-        
-        // Calculate button Y position including scroll offset
-        const buttonY = contentY + this.scrollOffset + 
-            this.labelHeight + // API Key label
-            this.textFieldHeight + // API Key field
-            this.textFieldMargin + // Margin
-            20 + // Status text height
-            20 + // Padding before button
-            20; // Extra padding
-        
-        return mouseX >= buttonX && mouseX <= buttonX + this.saveButtonWidth &&
-               mouseY >= buttonY && mouseY <= buttonY + this.saveButtonHeight;
     }
 
     handleTouchEnd(camera, touchX, touchY) {
@@ -410,8 +391,7 @@ export class SettingsUI extends BaseWindowUI {
                 }
 
                 // Check if touch ended on Save button
-                if (this.isSaveButtonClicked(touchX, touchY)) {
-                    this.handleSaveSettings();
+                if (this.saveButton && this.saveButton.handleClick(touchX - contentX, touchY - contentY)) {
                     return true;
                 }
                 
