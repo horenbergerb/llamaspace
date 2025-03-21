@@ -1,4 +1,5 @@
 import { BaseWindowUI } from './base-window-ui.js';
+import { TextButton } from './text-button.js';
 
 export class ShipUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, crewMembers) {
@@ -46,6 +47,49 @@ export class ShipUI extends BaseWindowUI {
             // Close the window when changing scenes
             this.isWindowVisible = false;
         });
+
+        // Subscribe to window resize events
+        this.eventBus.on('windowResized', () => {
+            this.updateButtonPosition();
+        });
+
+        // Initialize the button after a short delay to ensure sketch is ready
+        setTimeout(() => this.setupButton(), 100);
+    }
+
+    setupButton() {
+        // Create ship button
+        this.shipButton = new TextButton(
+            this.sketch,
+            this.buttonMargin,
+            this.sketch.height - this.buttonHeight - this.buttonMargin,
+            this.buttonWidth,
+            this.buttonHeight,
+            'Ship',
+            () => {
+                if (this.currentScene) {
+                    this.eventBus.emit('closeAllInfoUIs');
+                    if (!this.isWindowVisible) {
+                        this.eventBus.emit('shipUIOpened');
+                    } else {
+                        this.eventBus.emit('shipUIClosed');
+                    }
+                }
+            }
+        );
+
+        // Initial button position update
+        this.updateButtonPosition();
+    }
+
+    updateButtonPosition() {
+        if (!this.shipButton) return;
+        
+        const y = this.sketch.height - this.buttonHeight - this.buttonMargin;
+        this.shipButton.updatePosition(
+            this.buttonMargin,
+            y
+        );
     }
 
     // Calculate window dimensions based on sketch size
@@ -83,26 +127,7 @@ export class ShipUI extends BaseWindowUI {
     }
 
     renderShipButton() {
-        this.sketch.push();
-        
-        // Position in bottom left, accounting for camera
-        let x = this.buttonMargin;
-        let y = this.sketch.height - this.buttonHeight - this.buttonMargin;
-
-        // Draw button background with different color based on scene
-        this.sketch.fill(40);
-        this.sketch.stroke(100);
-        this.sketch.strokeWeight(2);
-        this.sketch.rect(x, y, this.buttonWidth, this.buttonHeight, 5);
-
-        // Draw button text
-        this.sketch.fill(255);
-        this.sketch.noStroke();
-        this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
-        this.sketch.textSize(16);
-        this.sketch.text('Ship', x + this.buttonWidth/2, y + this.buttonHeight/2);
-
-        this.sketch.pop();
+        this.shipButton.render();
     }
 
     renderMainWindow() {
@@ -224,16 +249,7 @@ export class ShipUI extends BaseWindowUI {
 
     handleMouseReleased(camera, mouseX, mouseY) {
         // Check ship button first (always visible)
-        if (this.isShipButtonClicked(mouseX, mouseY)) {
-            // Only toggle if we have a valid scene
-            if (this.currentScene) {
-                this.eventBus.emit('closeAllInfoUIs');
-                if (!this.isWindowVisible) {
-                    this.eventBus.emit('shipUIOpened');
-                } else {
-                    this.eventBus.emit('shipUIClosed');
-                }
-            }
+        if (this.shipButton.handleClick(mouseX, mouseY)) {
             return true;
         }
 
@@ -272,26 +288,9 @@ export class ShipUI extends BaseWindowUI {
         return false;
     }
 
-    isShipButtonClicked(mouseX, mouseY) {
-        let x = this.buttonMargin;
-        let y = this.sketch.height - this.buttonHeight - this.buttonMargin;
-        
-        return mouseX >= x && mouseX <= x + this.buttonWidth &&
-               mouseY >= y && mouseY <= y + this.buttonHeight;
-    }
-
     handleTouchEnd(camera, touchX, touchY) {
         // Check ship button first (always visible)
-        if (this.isShipButtonClicked(touchX, touchY)) {
-            // Only toggle if we have a valid scene
-            if (this.currentScene) {
-                this.eventBus.emit('closeAllInfoUIs');
-                if (!this.isWindowVisible) {
-                    this.eventBus.emit('shipUIOpened');
-                } else {
-                    this.eventBus.emit('shipUIClosed');
-                }
-            }
+        if (this.shipButton.handleClick(touchX, touchY)) {
             return true;
         }
 
