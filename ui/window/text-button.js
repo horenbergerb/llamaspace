@@ -1,5 +1,5 @@
 export class TextButton {
-    constructor(sketch, x, y, width, height, text, onClick) {
+    constructor(sketch, x, y, width, height, text, onClick, graphicsBuffer = null) {
         this.sketch = sketch;
         this.x = x;
         this.y = y;
@@ -7,6 +7,7 @@ export class TextButton {
         this.height = height;
         this.text = text;
         this.onClick = onClick;
+        this.graphicsBuffer = graphicsBuffer;
     }
 
     updatePosition(x, y) {
@@ -15,22 +16,23 @@ export class TextButton {
     }
 
     render() {
-        this.sketch.push();
+        const target = this.graphicsBuffer || this.sketch;
+        target.push();
         
         // Draw button background
-        this.sketch.fill(40);
-        this.sketch.stroke(100);
-        this.sketch.strokeWeight(2);
-        this.sketch.rect(this.x, this.y, this.width, this.height, 5);
+        target.fill(40);
+        target.stroke(100);
+        target.strokeWeight(2);
+        target.rect(this.x, this.y, this.width, this.height, 5);
 
         // Draw button text
-        this.sketch.fill(255);
-        this.sketch.noStroke();
-        this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
-        this.sketch.textSize(16);
-        this.sketch.text(this.text, this.x + this.width/2, this.y + this.height/2);
+        target.fill(255);
+        target.noStroke();
+        target.textAlign(target.CENTER, target.CENTER);
+        target.textSize(16);
+        target.text(this.text, this.x + this.width/2, this.y + this.height/2);
 
-        this.sketch.pop();
+        target.pop();
     }
 
     isClicked(mouseX, mouseY) {
