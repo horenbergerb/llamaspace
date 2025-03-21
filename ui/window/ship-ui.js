@@ -19,9 +19,6 @@ export class ShipUI extends BaseWindowUI {
         this.tabs = ['Ship', 'Crew'];
         this.tabHeight = 40;
         
-        // Close button properties
-        this.closeButtonSize = 20;
-
         // Scroll properties for crew tab
         this.scrollOffset = 0;
         this.maxScrollOffset = 0;

@@ -14,9 +14,6 @@ export class SettingsUI extends BaseWindowUI {
         this.isWindowVisible = false;
         this.windowMargin = 50;
         
-        // Close button properties
-        this.closeButtonSize = 20;
-
         // Text field properties
         this.textFieldHeight = 30;
         this.textFieldMargin = 20;

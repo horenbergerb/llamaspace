@@ -18,9 +18,6 @@ export class MissionUI extends BaseWindowUI {
         // Main UI window properties
         this.isWindowVisible = false;
         this.windowMargin = 50;
-        
-        // Close button properties
-        this.closeButtonSize = 20;
 
         // Add button properties
         this.addButtonSize = 24;
