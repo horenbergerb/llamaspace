@@ -1,3 +1,5 @@
+import { SpaceshipRenderer } from '../renderers/spaceship-renderer.js';
+
 export class Spaceship {
     static image = null;
 
@@ -12,7 +14,7 @@ export class Spaceship {
     static DECELERATION = 0.09;  // Deceleration per frame (adjusted for deltaTime)
     static MIN_SPEED = 0.8;  // Minimum speed during transit (adjusted for deltaTime)
 
-    constructor(sketch) {
+    constructor(sketch, eventBus) {
         this.sketch = sketch;
         this.x = 0;
         this.y = 0;
@@ -21,7 +23,8 @@ export class Spaceship {
         this.orbitBody = null;
         this.inTransit = false;
         this.inSystemMap = false;
-        this.eventBus = null; // Will be set by main.js
+        this.eventBus = eventBus; // Will be set by main.js
+        this.renderer = new SpaceshipRenderer(sketch, this);
 
         // Angle of the ship with respect to the body it orbits
         this.orbitAngle = 0; 
@@ -37,6 +40,14 @@ export class Spaceship {
         this.transitSpeed = 0;
         this.newOrbitBody = null;
         this.prevDist = null;
+
+        // Set up event handlers
+        this.eventBus.on('setDestination', (body) => {
+            if (!this.inTransit) {
+                console.log(`Setting course for ${body.name}...`);
+                this.setOrbitBody(body);
+            }
+        });
     }
 
     static preload(sketch) {

@@ -3,11 +3,10 @@ import { StarInfoUI } from '../ui/info/star-info-ui.js';
 import { PlanetInfoUI } from '../ui/info/planet-info-ui.js';
 import { MapStar } from './map-star.js';
 import { MapPlanet } from './map-planet.js';
-import { Spaceship } from './map-spaceship.js';
 import { MapSceneRenderer } from '../renderers/map-scene-renderer.js';
 
 export class MapScene {
-    constructor(sketch, spaceship, eventBus) {
+    constructor(sketch, eventBus) {
         this.sketch = sketch;
         this.mapBodies = []; // Array for navigable bodies
         this.pressStartTime = null;
@@ -16,17 +15,8 @@ export class MapScene {
         // Create UI with event bus
         this.starInfoUI = new StarInfoUI(sketch, this.eventBus);
         this.planetInfoUI = new PlanetInfoUI(sketch, this.eventBus);
-        this.spaceship = spaceship;
         this.sceneRenderer = new MapSceneRenderer(sketch);
         this.selectedBody = null;
-
-        // Set up event handlers
-        this.eventBus.on('setDestination', (body) => {
-            if (!this.spaceship.inTransit) {
-                console.log(`Setting course for ${body.name}...`);
-                this.spaceship.setOrbitBody(body);
-            }
-        });
 
         this.eventBus.on('research', (body) => {
             console.log(`Researching ${body.name}...`);
@@ -46,12 +36,7 @@ export class MapScene {
 
     initializeMapScene() {
         this.starTree = new KDTree(this.mapBodies);
-
     }
-    
-    update() {
-        // Update spaceship state is now handled in main.js
-    }    
     
     getRandomBody() {
         return this.mapBodies[Math.floor(Math.random() * this.mapBodies.length)];

@@ -1,30 +1,31 @@
 import { Spaceship } from '../map-objects/map-spaceship.js';
 
 export class SpaceshipRenderer {
-    constructor(sketch) {
+    constructor(sketch, spaceship) {
         this.sketch = sketch;
+        this.spaceship = spaceship;
     }
 
-    render(spaceship) {
-        if (!spaceship || !spaceship.orbitBody) return;
+    render() {
+        if (!this.spaceship || !this.spaceship.orbitBody) return;
 
         // Draw destination line if needed
-        if (spaceship.destinationSet) {
-            this.renderPulsingDashedLine(spaceship);
+        if (this.spaceship.destinationSet) {
+            this.renderPulsingDashedLine(this.spaceship);
         }
 
-        this.renderSpaceshipSprite(spaceship);
+        this.renderSpaceshipSprite(this.spaceship);
     }
 
-    renderPulsingDashedLine(spaceship) {
-        if (!spaceship.orbitBody || !spaceship.newOrbitBody) return;
+    renderPulsingDashedLine() {
+        if (!this.spaceship.orbitBody || !this.spaceship.newOrbitBody) return;
     
         let ctx = this.sketch.drawingContext;
     
-        let x1 = spaceship.orbitBody.baseX;
-        let y1 = spaceship.orbitBody.baseY;
-        let x2 = spaceship.newOrbitBody.baseX;
-        let y2 = spaceship.newOrbitBody.baseY;
+        let x1 = this.spaceship.orbitBody.baseX;
+        let y1 = this.spaceship.orbitBody.baseY;
+        let x2 = this.spaceship.newOrbitBody.baseX;
+        let y2 = this.spaceship.newOrbitBody.baseY;
     
         // Compute vector direction from start to destination
         let dx = x2 - x1;
@@ -57,12 +58,12 @@ export class SpaceshipRenderer {
         this.sketch.pop();
     }
 
-    renderSpaceshipSprite(spaceship) {
+    renderSpaceshipSprite() {
         if (!Spaceship.image) return;
 
         this.sketch.push();
-        this.sketch.translate(spaceship.spaceshipX, spaceship.spaceshipY);
-        this.sketch.rotate(spaceship.spaceshipAngle);
+        this.sketch.translate(this.spaceship.spaceshipX, this.spaceship.spaceshipY);
+        this.sketch.rotate(this.spaceship.spaceshipAngle);
         this.sketch.imageMode(this.sketch.CENTER);
 
         // Draw glowing aura

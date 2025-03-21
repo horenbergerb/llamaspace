@@ -37,9 +37,8 @@ var mapSketch = function(sketch) {
     sketch.preload = function() {
         backgroundRenderer = new MapBackgroundRenderer(sketch);
         Spaceship.preload(sketch);
-        spaceship = new Spaceship(sketch);
-        spaceship.eventBus = globalEventBus; // Use global event bus
-        galaxyMapScene = new MapScene(sketch, spaceship, globalEventBus);
+        spaceship = new Spaceship(sketch, globalEventBus);
+        galaxyMapScene = new MapScene(sketch, globalEventBus);
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
         uiRenderer = new UIRenderer(sketch);
@@ -110,7 +109,8 @@ var mapSketch = function(sketch) {
         camera.applyCameraTransform();
 
         // Render the game world
-        currentScene.sceneRenderer.render(currentScene, camera);
+        currentScene.sceneRenderer.render(currentScene);
+        spaceship.renderer.render(camera);
 
         // Draw UI elements on top
         uiRenderer.render(currentScene, camera);
@@ -136,7 +136,7 @@ var mapSketch = function(sketch) {
 
     // Function to enter a star's system
     function enterStarSystem(star) {
-        systemMapScene = new MapScene(sketch, spaceship, globalEventBus);
+        systemMapScene = new MapScene(sketch, globalEventBus);
         
         // Create a centered version of the star for the system view
         let centralStar = new MapStar(sketch);
