@@ -43,11 +43,6 @@ var mapSketch = function(sketch) {
         controlHandler = new ControlHandler();
         uiRenderer = new UIRenderer(sketch);
         
-        // Generate 3 crew members
-        for (let i = 0; i < 3; i++) {
-            crewMembers.push(new CrewMember());
-        }
-
         // Subscribe to API key updates
         globalEventBus.on('apiKeyUpdated', async (apiKey) => {
             // Create or update the text generator with the new API key
@@ -61,9 +56,6 @@ var mapSketch = function(sketch) {
         globalEventBus.on('returnToGalaxy', () => {
             returnToGalaxyMap();
         });
-
-        // Emit initial crew update
-        globalEventBus.emit('crewUpdated', crewMembers);
     };
 
     sketch.setup = async function() {
@@ -75,6 +67,13 @@ var mapSketch = function(sketch) {
         missionUI = new MissionUI(sketch, globalEventBus, galaxyMapScene, missions);
         settingsUI = new SettingsUI(sketch, globalEventBus);
 
+        // Generate 3 crew members
+        for (let i = 0; i < 3; i++) {
+            crewMembers.push(new CrewMember());
+        }
+
+        // Emit initial crew update
+        globalEventBus.emit('crewUpdated', crewMembers);
 
         controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI);
 
