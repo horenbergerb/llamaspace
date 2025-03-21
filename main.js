@@ -59,12 +59,10 @@ var mapSketch = function(sketch) {
         });
 
         globalEventBus.on('enterSystem', (body) => {
-            console.log(`Entering System ${body.name}...`);
             enterStarSystem(body);
         });
 
         globalEventBus.on('returnToGalaxy', () => {
-            console.log('Returning to galaxy map...');
             returnToGalaxyMap();
         });
 

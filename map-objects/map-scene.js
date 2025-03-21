@@ -29,8 +29,6 @@ export class MapScene {
             }
             this.selectedBody = body;
             body.isSelected = true;
-            console.log(`Selected Body: ${body.name}`);
-            console.log(body.getDescription());
         });
     }
 

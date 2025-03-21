@@ -78,16 +78,4 @@ export class CrewMember {
         return Array.from(demeanorSet);
     }
 
-    displayInfo() {
-        console.log(`Crew Member: ${this.name} (${this.race})`);
-        console.log("Skills:");
-        for (let skill in this.skillLevels) {
-            console.log(`  ${skill}: ${this.skillLevels[skill]}/5`);
-        }
-        console.log("Demeanor Traits: " + this.demeanor.join(", "));
-    }
 }
-
-// Example usage:
-const crewMember = new CrewMember();
-crewMember.displayInfo();

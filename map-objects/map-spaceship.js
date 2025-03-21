@@ -44,7 +44,6 @@ export class Spaceship {
         // Set up event handlers
         this.eventBus.on('setDestination', (body) => {
             if (!this.inTransit) {
-                console.log(`Setting course for ${body.name}...`);
                 this.setOrbitBody(body);
             }
         });
