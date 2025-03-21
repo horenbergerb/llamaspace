@@ -53,8 +53,7 @@ export class ShipUI extends BaseWindowUI {
             this.updateButtonPosition();
         });
 
-        // Initialize the button after a short delay to ensure sketch is ready
-        setTimeout(() => this.setupButton(), 100);
+        this.setupButton();
     }
 
     setupButton() {

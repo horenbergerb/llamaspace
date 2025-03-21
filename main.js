@@ -47,10 +47,6 @@ var mapSketch = function(sketch) {
         for (let i = 0; i < 3; i++) {
             crewMembers.push(new CrewMember());
         }
-        
-        shipUI = new ShipUI(sketch, globalEventBus, galaxyMapScene, crewMembers);
-        missionUI = new MissionUI(sketch, globalEventBus, galaxyMapScene, missions);
-        settingsUI = new SettingsUI(sketch, globalEventBus);
 
         // Subscribe to API key updates
         globalEventBus.on('apiKeyUpdated', async (apiKey) => {
@@ -74,6 +70,11 @@ var mapSketch = function(sketch) {
         let sketchHolder = document.getElementById('simple-example-holder'); // Get the container
         let w = sketchHolder.clientWidth;
         sketch.createCanvas(w, sketch.windowHeight*0.7);
+
+        shipUI = new ShipUI(sketch, globalEventBus, galaxyMapScene, crewMembers);
+        missionUI = new MissionUI(sketch, globalEventBus, galaxyMapScene, missions);
+        settingsUI = new SettingsUI(sketch, globalEventBus);
+
 
         controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI);
 
