@@ -625,18 +625,7 @@ export class MissionUI extends BaseWindowUI {
             this.selectedCrewIndex >= 0 ? this.crewMembers[this.selectedCrewIndex] : null
         );
         
-        // Generate steps if text generator is available
-        if (this.textGenerator) {
-            try {
-                this.isGeneratingMission = true;
-                await mission.generateSteps(this.textGenerator, this.currentScene, this.orbitingBody);
-            } catch (error) {
-                console.error('Failed to generate mission steps:', error);
-            } finally {
-                this.isGeneratingMission = false;
-            }
-        }
-
+        // Add mission to list immediately
         this.missions.push(mission);
 
         // Clear input fields and return to list
@@ -646,6 +635,15 @@ export class MissionUI extends BaseWindowUI {
         this.currentPage = 'list';
         this.objectiveTextBox.setActive(false);
         this.detailsTextBox.setActive(false);
+
+        // Generate steps in the background if text generator is available
+        if (this.textGenerator) {
+            try {
+                await mission.generateSteps(this.textGenerator, this.currentScene, this.orbitingBody);
+            } catch (error) {
+                console.error('Failed to generate mission steps:', error);
+            }
+        }
     }
 
     render(camera) {
@@ -743,7 +741,9 @@ export class MissionUI extends BaseWindowUI {
             // Draw completion status
             pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
             pg.fill(mission.completed ? (mission.outcome ? '#4CAF50' : '#FFA500') : '#FFA500');
-            pg.text(mission.completed ? (mission.outcome ? 'Completed' : 'Failure') : `Step ${mission.currentStep + 1}/${mission.steps.length}`, contentWidth - 10, contentY + 10);
+            pg.text(mission.completed ? (mission.outcome ? 'Completed' : 'Failure') : 
+                   (mission.steps.length === 0 ? 'Preparing...' : `Step ${mission.currentStep + 1}/${mission.steps.length}`), 
+                   contentWidth - 10, contentY + 10);
 
             // Draw assigned crew member
             if (mission.assignedCrew) {
