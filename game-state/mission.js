@@ -83,20 +83,20 @@ export class Mission {
     }
 
     async generateSteps(textGenerator) {
-        const prompt = `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy." A small starship known as the Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
+        const prompt = `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy." A small starship known as the Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15. The player is the captain of the ship.
 
-A crew member named ${this.assignedCrew.name} has just been assigned a task. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
+The captain has just assigned a crew member named ${this.assignedCrew.name} a task. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
 
-${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
+${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(" and ")}.
 
 The task will be completed in steps which the player can track.
 
-Break down this task into a number of steps based on its complexity. The number can range from 0 to 10. The task is:
+Break down this task into a number of steps based on its complexity. The task is:
 
 Objective: ${this.objective}
 Additional Details: ${this.details}
 
-Start by determining the difficulty of the task. Rate the difficulty from 1 to 10. 10 is nearly impossible, 5 is harder than average, 1 is a trivial task. You should create the same number of steps as the difficulty rating.
+Start by determining the difficulty of the task. Rate the difficulty from 1 to 10. 10 is nearly impossible, 5 is harder than average, 1 is a trivial task. You should create the same number of steps as the difficulty rating. If a task is impossible, give a difficulty of -1 and do not create any steps.
 Format your response exactly like this, with one step per line starting with a number and period:
 Difficulty: X
 1. First step here
@@ -117,6 +117,10 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
             // Parse the steps from the response
             const stepLines = stepsText.split('\n');
             const difficultyLine = stepLines.shift(); // Remove the difficulty line
+            if (difficultyLine === "Difficulty: -1") {
+                this.steps = [];
+                return;
+            }
             this.steps = stepLines
                 .map(line => {
                     // Match lines that start with a number followed by a period
