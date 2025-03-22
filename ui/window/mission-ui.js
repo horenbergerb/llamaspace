@@ -741,7 +741,8 @@ export class MissionUI extends BaseWindowUI {
             // Draw completion status
             pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
             pg.fill(mission.completed ? (mission.outcome ? '#4CAF50' : '#FFA500') : '#FFA500');
-            pg.text(mission.completed ? (mission.outcome ? 'Completed' : 'Failure') : 
+            pg.text(mission.completed ? 
+                   (mission.outcome ? `Completed (Esteem: +${mission.quality})` : 'Failure') : 
                    (mission.steps.length === 0 ? 'Preparing...' : `Step ${mission.currentStep + 1}/${mission.steps.length}`), 
                    contentWidth - 10, contentY + 10);
 

@@ -13,6 +13,7 @@ export class Mission {
         this.stepInterval = 5000; // 5 seconds in milliseconds
         this.pulseSpeed = 1; // Speed in cycles per second
         this.lastUpdateTime = Date.now();
+        this.quality = null;
 
         this.outcome = null;
     }
@@ -84,7 +85,7 @@ export class Mission {
         return 1;
     }
 
-    async generateDifficulty(textGenerator, currentScene, orbitingBody) {
+    async generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody) {
         let bodyContext = '';
 
         // Only planets have a parent star
@@ -116,8 +117,15 @@ Additional Details: ${this.details}
 
 Rate the difficulty from 1 to 10. 10 is impossible, 5 is harder than average, 1 is a trivial task.
 
+Additionally, rate the quality of the mission from 1 to 10. High-quality missions ask interesting questions regarding the body that the Galileo is orbiting. Low-quality missions are irrelevant to the body, trivial, or uninteresting.
+
+Format your response exactly like this:
+
 Considerations: *Reason about the difficulty of the mission*
 Difficulty: X
+
+Considerations: *Reason about the quality of the mission*
+Quality: Y
 
 Be realistic about what is possible for the Galileo and its crew.`;
 
@@ -139,17 +147,25 @@ Be realistic about what is possible for the Galileo and its crew.`;
                 this.difficulty = 5;
                 console.warn('Could not parse difficulty from response, defaulting to 5');
             }
-
+            const qualityMatch = difficultyText.match(/Quality:\s*(\d+)/);
+            if (qualityMatch) {
+                this.quality = parseInt(qualityMatch[1]);
+            } else {
+                // Default to medium quality if parsing fails
+                this.quality = 5;
+                console.warn('Could not parse quality from response, defaulting to 5');
+            }
         } catch (error) {
-            console.error('Error parsing difficulty:', error);
+            console.error('Error parsing difficulty and quality:', error);
             // Set a default step if generation fails
             this.difficulty = 5;
+            this.quality = 5;
         }
     }
 
     async generateSteps(textGenerator, currentScene, orbitingBody) {
 
-        await this.generateDifficulty(textGenerator, currentScene, orbitingBody);
+        await this.generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody);
 
         let successProbability = 100 - this.difficulty * 10;
         this.outcome = Math.random() < successProbability / 100;
@@ -207,7 +223,6 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
             console.log(stepsText);
             // Parse the steps from the response
             const stepLines = stepsText.split('\n');
-            const difficultyLine = stepLines.shift(); // Remove the difficulty line
             this.steps = stepLines
                 .map(line => {
                     // Match lines that start with a number followed by a period
