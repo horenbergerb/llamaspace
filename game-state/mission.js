@@ -14,7 +14,7 @@ export class Mission {
         this.pulseSpeed = 1; // Speed in cycles per second
         this.lastUpdateTime = Date.now();
         this.quality = null;
-
+        this.orbitingBody = null; // Store the body where the mission was performed
         this.outcome = null;
     }
 

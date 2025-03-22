@@ -625,6 +625,9 @@ export class MissionUI extends BaseWindowUI {
             this.selectedCrewIndex >= 0 ? this.crewMembers[this.selectedCrewIndex] : null
         );
         
+        // Store the orbiting body
+        mission.orbitingBody = this.orbitingBody;
+        
         // Add mission to list immediately
         this.missions.push(mission);
 
@@ -751,6 +754,13 @@ export class MissionUI extends BaseWindowUI {
                 pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
                 pg.fill(150);
                 pg.text(`Assigned to: ${mission.assignedCrew.name}`, contentWidth - 10, contentY + 30);
+            }
+
+            // Draw location
+            if (mission.orbitingBody) {
+                pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
+                pg.fill(150);
+                pg.text(`Location: ${mission.orbitingBody.name}`, contentWidth - 10, contentY + 45);
             }
 
             // Draw step graph
