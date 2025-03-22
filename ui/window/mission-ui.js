@@ -742,8 +742,8 @@ export class MissionUI extends BaseWindowUI {
 
             // Draw completion status
             pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
-            pg.fill(mission.completed ? '#4CAF50' : '#FFA500');
-            pg.text(mission.completed ? 'Completed' : `Step ${mission.currentStep + 1}/${mission.steps.length}`, contentWidth - 10, contentY + 10);
+            pg.fill(mission.completed ? (mission.outcome ? '#4CAF50' : '#FFA500') : '#FFA500');
+            pg.text(mission.completed ? (mission.outcome ? 'Completed' : 'Failure') : `Step ${mission.currentStep + 1}/${mission.steps.length}`, contentWidth - 10, contentY + 10);
 
             // Draw assigned crew member
             if (mission.assignedCrew) {

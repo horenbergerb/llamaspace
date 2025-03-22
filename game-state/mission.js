@@ -13,6 +13,8 @@ export class Mission {
         this.stepInterval = 5000; // 5 seconds in milliseconds
         this.pulseSpeed = 1; // Speed in cycles per second
         this.lastUpdateTime = Date.now();
+
+        this.outcome = null;
     }
 
     complete() {
@@ -150,7 +152,7 @@ Be realistic about what is possible for the Galileo and its crew.`;
         await this.generateDifficulty(textGenerator, currentScene, orbitingBody);
 
         let successProbability = 100 - this.difficulty * 10;
-        let succeeded = Math.random() < successProbability / 100;
+        this.outcome = Math.random() < successProbability / 100;
 
         let bodyContext = '';
 
@@ -178,7 +180,7 @@ Donald assigned a research mission to a bridge crew member named ${this.assigned
 
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
 
-The research mission was a ${succeeded ? 'success' : 'failure'}. Here was the mission objective:
+The research mission was a ${this.outcome ? 'success' : 'failure'}. Here was the mission objective:
 
 Objective: ${this.objective}
 Additional Details: ${this.details}
