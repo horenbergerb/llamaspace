@@ -55,7 +55,6 @@ export class MapStar extends MapBody {
             temperature: spectralClass.temp,
             mass: spectralClass.mass,
             lifespan: spectralClass.lifespan,
-            isBinary: sketch.random() < 0.3,
             numPlanets: 0,
             hasHabitableZone: false,
             hasEarthLikePlanet: false,
@@ -172,10 +171,6 @@ export class MapStar extends MapBody {
                    `Lifespan: ${this.bodyProperties.lifespan.toFixed(0)} million years\n` +
                    `Radiation Level: ${this.bodyProperties.radiationLevel}\n` +
                    `Flare Activity: ${this.bodyProperties.flareActivity}\n`;
-
-        if (this.bodyProperties.isBinary) {
-            desc += `This star is part of a binary system.\n`;
-        }
         if (this.bodyProperties.hasPlanets) {
             desc += `Number of Planets: ${this.bodyProperties.numPlanets}\n`;
         }

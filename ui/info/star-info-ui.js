@@ -12,7 +12,6 @@ export class StarInfoUI extends BodyInfoUI {
             { label: 'Lifespan', value: `${star.bodyProperties.lifespan.toFixed(0)} million years` },
             { label: 'Radiation Level', value: star.bodyProperties.radiationLevel },
             { label: 'Flare Activity', value: star.bodyProperties.flareActivity },
-            ...(star.bodyProperties.isBinary ? [{ label: 'Binary System', value: 'Yes' }] : []),
             ...(star.bodyProperties.hasPlanets ? [{ label: 'Number of Planets', value: star.bodyProperties.numPlanets }] : []),
             ...(star.bodyProperties.hasHabitableZone ? [
                 { label: 'Has Habitable Zone', value: 'Yes' },
@@ -42,11 +41,6 @@ export class StarInfoUI extends BodyInfoUI {
         infoY += 20;
         pg.text(`Flare Activity: ${star.bodyProperties.flareActivity}`, 15, infoY);
         infoY += 20;
-
-        if (star.bodyProperties.isBinary) {
-            pg.text(`Binary System: Yes`, 15, infoY);
-            infoY += 20;
-        }
 
         if (star.bodyProperties.hasPlanets) {
             pg.text(`Number of Planets: ${star.bodyProperties.numPlanets}`, 15, infoY);
