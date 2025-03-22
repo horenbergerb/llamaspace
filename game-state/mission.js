@@ -105,22 +105,23 @@ ${bodyContext}
 Here is some information about the body the ship is orbiting:
 
 ${orbitingBody.getDescription()}
-Donald has just assigned a research mission to a crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
+Donald has just assigned a research mission to a bridge crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
 
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
 
-The research mission will be completed in steps which the player can track.
+The research mission will be completed in phases which the player can track.
 
 Break down this mission into a number of steps based on its complexity. The number can range from 0 to 10. The task is:
 
 Objective: ${this.objective}
 Additional Details: ${this.details}
 
-Start by determining the difficulty of the task. Rate the difficulty from 1 to 10. 10 is impossible, 5 is harder than average, 1 is a trivial task. You should create the same number of steps as the difficulty rating.
+Start by determining the difficulty of the research mission. Rate the difficulty from 1 to 10. 10 is impossible, 5 is harder than average, 1 is a trivial task. You should create the same number of steps as the difficulty rating.
+Each step should be phrased as a progress report from ${this.assignedCrew.name} written in their log. It should be a single sentence or two.
 Format your response exactly like this, with one step per line starting with a number and period:
 Difficulty: X
-1. First step here
-2. Second step here
+1. First report
+2. Second report here
 etc.
 
 Keep steps clear and actionable. Write them in plaintext with no titles or other formatting. The number of steps should reflect task complexity relative to standard operations. Routine tasks like planetary surveys are simpler and have fewer steps. Be realistic about what is possible for the Galileo. Do not assume success when writing the steps.`;
