@@ -49,13 +49,6 @@ export class MissionUI extends BaseWindowUI {
             placeholder: ''
         });
 
-        this.detailsTextBox = new TextBox(sketch, eventBus, {
-            width: 400,
-            height: this.textFieldHeight * 3,
-            multiline: true,
-            placeholder: ''
-        });
-
         // Loading state
         this.isGeneratingMission = false;
         this.loadingAngle = 0;
@@ -85,31 +78,23 @@ export class MissionUI extends BaseWindowUI {
             this.isWindowVisible = true;
             this.currentPage = 'list'; // Reset to list page when opening
             this.objectiveTextBox.setActive(false);
-            this.detailsTextBox.setActive(false);
             this.objectiveTextBox.setText(''); // Clear text fields when opening
-            this.detailsTextBox.setText('');
         });
         this.eventBus.on('missionUIClosed', () => {
             this.isWindowVisible = false;
             this.currentPage = 'list'; // Reset to list page when closing
             this.objectiveTextBox.setActive(false);
-            this.detailsTextBox.setActive(false);
             this.objectiveTextBox.hideMobileInput();
-            this.detailsTextBox.hideMobileInput();
         });
         this.eventBus.on('shipUIOpened', () => {
             this.isWindowVisible = false;
             this.objectiveTextBox.setActive(false);
-            this.detailsTextBox.setActive(false);
             this.objectiveTextBox.hideMobileInput();
-            this.detailsTextBox.hideMobileInput();
         });
         this.eventBus.on('settingsUIOpened', () => {
             this.isWindowVisible = false;
             this.objectiveTextBox.setActive(false);
-            this.detailsTextBox.setActive(false);
             this.objectiveTextBox.hideMobileInput();
-            this.detailsTextBox.hideMobileInput();
         });
 
         // Subscribe to scene changes
@@ -118,11 +103,8 @@ export class MissionUI extends BaseWindowUI {
             // Close the window when changing scenes
             this.isWindowVisible = false;
             this.objectiveTextBox.setActive(false);
-            this.detailsTextBox.setActive(false);
             this.objectiveTextBox.hideMobileInput();
-            this.detailsTextBox.hideMobileInput();
         });
-
 
         // Subscribe to orbit body changes
         this.eventBus.on('orbitBodyChanged', (body) => {
@@ -139,9 +121,7 @@ export class MissionUI extends BaseWindowUI {
             // Close the window when returning to galaxy
             this.isWindowVisible = false;
             this.objectiveTextBox.setActive(false);
-            this.detailsTextBox.setActive(false);
             this.objectiveTextBox.hideMobileInput();
-            this.detailsTextBox.hideMobileInput();
         });
 
         // Subscribe to API key updates
@@ -244,9 +224,6 @@ export class MissionUI extends BaseWindowUI {
             this.labelHeight + // Objective label
             this.textFieldHeight + // Objective field
             this.textFieldMargin + // Margin
-            this.labelHeight + // Details label
-            this.textFieldHeight * 3 + // Details field
-            this.textFieldMargin + // Margin
             this.labelHeight + // Crew Member label
             this.textFieldHeight + // Crew Member field
             this.textFieldMargin + // Margin
@@ -271,21 +248,6 @@ export class MissionUI extends BaseWindowUI {
         this.contentBuffer.pop();
 
         contentY += this.textFieldHeight + this.textFieldMargin;
-
-        // Draw Mission Details field and text
-        this.contentBuffer.fill(255);
-        this.contentBuffer.noStroke();
-        this.contentBuffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
-        this.contentBuffer.text('Mission Details:', 0, contentY);
-        contentY += this.labelHeight;
-        
-        // Draw details text box
-        this.contentBuffer.push();
-        this.contentBuffer.translate(0, contentY);
-        this.detailsTextBox.render(0, 0, this.contentBuffer);
-        this.contentBuffer.pop();
-
-        contentY += this.textFieldHeight * 3 + this.textFieldMargin;
 
         // Draw Crew Assignment dropdown
         this.contentBuffer.fill(255);
@@ -400,7 +362,6 @@ export class MissionUI extends BaseWindowUI {
                     this.currentPage = 'list';
                     this.scrollOffset = 0; // Reset scroll when changing pages
                     this.objectiveTextBox.setActive(false);
-                    this.detailsTextBox.setActive(false);
                     return true;
                 }
 
@@ -415,20 +376,11 @@ export class MissionUI extends BaseWindowUI {
                     
                     // Calculate field positions including scroll offset
                     const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
-                    const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
-                    const dropdownY = detailsFieldY + this.textFieldHeight * 3 + this.textFieldMargin + this.labelHeight;
+                    const dropdownY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
 
                     // Check if click is on objective text box
                     if (mouseY >= objectiveFieldY && mouseY <= objectiveFieldY + this.textFieldHeight) {
                         this.objectiveTextBox.handleClick(mouseX - contentX, mouseY - objectiveFieldY);
-                        this.detailsTextBox.setActive(false); // Deactivate details box
-                        return true;
-                    }
-
-                    // Check if click is on details text box
-                    if (mouseY >= detailsFieldY && mouseY <= detailsFieldY + (this.textFieldHeight * 3)) {
-                        this.detailsTextBox.handleClick(mouseX - contentX, mouseY - detailsFieldY);
-                        this.objectiveTextBox.setActive(false); // Deactivate objective box
                         return true;
                     }
 
@@ -470,7 +422,6 @@ export class MissionUI extends BaseWindowUI {
 
             // If we clicked outside the window, deactivate text boxes
             this.objectiveTextBox.setActive(false);
-            this.detailsTextBox.setActive(false);
         }
 
         // Close dropdown if clicking outside
@@ -513,7 +464,6 @@ export class MissionUI extends BaseWindowUI {
                     this.currentPage = 'list';
                     this.scrollOffset = 0; // Reset scroll when changing pages
                     this.objectiveTextBox.setActive(false);
-                    this.detailsTextBox.setActive(false);
                     return true;
                 }
 
@@ -528,20 +478,11 @@ export class MissionUI extends BaseWindowUI {
                     
                     // Calculate field positions including scroll offset
                     const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
-                    const detailsFieldY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
-                    const dropdownY = detailsFieldY + this.textFieldHeight * 3 + this.textFieldMargin + this.labelHeight;
+                    const dropdownY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
 
                     // Check if touch ended on objective text box
                     if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
                         this.objectiveTextBox.handleTouchEnd(touchX - contentX, touchY - objectiveFieldY);
-                        this.detailsTextBox.setActive(false); // Deactivate details box
-                        return true;
-                    }
-
-                    // Check if touch ended on details text box
-                    if (touchY >= detailsFieldY && touchY <= detailsFieldY + (this.textFieldHeight * 3)) {
-                        this.detailsTextBox.handleTouchEnd(touchX - contentX, touchY - detailsFieldY);
-                        this.objectiveTextBox.setActive(false); // Deactivate objective box
                         return true;
                     }
 
@@ -583,7 +524,6 @@ export class MissionUI extends BaseWindowUI {
 
             // If we touched outside the window, deactivate text boxes
             this.objectiveTextBox.setActive(false);
-            this.detailsTextBox.setActive(false);
         }
 
         // Close dropdown if touching outside
@@ -597,8 +537,7 @@ export class MissionUI extends BaseWindowUI {
             return false;
         }
 
-        return this.objectiveTextBox.handleKeyDown(event) || 
-               this.detailsTextBox.handleKeyDown(event);
+        return this.objectiveTextBox.handleKeyDown(event);
     }
 
     handleKeyPress(event) {
@@ -606,13 +545,11 @@ export class MissionUI extends BaseWindowUI {
             return false;
         }
 
-        return this.objectiveTextBox.handleKeyPress(event) || 
-               this.detailsTextBox.handleKeyPress(event);
+        return this.objectiveTextBox.handleKeyPress(event);
     }
 
     async handleCreateMission() {
         const objective = this.objectiveTextBox.getText().trim();
-        const details = this.detailsTextBox.getText().trim();
         
         if (objective === '' || this.selectedCrewIndex < 0) {
             return;
@@ -621,7 +558,6 @@ export class MissionUI extends BaseWindowUI {
         // Create new mission
         const mission = new Mission(
             objective,
-            details,
             this.selectedCrewIndex >= 0 ? this.crewMembers[this.selectedCrewIndex] : null
         );
         
@@ -633,11 +569,9 @@ export class MissionUI extends BaseWindowUI {
 
         // Clear input fields and return to list
         this.objectiveTextBox.setText('');
-        this.detailsTextBox.setText('');
         this.selectedCrewIndex = -1;
         this.currentPage = 'list';
         this.objectiveTextBox.setActive(false);
-        this.detailsTextBox.setActive(false);
 
         // Generate steps in the background if text generator is available
         if (this.textGenerator) {
@@ -733,13 +667,6 @@ export class MissionUI extends BaseWindowUI {
             const maxObjectiveWidth = contentWidth - 120; // Leave space for status
             const wrappedObjective = this.wrapText(pg, mission.objective, maxObjectiveWidth);
             pg.text(wrappedObjective, 10, contentY + 10);
-            
-            // Draw details with wrapping
-            pg.textSize(12);
-            pg.fill(200);
-            const maxDetailsWidth = contentWidth - 20;
-            const wrappedDetails = this.wrapText(pg, mission.details, maxDetailsWidth);
-            pg.text(wrappedDetails, 10, contentY + 35);
 
             // Draw completion status
             pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);

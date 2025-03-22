@@ -1,7 +1,6 @@
 export class Mission {
-    constructor(objective, details, assignedCrew = null) {
+    constructor(objective, assignedCrew = null) {
         this.objective = objective;
-        this.details = details;
         this.steps = [];
         this.completed = false;
         this.createdAt = new Date();
@@ -113,7 +112,6 @@ Donald has just assigned a research mission to a bridge crew member named ${this
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
 
 Objective: ${this.objective}
-Additional Details: ${this.details}
 
 Rate the difficulty from 1 to 10. 10 is impossible, 5 is harder than average, 1 is a trivial task.
 
@@ -199,7 +197,6 @@ ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.joi
 The research mission was a ${this.outcome ? 'success' : 'failure'}. Here was the mission objective:
 
 Objective: ${this.objective}
-Additional Details: ${this.details}
 
 The research mission was documented in ${this.difficulty} phases.
 
@@ -239,18 +236,5 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
             // Set a default step if generation fails
             this.steps = ['Complete the mission'];
         }
-    }
-
-    toJSON() {
-        return {
-            objective: this.objective,
-            details: this.details,
-            completed: this.completed,
-            createdAt: this.createdAt,
-            steps: this.steps,
-            assignedCrew: this.assignedCrew,
-            currentStep: this.currentStep,
-            lastStepTime: this.lastStepTime
-        };
     }
 } 
