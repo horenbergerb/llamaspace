@@ -176,13 +176,11 @@ export class MissionUI extends BaseWindowUI {
             this.buttonHeight,
             'Missions',
             () => {
-                if (this.currentScene) {
-                    this.eventBus.emit('closeAllInfoUIs');
-                    if (!this.isWindowVisible) {
-                        this.eventBus.emit('missionUIOpened');
-                    } else {
-                        this.eventBus.emit('missionUIClosed');
-                    }
+                this.eventBus.emit('closeAllInfoUIs');
+                if (!this.isWindowVisible) {
+                    this.eventBus.emit('missionUIOpened');
+                } else {
+                    this.eventBus.emit('missionUIClosed');
                 }
             }
         );

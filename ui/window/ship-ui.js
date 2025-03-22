@@ -43,8 +43,6 @@ export class ShipUI extends BaseWindowUI {
 
         // Subscribe to scene changes
         this.eventBus.on('sceneChanged', (scene) => {
-            this.currentScene = scene;
-            // Close the window when changing scenes
             this.isWindowVisible = false;
         });
 
@@ -66,13 +64,11 @@ export class ShipUI extends BaseWindowUI {
             this.buttonHeight,
             'Ship',
             () => {
-                if (this.currentScene) {
-                    this.eventBus.emit('closeAllInfoUIs');
-                    if (!this.isWindowVisible) {
-                        this.eventBus.emit('shipUIOpened');
-                    } else {
-                        this.eventBus.emit('shipUIClosed');
-                    }
+                this.eventBus.emit('closeAllInfoUIs');
+                if (!this.isWindowVisible) {
+                    this.eventBus.emit('shipUIOpened');
+                } else {
+                    this.eventBus.emit('shipUIClosed');
                 }
             }
         );
