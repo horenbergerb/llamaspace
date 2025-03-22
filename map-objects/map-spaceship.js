@@ -28,7 +28,6 @@ export class Spaceship {
 
         // Angle of the ship with respect to the body it orbits
         this.orbitAngle = 0; 
-        this.orbitBody = null;
 
         // The angle of rotation of the spaceship's image
         this.spaceshipAngle = 0;
@@ -78,6 +77,10 @@ export class Spaceship {
             this.newOrbitBody = null;
             this.transitSpeed = 0;
             this.prevDist = null;
+            // Emit orbit body change
+            if (this.eventBus) {
+                this.eventBus.emit('orbitBodyChanged', this.orbitBody);
+            }
             return;
         }
 
@@ -216,6 +219,10 @@ export class Spaceship {
         this.transitSpeed = 0;
         this.prevDist = null;
         this.updateSpaceshipInOrbit();
+        // Emit orbit body change
+        if (this.eventBus) {
+            this.eventBus.emit('orbitBodyChanged', this.orbitBody);
+        }
     }
 
     update() {

@@ -11,6 +11,8 @@ export class MissionUI extends BaseWindowUI {
         this.textGenerator = null; // Will be set when API key is available
         this.crewMembers = []; // Will be populated from event
         this.isInSystemScene = false; // Track if we're in a system scene
+        this.currentScene = initialScene; // Track current scene
+        this.orbitingBody = null; // Track current orbiting body
         
         // Mission button properties
         this.buttonWidth = 80;
@@ -119,6 +121,12 @@ export class MissionUI extends BaseWindowUI {
             this.detailsTextBox.setActive(false);
             this.objectiveTextBox.hideMobileInput();
             this.detailsTextBox.hideMobileInput();
+        });
+
+
+        // Subscribe to orbit body changes
+        this.eventBus.on('orbitBodyChanged', (body) => {
+            this.orbitingBody = body;
         });
 
         // Subscribe to system enter/exit events
@@ -621,7 +629,7 @@ export class MissionUI extends BaseWindowUI {
         if (this.textGenerator) {
             try {
                 this.isGeneratingMission = true;
-                await mission.generateSteps(this.textGenerator);
+                await mission.generateSteps(this.textGenerator, this.currentScene, this.orbitingBody);
             } catch (error) {
                 console.error('Failed to generate mission steps:', error);
             } finally {

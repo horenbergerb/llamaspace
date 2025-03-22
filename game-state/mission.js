@@ -82,12 +82,23 @@ export class Mission {
         return 1;
     }
 
-    async generateSteps(textGenerator) {
+    async generateSteps(textGenerator, currentScene, orbitingBody) {
+        let bodyContext = '';
+
+        // Only planets have a parent star
+        if (!orbitingBody.parentStar) {
+            bodyContext = `The ship is orbiting a star named ${orbitingBody.name}. `;
+        } else {
+            bodyContext = `The ship is orbiting a planet named ${orbitingBody.name} in the ${orbitingBody.orbitStar.name} system. `;
+        }
+
         const prompt = `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
 The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
 
 Donald, his ship, and his crew are all nobodies. Donald's promotion to captain was something of a nepotism scandal. His crew is composed of misfits and those with complicated pasts in the service. The ship itself is old and worn out, but everyone on board is used to getting the short end of the stick. This research mission to the D-124 star system is an exile, but it's also a chance for the entire crew to redeem themselves.
+
+${bodyContext}
 
 Donald has just assigned a research mission to a crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
 
@@ -117,7 +128,7 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
                 1.0, // Lower temperature for more focused output
                 1000  // Max tokens
             );
-
+            console.log(stepsText);
             // Parse the steps from the response
             const stepLines = stepsText.split('\n');
             const difficultyLine = stepLines.shift(); // Remove the difficulty line
