@@ -759,16 +759,20 @@ export class MissionUI extends BaseWindowUI {
                 const nodeSpacing = Math.min(30, (contentWidth - 20) / mission.steps.length);
                 const baseNodeRadius = 4;
 
-                mission.steps.forEach((step, stepIndex) => {
-                    const nodeX = graphStartX + (stepIndex * nodeSpacing);
+                // Calculate visible steps (completed and current)
+                const visibleSteps = mission.steps.filter((_, index) => index <= mission.currentStep);
+                const nodeSpacingVisible = Math.min(30, (contentWidth - 20) / visibleSteps.length);
+
+                visibleSteps.forEach((step, stepIndex) => {
+                    const nodeX = graphStartX + (stepIndex * nodeSpacingVisible);
                     const nodeRadius = baseNodeRadius * mission.getStepScale(stepIndex);
 
                     // Draw connecting line to next node
-                    if (stepIndex < mission.steps.length - 1) {
+                    if (stepIndex < visibleSteps.length - 1) {
                         pg.stroke(100);
                         pg.strokeWeight(1);
                         pg.line(nodeX + nodeRadius, graphY, 
-                               nodeX + nodeSpacing - nodeRadius, graphY);
+                               nodeX + nodeSpacingVisible - nodeRadius, graphY);
                     }
 
                     // Draw node
@@ -824,6 +828,7 @@ export class MissionUI extends BaseWindowUI {
         const mouseY = this.sketch.mouseY;
         const dist = this.sketch.dist(mouseX, mouseY, nodeX, nodeY);
         
+        // Only show tooltip for completed or current steps
         if (dist <= nodeRadius * 2) {
             this.hoveredStep = {
                 x: nodeX,
