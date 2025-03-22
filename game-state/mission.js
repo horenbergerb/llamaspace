@@ -100,6 +100,9 @@ Donald, his ship, and his crew are all nobodies. Donald's promotion to captain w
 
 ${bodyContext}
 
+Here is some information about the body the ship is orbiting:
+
+${orbitingBody.getDescription()}
 Donald has just assigned a research mission to a crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
 
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
