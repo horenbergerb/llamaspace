@@ -147,12 +147,12 @@ var mapSketch = function(sketch) {
         centralStar.isSelected = false;
         systemMapScene.mapBodies.push(centralStar);
         
-        // Generate planets if the star has them
-        if (star.bodyProperties.hasPlanets) {
-            for (let i = 0; i < star.bodyProperties.numPlanets; i++) {
-                let planet = new MapPlanet(sketch, centralStar, i);
+        // Add all planets from the star's planet list
+        if (star.planets) {
+            star.planets.forEach(planet => {
+                // Update the planet's orbit star reference to point to the centered star
                 systemMapScene.mapBodies.push(planet);
-            }
+            });
         }
 
         spaceship.setOrbitBody(centralStar, true);

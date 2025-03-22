@@ -5,6 +5,7 @@ export class MapPlanet extends MapBody {
         super(sketch);
         this.parentStar = parentStar;
         this.orbitIndex = orbitIndex; // Used to determine orbit radius
+        this.isPlanet = true;
         
         // Orbital properties
         this.orbitRadius = this.calculateOrbitRadius();
@@ -126,8 +127,8 @@ export class MapPlanet extends MapBody {
         const deltaTimeSeconds = this.sketch.deltaTime / 1000;
         const timeScale = deltaTimeSeconds * 60; // Scale to 60fps equivalent
         this.orbitAngle += this.orbitSpeed * timeScale;
-        this.baseX = this.parentStar.baseX + Math.cos(this.orbitAngle) * this.orbitRadius;
-        this.baseY = this.parentStar.baseY + Math.sin(this.orbitAngle) * this.orbitRadius;
+        this.baseX = (this.sketch.width / 2) + Math.cos(this.orbitAngle) * this.orbitRadius;
+        this.baseY = (this.sketch.height / 2) + Math.sin(this.orbitAngle) * this.orbitRadius;
     }
 
     draw() {
@@ -146,8 +147,8 @@ export class MapPlanet extends MapBody {
                 let startAngle = i * dashLength;
                 let endAngle = startAngle + dashLength;
                 this.sketch.arc(
-                    this.parentStar.baseX,
-                    this.parentStar.baseY,
+                    this.sketch.width / 2,
+                    this.sketch.height / 2,
                     this.orbitRadius * 2,
                     this.orbitRadius * 2,
                     startAngle,

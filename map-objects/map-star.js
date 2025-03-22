@@ -1,4 +1,5 @@
 import { MapBody } from './map-body.js';
+import { MapPlanet } from './map-planet.js';
 
 export class MapStar extends MapBody {
     static usedNames = new Set(); // Stores already assigned names
@@ -11,11 +12,21 @@ export class MapStar extends MapBody {
         this.size = this.baseSize;
         this.pulseSpeed = sketch.random(0.01, 0.05);
         this.isSelected = false;
+        this.isStar = true; // Add flag to identify stars
+        this.planets = []; // Array to store planetary bodies
 
         this.generateStarProperties(sketch);
 
         // Naming
         this.name = this.generateStarName();
+
+        // Generate planets if the star has them
+        if (this.bodyProperties.hasPlanets) {
+            for (let i = 0; i < this.bodyProperties.numPlanets; i++) {
+                const planet = new MapPlanet(sketch, this, i);
+                this.planets.push(planet);
+            }
+        }
     }
 
     generateStarProperties(sketch){

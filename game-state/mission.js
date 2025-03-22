@@ -89,7 +89,7 @@ export class Mission {
         if (!orbitingBody.parentStar) {
             bodyContext = `The ship is orbiting a star named ${orbitingBody.name}. `;
         } else {
-            bodyContext = `The ship is orbiting a planet named ${orbitingBody.name} in the ${orbitingBody.orbitStar.name} system. `;
+            bodyContext = `The ship is orbiting a planet named ${orbitingBody.name} in the ${orbitingBody.parentStar.name} system. `;
         }
 
         const prompt = `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
