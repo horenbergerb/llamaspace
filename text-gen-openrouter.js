@@ -1,5 +1,6 @@
 export class TextGeneratorOpenRouter {
-    constructor(apiKey, model = "mistralai/mistral-large-2411") {
+    //mistralai/mistral-large-2411 Mistral
+    constructor(apiKey, model = "deepseek/deepseek-r1") {
         this.stopGeneration = false;
         this.apiKey = apiKey;
         this.model = model;
@@ -24,7 +25,7 @@ export class TextGeneratorOpenRouter {
             },
             body: JSON.stringify({
                 model: this.model,
-                "provider": {"order": ["Mistral"],
+                "provider": {"order": ["DeepSeek"],
                     "allow_fallbacks": false},
                 messages: [
                     {
