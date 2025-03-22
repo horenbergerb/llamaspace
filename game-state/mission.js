@@ -124,6 +124,9 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
                     return match ? match[1].trim() : null;
                 })
                 .filter(step => step !== null); // Remove any non-matching lines
+                
+            this.lastStepTime = Date.now();
+            this.currentStep = 0;
 
         } catch (error) {
             console.error('Error generating steps:', error);
