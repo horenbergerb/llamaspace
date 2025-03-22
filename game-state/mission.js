@@ -82,7 +82,7 @@ export class Mission {
         return 1;
     }
 
-    async generateSteps(textGenerator, currentScene, orbitingBody) {
+    async generateDifficulty(textGenerator, currentScene, orbitingBody) {
         let bodyContext = '';
 
         // Only planets have a parent star
@@ -109,22 +109,90 @@ Donald has just assigned a research mission to a bridge crew member named ${this
 
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
 
-The research mission will be completed in phases which the player can track.
+Objective: ${this.objective}
+Additional Details: ${this.details}
 
-Break down this mission into a number of steps based on its complexity. The number can range from 0 to 10. The task is:
+Rate the difficulty from 1 to 10. 10 is impossible, 5 is harder than average, 1 is a trivial task.
+
+Considerations: *Reason about the difficulty of the mission*
+Difficulty: X
+
+Be realistic about what is possible for the Galileo and its crew.`;
+
+        let difficultyText = '';
+        try {
+            await textGenerator.generateText(
+                prompt,
+                (text) => { difficultyText = text; },
+                1.0, // Lower temperature for more focused output
+                1000  // Max tokens
+            );
+            console.log(difficultyText);
+            // Extract difficulty rating from response
+            const difficultyMatch = difficultyText.match(/Difficulty:\s*(\d+)/);
+            if (difficultyMatch) {
+                this.difficulty = parseInt(difficultyMatch[1]);
+            } else {
+                // Default to medium difficulty if parsing fails
+                this.difficulty = 5;
+                console.warn('Could not parse difficulty from response, defaulting to 5');
+            }
+
+        } catch (error) {
+            console.error('Error parsing difficulty:', error);
+            // Set a default step if generation fails
+            this.difficulty = 5;
+        }
+    }
+
+    async generateSteps(textGenerator, currentScene, orbitingBody) {
+
+        await this.generateDifficulty(textGenerator, currentScene, orbitingBody);
+
+        let successProbability = 100 - this.difficulty * 10;
+        let succeeded = Math.random() < successProbability / 100;
+
+        let bodyContext = '';
+
+        // Only planets have a parent star
+        if (!orbitingBody.parentStar) {
+            bodyContext = `The ship is orbiting a star named ${orbitingBody.name}. `;
+        } else {
+            bodyContext = `The ship is orbiting a planet named ${orbitingBody.name} in the ${orbitingBody.parentStar.name} system. `;
+        }
+
+        const prompt = `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
+
+The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
+
+The Galileo is equipped with standard research equipment and meagre weaponry. It has a small replicator and two shuttlecraft. It has most of the resources needed to sustain a crew of 15 for a year.
+
+Donald, his ship, and his crew are all nobodies. Donald's promotion to captain was something of a nepotism scandal. His crew is composed of misfits and those with complicated pasts in the service. The ship itself is old and worn out, but everyone on board is used to getting the short end of the stick. This research mission to the D-124 star system is an exile, but it's also a chance for the entire crew to redeem themselves.
+
+${bodyContext}
+
+Here is some information about the body the ship is orbiting:
+
+${orbitingBody.getDescription()}
+Donald assigned a research mission to a bridge crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
+
+${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
+
+The research mission was a ${succeeded ? 'success' : 'failure'}. Here was the mission objective:
 
 Objective: ${this.objective}
 Additional Details: ${this.details}
 
-Start by determining the difficulty of the research mission. Rate the difficulty from 1 to 10. 10 is impossible, 5 is harder than average, 1 is a trivial task. You should create the same number of steps as the difficulty rating.
-Each step should be phrased as a progress report from ${this.assignedCrew.name} written in their log. It should be a single sentence or two.
+The research mission was documented in ${this.difficulty} phases.
+
+Each phase should be phrased as a progress report from ${this.assignedCrew.name} written in their log. It should be a single sentence or two.
 Format your response exactly like this, with one step per line starting with a number and period:
-Difficulty: X
+
 1. First report
 2. Second report here
 etc.
 
-Keep steps clear and actionable. Write them in plaintext with no titles or other formatting. The number of steps should reflect task complexity relative to standard operations. Routine tasks like planetary surveys are simpler and have fewer steps. Be realistic about what is possible for the Galileo. Do not assume success when writing the steps.`;
+Keep steps clear and actionable. Write them in plaintext with no titles or other formatting. The number of steps should reflect task complexity relative to standard operations. Routine tasks like planetary surveys are simpler and have fewer steps. Be realistic about what is possible for the Galileo.`;
 
         let stepsText = '';
         try {
