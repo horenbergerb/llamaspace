@@ -74,6 +74,8 @@ export class MissionUI extends BaseWindowUI {
             if (this.isGeneratingMission) {
                 this.loadingAngle += 10; // Rotate 10 degrees per frame
             }
+            // Update all missions
+            this.missions.forEach(mission => mission.update());
         });
 
         // Subscribe to UI visibility events
@@ -735,7 +737,7 @@ export class MissionUI extends BaseWindowUI {
             // Draw completion status
             pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
             pg.fill(mission.completed ? '#4CAF50' : '#FFA500');
-            pg.text(mission.completed ? 'Completed' : 'In Progress', contentWidth - 10, contentY + 10);
+            pg.text(mission.completed ? 'Completed' : `Step ${mission.currentStep + 1}/${mission.steps.length}`, contentWidth - 10, contentY + 10);
 
             // Draw assigned crew member
             if (mission.assignedCrew) {
@@ -749,10 +751,11 @@ export class MissionUI extends BaseWindowUI {
                 const graphStartX = 10;
                 const graphY = contentY + 60;
                 const nodeSpacing = Math.min(30, (contentWidth - 20) / mission.steps.length);
-                const nodeRadius = 4;
+                const baseNodeRadius = 4;
 
                 mission.steps.forEach((step, stepIndex) => {
                     const nodeX = graphStartX + (stepIndex * nodeSpacing);
+                    const nodeRadius = baseNodeRadius * mission.getStepScale(stepIndex);
 
                     // Draw connecting line to next node
                     if (stepIndex < mission.steps.length - 1) {
@@ -764,7 +767,7 @@ export class MissionUI extends BaseWindowUI {
 
                     // Draw node
                     pg.noStroke();
-                    pg.fill(mission.completed ? '#4CAF50' : '#FFA500');
+                    pg.fill(mission.getStepColor(stepIndex));
                     pg.circle(nodeX, graphY, nodeRadius * 2);
 
                     // Store node position for tooltip handling

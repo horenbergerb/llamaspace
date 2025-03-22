@@ -6,14 +6,80 @@ export class Mission {
         this.completed = false;
         this.createdAt = new Date();
         this.assignedCrew = assignedCrew;
+        this.currentStep = 0;
+        this.lastStepTime = Date.now();
+        this.pulseScale = 1;
+        this.pulseDirection = 1;
+        this.stepInterval = 5000; // 5 seconds in milliseconds
+        this.pulseSpeed = 1; // Speed in cycles per second
+        this.lastUpdateTime = Date.now();
     }
 
     complete() {
         this.completed = true;
+        console.log(`Mission "${this.objective}" completed!`);
     }
 
     assignTo(crewMember) {
         this.assignedCrew = crewMember;
+    }
+
+    update() {
+        if (this.completed) return;
+
+        // Calculate delta time in seconds
+        const now = Date.now();
+        const deltaTime = (now - this.lastUpdateTime) / 1000; // Convert to seconds
+        this.lastUpdateTime = now;
+
+        // Update pulse animation using delta time
+        const pulseSpeed = this.pulseSpeed * deltaTime;
+        this.pulseScale += pulseSpeed * this.pulseDirection;
+        if (this.pulseScale >= 1.2) {
+            this.pulseScale = 1.2;
+            this.pulseDirection = -1;
+        } else if (this.pulseScale <= 0.8) {
+            this.pulseScale = 0.8;
+            this.pulseDirection = 1;
+        }
+
+        // Check if we should increment the step
+        const timeSinceLastStep = now - this.lastStepTime;
+        
+        if (timeSinceLastStep >= this.stepInterval) {
+            this.lastStepTime = now;
+            if (this.currentStep < this.steps.length) {
+                this.currentStep++;
+                console.log(`Mission "${this.objective}" progressed to step ${this.currentStep}/${this.steps.length}`);
+                
+                if (this.currentStep >= this.steps.length) {
+                    this.complete();
+                }
+            }
+        }
+    }
+
+    getStepColor(stepIndex) {
+        if (this.completed) {
+            return '#4CAF50'; // All steps green when completed
+        }
+        
+        if (stepIndex < this.currentStep) {
+            return '#4CAF50'; // Green for completed steps
+        } else if (stepIndex === this.currentStep) {
+            return '#FFA500'; // Orange for current step
+        } else {
+            return '#FFA500'; // Orange for future steps
+        }
+    }
+
+    getStepScale(stepIndex) {
+        if (this.completed) return 1;
+        
+        if (stepIndex === this.currentStep) {
+            return this.pulseScale;
+        }
+        return 1;
     }
 
     async generateSteps(textGenerator) {
@@ -73,7 +139,9 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
             completed: this.completed,
             createdAt: this.createdAt,
             steps: this.steps,
-            assignedCrew: this.assignedCrew
+            assignedCrew: this.assignedCrew,
+            currentStep: this.currentStep,
+            lastStepTime: this.lastStepTime
         };
     }
 } 
