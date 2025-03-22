@@ -83,27 +83,31 @@ export class Mission {
     }
 
     async generateSteps(textGenerator) {
-        const prompt = `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy." A small starship known as the Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
+        const prompt = `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
-A crew member named ${this.assignedCrew.name} has just been assigned a task. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
+The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
+
+Donald, his ship, and his crew are all nobodies. Donald's promotion to captain was something of a nepotism scandal. His crew is composed of misfits and those with complicated pasts in the service. The ship itself is old and worn out, but everyone on board is used to getting the short end of the stick. This research mission to the D-124 star system is an exile, but it's also a chance for the entire crew to redeem themselves.
+
+Donald has just assigned a research mission to a crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
 
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
 
-The task will be completed in steps which the player can track.
+The research mission will be completed in steps which the player can track.
 
-Break down this task into a number of steps based on its complexity. The number can range from 0 to 10. The task is:
+Break down this mission into a number of steps based on its complexity. The number can range from 0 to 10. The task is:
 
 Objective: ${this.objective}
 Additional Details: ${this.details}
 
-Start by determining the difficulty of the task. Rate the difficulty from 1 to 10. 10 is nearly impossible, 5 is harder than average, 1 is a trivial task. You should create the same number of steps as the difficulty rating.
+Start by determining the difficulty of the task. Rate the difficulty from 1 to 10. 10 is impossible, 5 is harder than average, 1 is a trivial task. You should create the same number of steps as the difficulty rating.
 Format your response exactly like this, with one step per line starting with a number and period:
 Difficulty: X
 1. First step here
 2. Second step here
 etc.
 
-Keep steps clear and actionable. Write them in plaintext with no titles or other formatting. The number of steps should reflect task complexity relative to standard operations. Routine tasks like surveys are simpler and have fewer steps. Complex tasks like engineering challenges will require more steps.`;
+Keep steps clear and actionable. Write them in plaintext with no titles or other formatting. The number of steps should reflect task complexity relative to standard operations. Routine tasks like planetary surveys are simpler and have fewer steps. Be realistic about what is possible for the Galileo. Do not assume success when writing the steps.`;
 
         let stepsText = '';
         try {
