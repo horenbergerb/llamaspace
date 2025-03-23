@@ -32,6 +32,7 @@ let settingsUI = null;
 let crewMembers = []; // Array to store crew members
 let missions = []; // Array to store missions
 let textGenerator = null; // Instance of TextGeneratorOpenRouter
+let reputation = 0; // Track total reputation
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
@@ -195,6 +196,14 @@ var mapSketch = function(sketch) {
         camera.scaleFactor = 0.5;
         camera.setAutoCamera(galaxyOrbitStar.baseX, galaxyOrbitStar.baseY, 1.0);
     }
+
+    // Subscribe to mission completion events
+    globalEventBus.on('missionCompleted', (mission) => {
+        if (mission.completed && mission.outcome) {
+            reputation += mission.quality;
+            globalEventBus.emit('reputationUpdated', reputation);
+        }
+    });
 };
 
 // Attach the sketch to a specific DOM element

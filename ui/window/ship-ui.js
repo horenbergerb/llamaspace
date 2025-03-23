@@ -5,6 +5,7 @@ export class ShipUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, crewMembers) {
         super(sketch, eventBus, initialScene);
         this.crewMembers = crewMembers;
+        this.reputation = 0; // Track reputation
         
         // Ship button properties
         this.buttonWidth = 80;
@@ -49,6 +50,11 @@ export class ShipUI extends BaseWindowUI {
         // Subscribe to window resize events
         this.eventBus.on('windowResized', () => {
             this.updateButtonPosition();
+        });
+
+        // Subscribe to reputation updates
+        this.eventBus.on('reputationUpdated', (newReputation) => {
+            this.reputation = newReputation;
         });
 
         this.setupButton();
@@ -180,7 +186,8 @@ export class ShipUI extends BaseWindowUI {
         let contentY = y + 20;
 
         if (this.currentTab === 'Ship') {
-            this.sketch.text('Ship Status:', contentX, contentY);
+            // Draw reputation
+            this.sketch.text(`Reputation: ${this.reputation}`, contentX, contentY);
             // Add more ship-related content here
         } else if (this.currentTab === 'Crew') {
             // Create a graphics buffer for the crew properties section

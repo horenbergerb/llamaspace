@@ -561,8 +561,9 @@ export class MissionUI extends BaseWindowUI {
             this.selectedCrewIndex >= 0 ? this.crewMembers[this.selectedCrewIndex] : null
         );
         
-        // Store the orbiting body
+        // Store the orbiting body and event bus
         mission.orbitingBody = this.orbitingBody;
+        mission.eventBus = this.eventBus;
         
         // Add mission to list immediately
         this.missions.push(mission);
@@ -672,7 +673,7 @@ export class MissionUI extends BaseWindowUI {
             pg.textAlign(this.sketch.RIGHT, this.sketch.TOP);
             pg.fill(mission.completed ? (mission.outcome ? '#4CAF50' : '#FFA500') : '#FFA500');
             pg.text(mission.completed ? 
-                   (mission.outcome ? `Completed (Esteem: +${mission.quality})` : 'Failure') : 
+                   (mission.outcome ? `Completed (Reputation: +${mission.quality})` : 'Failure') : 
                    (mission.steps.length === 0 ? 'Preparing...' : `Step ${mission.currentStep + 1}/${mission.steps.length}`), 
                    contentWidth - 10, contentY + 10);
 

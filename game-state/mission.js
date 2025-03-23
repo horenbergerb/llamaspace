@@ -15,10 +15,14 @@ export class Mission {
         this.quality = null;
         this.orbitingBody = null; // Store the body where the mission was performed
         this.outcome = null;
+        this.eventBus = null; // Will be set by MissionUI
     }
 
     complete() {
         this.completed = true;
+        if (this.eventBus) {
+            this.eventBus.emit('missionCompleted', this);
+        }
         console.log(`Mission "${this.objective}" completed!`);
     }
 
