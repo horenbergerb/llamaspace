@@ -27,8 +27,12 @@ export class BodyInfoUI {
 
         // Subscribe to spaceship state updates
         this.canSetDestination = true; // Default to true
+        this.currentSpaceshipBody = null; // Track spaceship's current orbit body
         this.eventBus.on('spaceshipStateChanged', (state) => {
             this.canSetDestination = !state.inTransit;
+        });
+        this.eventBus.on('orbitBodyChanged', (body) => {
+            this.currentSpaceshipBody = body;
         });
 
         // Subscribe to close all UIs event
@@ -110,11 +114,15 @@ export class BodyInfoUI {
         // Check Enter System/Research button
         if (this.isActionButtonClicked(mouseXTransformed, mouseYTransformed)) {
             if (!this.inSystemMap) {
-                this.eventBus.emit('enterSystem', this.body);
+                // Only allow entering system if spaceship is at this body
+                if (this.currentSpaceshipBody === this.body) {
+                    this.eventBus.emit('enterSystem', this.body);
+                    this.close();
+                }
             } else {
                 this.eventBus.emit('research', this.body);
+                this.close();
             }
-            this.close();
             return true;
         }
 

@@ -131,10 +131,11 @@ export class UIRenderer {
         this.sketch.text("Set Destination", ui.uiX + ui.uiWidth - 70, destButtonY);
 
         if (!ui.inSystemMap) {
-            // Enter System button
-            this.sketch.fill(50, 150, 255);
+            // Enter System button - grey out if spaceship isn't at this body
+            const canEnterSystem = ui.currentSpaceshipBody === ui.body;
+            this.sketch.fill(canEnterSystem ? 50 : 30, canEnterSystem ? 150 : 50, 255);
             this.sketch.rect(ui.uiX + 20, ui.uiY + ui.uiHeight - 35, 100, 25, 5);
-            this.sketch.fill(255);
+            this.sketch.fill(canEnterSystem ? 255 : 150);
             const enterButtonY = ui.uiY + ui.uiHeight - 35 + 25/2;
             this.sketch.text("Enter System", ui.uiX + 70, enterButtonY);
         } else {
