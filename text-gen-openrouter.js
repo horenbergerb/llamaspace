@@ -1,6 +1,8 @@
 export class TextGeneratorOpenRouter {
     //mistralai/mistral-large-2411 Mistral
-    constructor(apiKey, model = "mistralai/mistral-large-2411") {
+    //deepseek/deepseek-r1 DeepSeek
+    //anthropic/claude-3.7-sonnet
+    constructor(apiKey, model = "anthropic/claude-3.7-sonnet") {
         this.stopGeneration = false;
         this.apiKey = apiKey;
         this.model = model;
@@ -25,7 +27,7 @@ export class TextGeneratorOpenRouter {
             },
             body: JSON.stringify({
                 model: this.model,
-                "provider": {"order": ["Mistral"],
+                "provider": {"order": ["Anthropic"],
                     "allow_fallbacks": false},
                 messages: [
                     {
