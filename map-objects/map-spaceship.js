@@ -13,6 +13,7 @@ export class Spaceship {
     static ACCELERATION = 0.05;  // Acceleration per frame (adjusted for deltaTime)
     static DECELERATION = 0.09;  // Deceleration per frame (adjusted for deltaTime)
     static MIN_SPEED = 0.8;  // Minimum speed during transit (adjusted for deltaTime)
+    static MAX_ORBIT_CHANGE_DISTANCE = 200;  // Maximum distance allowed for direct orbit changes in galaxy view
 
     constructor(sketch, eventBus) {
         this.sketch = sketch;
@@ -82,6 +83,17 @@ export class Spaceship {
                 this.eventBus.emit('orbitBodyChanged', this.orbitBody);
             }
             return;
+        }
+
+        // In galaxy view, check if bodies are too far apart
+        if (!this.inSystemMap) {
+            const distance = Math.hypot(
+                newOrbitBody.baseX - this.orbitBody.baseX,
+                newOrbitBody.baseY - this.orbitBody.baseY
+            );
+            if (distance > Spaceship.MAX_ORBIT_CHANGE_DISTANCE) {
+                return; // Don't set new orbit if distance exceeds threshold
+            }
         }
 
         this.calculateInitialTransitAngle(newOrbitBody);

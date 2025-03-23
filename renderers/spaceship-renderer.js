@@ -9,12 +9,33 @@ export class SpaceshipRenderer {
     render() {
         if (!this.spaceship || !this.spaceship.orbitBody) return;
 
+        // Draw range indicator in galaxy map
+        if (!this.spaceship.inSystemMap) {
+            this.renderRangeIndicator();
+        }
+
         // Draw destination line if needed
         if (this.spaceship.destinationSet) {
             this.renderPulsingDashedLine(this.spaceship);
         }
 
         this.renderSpaceshipSprite(this.spaceship);
+    }
+
+    renderRangeIndicator() {
+        if (!this.spaceship.orbitBody) return;
+
+        this.sketch.push();
+        // Draw a faint, semi-transparent circle showing the range
+        this.sketch.stroke(255, 255, 255, 50);
+        this.sketch.noFill();
+        this.sketch.strokeWeight(1);
+        this.sketch.ellipse(
+            this.spaceship.orbitBody.baseX,
+            this.spaceship.orbitBody.baseY,
+            Spaceship.MAX_ORBIT_CHANGE_DISTANCE * 2
+        );
+        this.sketch.pop();
     }
 
     renderPulsingDashedLine() {
