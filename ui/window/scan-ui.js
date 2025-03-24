@@ -22,8 +22,8 @@ export class ScanUI extends BaseWindowUI {
         this.sliderWidth = 20;
         this.sliderHeight = 20;
         this.velocity = 0;
-        this.gravity = 500; // Increased to account for deltaTime
-        this.thrust = 1000; // Increased to account for deltaTime
+        this.baseGravity = 2000; // Base gravity value
+        this.baseThrust = 4000; // Base thrust value
         this.isPressed = false;
 
         // Signal visualization properties
@@ -237,12 +237,18 @@ export class ScanUI extends BaseWindowUI {
     }
 
     updatePhysics(deltaTime) {
-        // Apply gravity (scaled by deltaTime)
-        this.velocity -= this.gravity * deltaTime;
+        // Calculate scaled physics values based on bar width
+        // Reference width is 800px, so we scale relative to that
+        const widthScale = this.barWidth / 800;
+        const gravity = this.baseGravity * widthScale;
+        const thrust = this.baseThrust * widthScale;
         
-        // Apply thrust if pressed (scaled by deltaTime)
+        // Apply gravity (scaled by deltaTime and width)
+        this.velocity -= gravity * deltaTime;
+        
+        // Apply thrust if pressed (scaled by deltaTime and width)
         if (this.isPressed) {
-            this.velocity += this.thrust * deltaTime;
+            this.velocity += thrust * deltaTime;
         }
         
         // Update position (scaled by deltaTime)
