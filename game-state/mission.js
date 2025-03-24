@@ -88,7 +88,7 @@ export class Mission {
         return 1;
     }
 
-    async generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody) {
+    getCommonScenarioPrompt(orbitingBody) {
         let bodyContext = '';
 
         // Only planets have a parent star
@@ -98,7 +98,7 @@ export class Mission {
             bodyContext = `The ship is orbiting a planet named ${orbitingBody.name} in the ${orbitingBody.parentStar.name} system. `;
         }
 
-        const prompt = `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
+        return `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
 The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
 
@@ -110,7 +110,12 @@ ${bodyContext}
 
 Here is some information about the body the ship is orbiting:
 
-${orbitingBody.getDescription()}
+${orbitingBody.getDescription()}`;
+    }
+
+    async generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody) {
+        const commonPrompt = this.getCommonScenarioPrompt(orbitingBody);
+        const prompt = `${commonPrompt}
 Donald has just assigned a research mission to a bridge crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
 
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
@@ -166,39 +171,30 @@ Be realistic about what is possible for the Galileo and its crew.`;
     }
 
     async generateSteps(textGenerator, currentScene, orbitingBody) {
-
         await this.generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody);
 
         let successProbability = 100 - this.difficulty * 10;
         this.outcome = Math.random() < successProbability / 100;
 
-        let bodyContext = '';
-
-        // Only planets have a parent star
-        if (!orbitingBody.parentStar) {
-            bodyContext = `The ship is orbiting a star named ${orbitingBody.name}. `;
+        // Generate difficulty description
+        let difficultyDescription;
+        if (this.difficulty <= 3) {
+            difficultyDescription = "This was a trivially easy mission.";
+        } else if (this.difficulty <= 6) {
+            difficultyDescription = "This was a mission of standard difficulty.";
+        } else if (this.difficulty <= 8) {
+            difficultyDescription = "This was an abnormally difficult mission.";
         } else {
-            bodyContext = `The ship is orbiting a planet named ${orbitingBody.name} in the ${orbitingBody.parentStar.name} system. `;
+            difficultyDescription = "This was a practically impossible mission.";
         }
 
-        const prompt = `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
-
-The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
-
-The Galileo is equipped with standard research equipment and meagre weaponry. It has a small replicator and two shuttlecraft. It has most of the resources needed to sustain a crew of 15 for a year.
-
-Donald, his ship, and his crew are all nobodies. Donald's promotion to captain was something of a nepotism scandal. His crew is composed of misfits and those with complicated pasts in the service. The ship itself is old and worn out, but everyone on board is used to getting the short end of the stick. This research mission to the D-124 star system is an exile, but it's also a chance for the entire crew to redeem themselves.
-
-${bodyContext}
-
-Here is some information about the body the ship is orbiting:
-
-${orbitingBody.getDescription()}
+        const commonPrompt = this.getCommonScenarioPrompt(orbitingBody);
+        const prompt = `${commonPrompt}
 Donald assigned a research mission to a bridge crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
 
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
 
-The research mission was a ${this.outcome ? 'success' : 'failure'}. Here was the mission objective:
+${difficultyDescription} The research mission was a ${this.outcome ? 'success' : 'failure'}. Here was the mission objective:
 
 Objective: ${this.objective}
 
