@@ -16,12 +16,30 @@ export class Mission {
         this.orbitingBody = null; // Store the body where the mission was performed
         this.outcome = null;
         this.eventBus = null; // Will be set by MissionUI
+        this.failureConsequences = null; // Store parsed failure consequences
     }
 
     complete() {
         this.completed = true;
         if (this.eventBus) {
             this.eventBus.emit('missionCompleted', this);
+            
+            // If mission failed, apply the consequences
+            if (!this.outcome && this.failureConsequences) {
+                // Apply inventory losses
+                if (this.failureConsequences.inventoryLosses) {
+                    Object.entries(this.failureConsequences.inventoryLosses).forEach(([item, amount]) => {
+                        this.eventBus.emit('useInventoryItem', item, amount);
+                    });
+                }
+                
+                // Apply shuttle damage
+                if (this.failureConsequences.shuttleDamage) {
+                    Object.entries(this.failureConsequences.shuttleDamage).forEach(([shuttleId, damage]) => {
+                        this.eventBus.emit('damageShuttlecraft', parseInt(shuttleId), damage);
+                    });
+                }
+            }
         }
         console.log(`Mission "${this.objective}" completed!`);
     }
@@ -231,10 +249,142 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
             this.lastStepTime = Date.now();
             this.currentStep = 0;
 
+            // If mission will fail, generate failure consequences after steps are generated
+            if (!this.outcome) {
+                await this.generateFailureConsequences(textGenerator);
+            }
+
         } catch (error) {
             console.error('Error generating steps:', error);
             // Set a default step if generation fails
             this.steps = ['Complete the mission'];
+        }
+    }
+
+    async generateFailureConsequences(textGenerator) {
+        const commonPrompt = this.getCommonScenarioPrompt(this.orbitingBody);
+        
+        // Get current inventory and shuttle status through event bus
+        let currentInventory = {};
+        let shuttleStatus = [];
+        
+        // Create promise to wait for inventory response
+        const inventoryPromise = new Promise(resolve => {
+            const inventoryHandler = (inventory) => {
+                currentInventory = inventory;
+                this.eventBus.off('inventoryChanged', inventoryHandler);
+                resolve();
+            };
+            this.eventBus.on('inventoryChanged', inventoryHandler);
+        });
+        
+        // Create promise to wait for shuttlecraft response
+        const shuttlePromise = new Promise(resolve => {
+            const shuttleHandler = (shuttles) => {
+                shuttleStatus = shuttles;
+                this.eventBus.off('shuttlecraftChanged', shuttleHandler);
+                resolve();
+            };
+            this.eventBus.on('shuttlecraftChanged', shuttleHandler);
+        });
+        
+        // Request current state
+        this.eventBus.emit('requestInventoryState');
+        this.eventBus.emit('requestShuttlecraftState');
+        
+        // Wait for both responses
+        await Promise.all([inventoryPromise, shuttlePromise]);
+
+        // Format the mission steps for display
+        const formattedSteps = this.steps.map((step, index) => `${index + 1}. ${step}`).join('\n');
+
+        const prompt = `${commonPrompt}
+
+The mission "${this.objective}" has failed. The mission attempt proceeded as follows:
+
+${formattedSteps}
+
+What equipment was lost and what damage occurred to the shuttlecraft during this failed mission?
+
+Current Ship Status:
+Inventory:
+${Object.entries(currentInventory).map(([item, amount]) => `- ${item}: ${amount} available`).join('\n')}
+
+Shuttlecraft:
+${shuttleStatus.map(shuttle => `- ${shuttle.name}: ${shuttle.health} health`).join('\n')}
+
+Consider the difficulty (${this.difficulty}/10) when determining losses. More difficult missions should have more severe consequences.
+Consider the current inventory levels when determining losses - you cannot lose more items than are available.
+Consider current shuttle health when determining damage - total health cannot go below 0.
+
+Format your response EXACTLY like this with NO additional text or explanations:
+
+Inventory Losses:
+- Item Name: X
+(where X is a plain number with no symbols, commas, or text)
+
+Shuttle Damage:
+- Shuttle N: X
+(where N is the shuttle number and X is a plain number with no symbols, commas, or text)
+
+Only include items that were actually lost or shuttles that were actually damaged. If nothing was lost or damaged, leave that section empty but keep the header.`;
+
+        let consequencesText = '';
+        try {
+            await textGenerator.generateText(
+                prompt,
+                (text) => { consequencesText = text; },
+                0.7, // Lower temperature for more consistent output
+                500  // Max tokens
+            );
+            console.log(consequencesText);
+
+            // Initialize consequences object
+            this.failureConsequences = {
+                inventoryLosses: {},
+                shuttleDamage: {}
+            };
+
+            // Parse inventory losses and validate against current inventory
+            const inventorySection = consequencesText.split('Inventory Losses:')[1]?.split('Shuttle Damage:')[0];
+            if (inventorySection) {
+                const inventoryLines = inventorySection.split('\n').filter(line => line.trim().startsWith('-'));
+                inventoryLines.forEach(line => {
+                    // More robust pattern matching - capture item name and number separately
+                    const match = line.match(/^-\s*([^:]+):\s*(\d+)\s*$/);
+                    if (match) {
+                        const itemName = match[1].trim();
+                        const lossAmount = parseInt(match[2]);
+                        // Only include loss if item exists and loss amount is valid
+                        if (currentInventory[itemName] && lossAmount <= currentInventory[itemName] && lossAmount > 0) {
+                            this.failureConsequences.inventoryLosses[itemName] = lossAmount;
+                        }
+                    }
+                });
+            }
+
+            // Parse shuttle damage and validate against current health
+            const shuttleSection = consequencesText.split('Shuttle Damage:')[1];
+            if (shuttleSection) {
+                const shuttleLines = shuttleSection.split('\n').filter(line => line.trim().startsWith('-'));
+                shuttleLines.forEach(line => {
+                    // More robust pattern matching - capture shuttle number and damage separately
+                    const match = line.match(/^-\s*Shuttle\s+(\d+):\s*(\d+)\s*$/);
+                    if (match) {
+                        const shuttleId = parseInt(match[1]);
+                        const damageAmount = parseInt(match[2]);
+                        const shuttle = shuttleStatus.find(s => s.id === shuttleId);
+                        // Only include damage if shuttle exists, damage is valid, and wouldn't reduce health below 0
+                        if (shuttle && damageAmount <= shuttle.health && damageAmount > 0) {
+                            this.failureConsequences.shuttleDamage[shuttleId] = damageAmount;
+                        }
+                    }
+                });
+            }
+
+        } catch (error) {
+            console.error('Error generating failure consequences:', error);
+            this.failureConsequences = null;
         }
     }
 } 

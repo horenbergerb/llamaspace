@@ -258,6 +258,16 @@ var mapSketch = function(sketch) {
         globalEventBus.emit('inventoryChanged', shipInventory);
     });
 
+    // Subscribe to inventory state requests
+    globalEventBus.on('requestInventoryState', () => {
+        globalEventBus.emit('inventoryChanged', shipInventory);
+    });
+
+    // Subscribe to shuttlecraft state requests
+    globalEventBus.on('requestShuttlecraftState', () => {
+        globalEventBus.emit('shuttlecraftChanged', shuttlecraft);
+    });
+
     // Subscribe to shuttlecraft damage events
     globalEventBus.on('damageShuttlecraft', (shuttleId, amount) => {
         const shuttle = shuttlecraft.find(s => s.id === shuttleId);
