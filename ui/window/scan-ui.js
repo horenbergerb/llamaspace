@@ -434,14 +434,25 @@ export class ScanUI extends BaseWindowUI {
             sum += noiseVal * noiseAmp;
 
             // Add anomaly spike if present
-            if (this.anomaly && !this.anomaly.isPaused) {
+            if (this.anomaly) {
                 const distFromAnomaly = Math.abs(i - this.anomaly.x);
                 if (distFromAnomaly < this.anomalyWidth) {
                     // Create a spike shape using cosine
                     const spikeIntensity = -1.0*Math.cos((distFromAnomaly / this.anomalyWidth) * Math.PI * 0.5);
-                    // Scale spike height with velocity
-                    const velocityScale = Math.min(1, Math.abs(this.anomaly.velocity) / this.anomalyMaxVelocity);
-                    sum += spikeIntensity * this.anomalyHeight * (0.5 + velocityScale * 0.5);
+                    
+                    // Calculate spike height
+                    let spikeHeight = this.anomalyHeight;
+                    
+                    // If not paused, scale with velocity
+                    if (!this.anomaly.isPaused) {
+                        const velocityScale = Math.min(1, Math.abs(this.anomaly.velocity) / this.anomalyMaxVelocity);
+                        spikeHeight *= (0.7 + velocityScale * 0.3); // Minimum 70% height when moving
+                    } else {
+                        // When paused, make it pulse slightly
+                        spikeHeight *= 0.8 + Math.sin(this.time * 4) * 0.2; // Pulse between 60% and 100%
+                    }
+                    
+                    sum += spikeIntensity * spikeHeight;
                 }
             }
             
