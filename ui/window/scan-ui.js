@@ -304,7 +304,7 @@ export class ScanUI extends BaseWindowUI {
 
         // Calculate signal height based on window height
         this.signalHeight = Math.min(60, windowHeight * 0.15); // 15% of window height, max 60px
-        this.signalY = barY - this.signalHeight - 20; // Position above the slider with some padding
+        this.signalY = barY - this.signalHeight - 50; // Position above the slider with some padding
 
         // Draw the signal visualization
         this.drawSignal(x + 50, this.signalY, this.barWidth);
@@ -333,6 +333,14 @@ export class ScanUI extends BaseWindowUI {
                 // Scale the frequency by the width to maintain consistent number of peaks
                 sum += Math.sin(i * wave.freq * (800 / width) + this.time + wave.phase) * wave.amp;
             }
+            
+            // Add Perlin noise
+            // Use both x and time coordinates for the noise to make it move
+            const noiseScale = 0.4; // Controls how "rough" the noise is
+            const noiseAmp = 10; // Controls how much the noise affects the signal
+            const noiseVal = this.sketch.noise(i * noiseScale, this.time * 0.5) * 2 - 1; // Convert from 0-1 to -1 to 1
+            sum += noiseVal * noiseAmp;
+            
             // Add a baseline offset
             sum += this.signalHeight / 2;
             this.sketch.vertex(x + i, y + sum);
@@ -345,25 +353,18 @@ export class ScanUI extends BaseWindowUI {
 
     generateRandomWaves() {
         this.signalWaves = [];
-        const numWaves = 5 + Math.floor(Math.random() * 3); // 5-7 waves
+        const numWaves = 8 + Math.floor(Math.random() * 3); // 5-7 waves
         
         // Calculate base frequency to ensure consistent number of peaks
         // We want about 2-3 peaks visible at once, so we'll use a fixed frequency
         // that's independent of screen width
         const baseFreq = 0.02; // Fixed base frequency
         
-        // Generate one wave with higher amplitude for the main signal
-        this.signalWaves.push({
-            freq: baseFreq * 2 + Math.random() * baseFreq, // 2-3x base frequency
-            amp: 20 + Math.random() * 10, // 20-30
-            phase: Math.random() * Math.PI * 2
-        });
-        
-        // Generate the rest of the waves
+        // Generate the waves
         for (let i = 0; i < numWaves - 1; i++) {
             this.signalWaves.push({
-                freq: baseFreq * 0.5 + Math.random() * baseFreq * 1.5, // 0.5-2x base frequency
-                amp: 5 + Math.random() * 15, // 5-20
+                freq: baseFreq * 2 + Math.random() * baseFreq * 3, // 0.5-2x base frequency
+                amp: 3 + Math.random() * 3, // 5-20
                 phase: Math.random() * Math.PI * 2
             });
         }
