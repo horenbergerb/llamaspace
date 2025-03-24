@@ -32,6 +32,20 @@ export class ScanUI extends BaseWindowUI {
         this.time = 0; // For animation
         this.signalWaves = []; // Will be populated when window opens
 
+        // Anomaly properties
+        this.anomaly = null;
+        this.anomalyChance = 0.001; // Chance per frame to spawn an anomaly
+        this.anomalyLifetime = 0;
+        this.anomalyMaxLifetime = 30; // Seconds
+        this.anomalyWidth = 5;
+        this.anomalyHeight = 16;
+        this.anomalyBaseVelocity = 100; // Base velocity for anomaly
+        this.anomalyMaxVelocity = 300; // Maximum velocity
+        this.anomalyAcceleration = 400; // Acceleration rate
+        this.anomalyPauseChance = 0.3; // Chance to pause per frame
+        this.anomalyDirectionChangeChance = 0.5; // Chance to change direction per frame
+        this.anomalyPauseDuration = 0; // Current pause duration
+
         // Time tracking for frame-rate independence
         this.lastFrameTime = 0;
         
@@ -39,6 +53,7 @@ export class ScanUI extends BaseWindowUI {
         this.eventBus.on('scanUIOpened', () => {
             this.isWindowVisible = true;
             this.generateRandomWaves();
+            this.anomaly = null; // Reset anomaly when opening UI
         });
         this.eventBus.on('scanUIClosed', () => {
             this.isWindowVisible = false;
@@ -237,6 +252,9 @@ export class ScanUI extends BaseWindowUI {
     }
 
     updatePhysics(deltaTime) {
+        // Update anomaly if it exists
+        this.updateAnomaly(deltaTime);
+
         // Calculate scaled physics values based on bar width
         // Reference width is 800px, so we scale relative to that
         const widthScale = this.barWidth / 800;
@@ -261,6 +279,82 @@ export class ScanUI extends BaseWindowUI {
         } else if (this.sliderX >= this.barWidth - this.sliderWidth) {
             this.sliderX = this.barWidth - this.sliderWidth;
             this.velocity = 0;
+        }
+    }
+
+    updateAnomaly(deltaTime) {
+        // Randomly spawn anomaly if none exists
+        if (!this.anomaly && Math.random() < this.anomalyChance) {
+            this.anomaly = {
+                x: Math.random() * this.barWidth,
+                lifetime: 0,
+                velocity: 0,
+                direction: Math.random() > 0.5 ? 1 : -1,
+                isPaused: false,
+                pauseTime: 0,
+                nextDirectionChange: 0.5 + Math.random() * 2 // Random time until first direction change
+            };
+        }
+
+        // Update existing anomaly
+        if (this.anomaly) {
+            // Update lifetime
+            this.anomaly.lifetime += deltaTime;
+            
+            // Handle pausing
+            if (this.anomaly.isPaused) {
+                this.anomaly.pauseTime -= deltaTime;
+                if (this.anomaly.pauseTime <= 0) {
+                    this.anomaly.isPaused = false;
+                    this.anomaly.direction *= Math.random() > 0.5 ? 1 : -1; // 50% chance to keep or change direction
+                    this.anomaly.velocity = 0; // Reset velocity
+                }
+            } else {
+                // Random chance to pause
+                if (Math.random() < this.anomalyPauseChance * deltaTime) {
+                    this.anomaly.isPaused = true;
+                    this.anomaly.pauseTime = 0.2 + Math.random() * 0.8; // Pause for 0.2-1.0 seconds
+                } else {
+                    // Random chance to change direction while moving
+                    if (Math.random() < this.anomalyDirectionChangeChance * deltaTime) {
+                        this.anomaly.direction *= -1;
+                        // Sometimes drastically reduce velocity on direction change
+                        if (Math.random() < 0.3) {
+                            this.anomaly.velocity *= 0.2;
+                        }
+                    }
+
+                    // Update velocity with random acceleration
+                    const targetVel = this.anomalyMaxVelocity * (0.3 + Math.random() * 0.7); // More variable target velocity
+                    const accelRate = this.anomalyAcceleration * (0.3 + Math.random() * 0.7); // More variable acceleration
+                    
+                    // Randomly decide to accelerate or decelerate
+                    if (Math.random() < 0.1) { // 10% chance to start decelerating
+                        this.anomaly.velocity *= 0.95; // Gradual deceleration
+                    } else if (Math.abs(this.anomaly.velocity) < targetVel) {
+                        this.anomaly.velocity += accelRate * deltaTime * this.anomaly.direction;
+                    }
+                    
+                    // Update position
+                    this.anomaly.x += this.anomaly.velocity * deltaTime;
+                    
+                    // Bounce off edges
+                    if (this.anomaly.x <= 0) {
+                        this.anomaly.x = 0;
+                        this.anomaly.direction = 1;
+                        this.anomaly.velocity *= 0.5; // Reduce velocity on bounce
+                    } else if (this.anomaly.x >= this.barWidth) {
+                        this.anomaly.x = this.barWidth;
+                        this.anomaly.direction = -1;
+                        this.anomaly.velocity *= 0.5; // Reduce velocity on bounce
+                    }
+                }
+            }
+            
+            // Remove if lifetime exceeded
+            if (this.anomaly.lifetime > this.anomalyMaxLifetime) {
+                this.anomaly = null;
+            }
         }
     }
 
@@ -330,16 +424,26 @@ export class ScanUI extends BaseWindowUI {
             let sum = 0;
             // Sum all the sine waves
             for (const wave of this.signalWaves) {
-                // Scale the frequency by the width to maintain consistent number of peaks
                 sum += Math.sin(i * wave.freq * (800 / width) + this.time + wave.phase) * wave.amp;
             }
             
             // Add Perlin noise
-            // Use both x and time coordinates for the noise to make it move
-            const noiseScale = 0.4; // Controls how "rough" the noise is
-            const noiseAmp = 10; // Controls how much the noise affects the signal
-            const noiseVal = this.sketch.noise(i * noiseScale, this.time * 0.5) * 2 - 1; // Convert from 0-1 to -1 to 1
+            const noiseScale = 0.4;
+            const noiseAmp = 10;
+            const noiseVal = this.sketch.noise(i * noiseScale, this.time * 0.5) * 2 - 1;
             sum += noiseVal * noiseAmp;
+
+            // Add anomaly spike if present
+            if (this.anomaly && !this.anomaly.isPaused) {
+                const distFromAnomaly = Math.abs(i - this.anomaly.x);
+                if (distFromAnomaly < this.anomalyWidth) {
+                    // Create a spike shape using cosine
+                    const spikeIntensity = -1.0*Math.cos((distFromAnomaly / this.anomalyWidth) * Math.PI * 0.5);
+                    // Scale spike height with velocity
+                    const velocityScale = Math.min(1, Math.abs(this.anomaly.velocity) / this.anomalyMaxVelocity);
+                    sum += spikeIntensity * this.anomalyHeight * (0.5 + velocityScale * 0.5);
+                }
+            }
             
             // Add a baseline offset
             sum += this.signalHeight / 2;
@@ -347,7 +451,6 @@ export class ScanUI extends BaseWindowUI {
         }
         
         this.sketch.endShape();
-
         this.sketch.pop();
     }
 
