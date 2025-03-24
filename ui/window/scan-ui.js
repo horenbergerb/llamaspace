@@ -497,4 +497,16 @@ export class ScanUI extends BaseWindowUI {
         
         return { width, height };
     }
+
+    handleKeyDown(camera, key) {
+        // Only handle keys if window is visible
+        if (!this.isWindowVisible) return false;
+        return false; // Return false to allow other UI elements to handle the key
+    }
+
+    handleKeyUp(camera, key) {
+        // Only handle keys if window is visible
+        if (!this.isWindowVisible) return false;
+        return false; // Return false to allow other UI elements to handle the key
+    }
 } 
