@@ -25,10 +25,17 @@ export class ScanUI extends BaseWindowUI {
         this.gravity = 0.5;
         this.thrust = 1.0;
         this.isPressed = false;
+
+        // Signal visualization properties
+        this.signalHeight = 60; // Height of the signal area
+        this.signalY = 0; // Will be set in render
+        this.time = 0; // For animation
+        this.signalWaves = []; // Will be populated when window opens
         
         // Subscribe to UI visibility events
         this.eventBus.on('scanUIOpened', () => {
             this.isWindowVisible = true;
+            this.generateRandomWaves();
         });
         this.eventBus.on('scanUIClosed', () => {
             this.isWindowVisible = false;
@@ -271,6 +278,61 @@ export class ScanUI extends BaseWindowUI {
         this.sketch.fill(255);
         this.sketch.noStroke();
         this.sketch.rect(x + 50 + this.sliderX, this.sliderY, this.sliderWidth, this.sliderHeight);
+
+        // Draw the signal visualization
+        this.signalY = barY - 80; // Position above the slider
+        this.drawSignal(x + 50, this.signalY, this.barWidth);
+        
+        // Update time for animation
+        this.time += 0.02;
+    }
+
+    drawSignal(x, y, width) {
+        // Draw background for signal area
+        this.sketch.fill(20);
+        this.sketch.noStroke();
+        this.sketch.rect(x, y, width, this.signalHeight);
+
+        // Draw the signal line
+        this.sketch.stroke(0, 255, 0); // Green color
+        this.sketch.strokeWeight(2);
+        this.sketch.noFill();
+        this.sketch.beginShape();
+        
+        // Calculate points for the signal
+        for (let i = 0; i <= width; i++) {
+            let sum = 0;
+            // Sum all the sine waves
+            for (const wave of this.signalWaves) {
+                sum += Math.sin(i * wave.freq + this.time + wave.phase) * wave.amp;
+            }
+            // Add a baseline offset
+            sum += this.signalHeight / 2;
+            this.sketch.vertex(x + i, y + sum);
+        }
+        
+        this.sketch.endShape();
+    }
+
+    generateRandomWaves() {
+        this.signalWaves = [];
+        const numWaves = 5 + Math.floor(Math.random() * 3); // 5-7 waves
+        
+        // Generate one wave with higher amplitude for the main signal
+        this.signalWaves.push({
+            freq: 0.05 + Math.random() * 0.01, // 0.1-0.15
+            amp: 20 + Math.random() * 10, // 20-30
+            phase: Math.random() * Math.PI * 2
+        });
+        
+        // Generate the rest of the waves
+        for (let i = 0; i < numWaves - 1; i++) {
+            this.signalWaves.push({
+                freq: 0.02 + Math.random() * 0.08, // 0.02-0.1
+                amp: 5 + Math.random() * 15, // 5-20
+                phase: Math.random() * Math.PI * 2
+            });
+        }
     }
 
     // Calculate window dimensions based on sketch size
