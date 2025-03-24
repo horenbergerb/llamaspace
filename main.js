@@ -239,7 +239,8 @@ var mapSketch = function(sketch) {
     });
 
     // Subscribe to inventory use events
-    globalEventBus.on('useInventoryItem', (itemName, amount = 1) => {
+    globalEventBus.on('useInventoryItem', (itemName, amount) => {
+        console.log(`Using ${amount} ${itemName}`);
         if (itemName in shipInventory && shipInventory[itemName] >= amount) {
             shipInventory[itemName] -= amount;
             globalEventBus.emit('inventoryChanged', shipInventory);
@@ -273,6 +274,7 @@ var mapSketch = function(sketch) {
         const shuttle = shuttlecraft.find(s => s.id === shuttleId);
         if (shuttle) {
             const survived = shuttle.damage(amount);
+            console.log(`Shuttle ${shuttleId} took ${amount} damage`);
             if (!survived) {
                 console.log(`Shuttle ${shuttleId} has been lost!`);
             }

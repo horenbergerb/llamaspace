@@ -17,6 +17,8 @@ export class Mission {
         this.outcome = null;
         this.eventBus = null; // Will be set by MissionUI
         this.failureConsequences = null; // Store parsed failure consequences
+        this.currentInventory = {}; // Store current inventory state
+        this.shuttleStatus = []; // Store current shuttle status
     }
 
     complete() {
@@ -29,6 +31,7 @@ export class Mission {
                 // Apply inventory losses
                 if (this.failureConsequences.inventoryLosses) {
                     Object.entries(this.failureConsequences.inventoryLosses).forEach(([item, amount]) => {
+                        console.log(`Mission::complete: Using ${amount} ${item}`);
                         this.eventBus.emit('useInventoryItem', item, amount);
                     });
                 }
@@ -36,7 +39,8 @@ export class Mission {
                 // Apply shuttle damage
                 if (this.failureConsequences.shuttleDamage) {
                     Object.entries(this.failureConsequences.shuttleDamage).forEach(([shuttleId, damage]) => {
-                        this.eventBus.emit('damageShuttlecraft', parseInt(shuttleId), damage);
+                        console.log(`Mission::complete: Damaging shuttle ${shuttleId} with ${damage} damage`);
+                        this.eventBus.emit('damageShuttlecraft', shuttleId, damage);
                     });
                 }
             }
@@ -106,7 +110,7 @@ export class Mission {
         return 1;
     }
 
-    getCommonScenarioPrompt(orbitingBody) {
+    async getCommonScenarioPrompt(orbitingBody) {
         let bodyContext = '';
 
         // Only planets have a parent star
@@ -116,11 +120,46 @@ export class Mission {
             bodyContext = `The ship is orbiting a planet named ${orbitingBody.name} in the ${orbitingBody.parentStar.name} system. `;
         }
 
+        // Get current inventory and shuttle status through event bus
+        // Create promise to wait for inventory response
+        const inventoryPromise = new Promise(resolve => {
+            const inventoryHandler = (inventory) => {
+                this.currentInventory = inventory;
+                this.eventBus.off('inventoryChanged', inventoryHandler);
+                resolve();
+            };
+            this.eventBus.on('inventoryChanged', inventoryHandler);
+        });
+        
+        // Create promise to wait for shuttlecraft response
+        const shuttlePromise = new Promise(resolve => {
+            const shuttleHandler = (shuttles) => {
+                this.shuttleStatus = shuttles;
+                this.eventBus.off('shuttlecraftChanged', shuttleHandler);
+                resolve();
+            };
+            this.eventBus.on('shuttlecraftChanged', shuttleHandler);
+        });
+        
+        // Request current state
+        this.eventBus.emit('requestInventoryState');
+        this.eventBus.emit('requestShuttlecraftState');
+        
+        // Wait for both responses
+        await Promise.all([inventoryPromise, shuttlePromise]);
+
         return `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
 The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
 
 The Galileo is equipped with standard research equipment and meagre weaponry. It has a small replicator and two shuttlecraft. It has most of the resources needed to sustain a crew of 15 for a year.
+
+Current Ship Status:
+Inventory:
+${Object.entries(this.currentInventory).map(([item, amount]) => `- ${item}: ${amount} available`).join('\n')}
+
+Shuttlecraft:
+${this.shuttleStatus.map(shuttle => `- ${shuttle.name}: ${shuttle.health} health`).join('\n')}
 
 Donald, his ship, and his crew are all nobodies. Donald's promotion to captain was something of a nepotism scandal. His crew is composed of misfits and those with complicated pasts in the service. The ship itself is old and worn out, but everyone on board is used to getting the short end of the stick. This research mission to the D-124 star system is an exile, but it's also a chance for the entire crew to redeem themselves.
 
@@ -132,7 +171,7 @@ ${orbitingBody.getDescription()}`;
     }
 
     async generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody) {
-        const commonPrompt = this.getCommonScenarioPrompt(orbitingBody);
+        const commonPrompt = await this.getCommonScenarioPrompt(orbitingBody);
         const prompt = `${commonPrompt}
 Donald has just assigned a research mission to a bridge crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
 
@@ -206,7 +245,7 @@ Be realistic about what is possible for the Galileo and its crew.`;
             difficultyDescription = "This was a practically impossible mission.";
         }
 
-        const commonPrompt = this.getCommonScenarioPrompt(orbitingBody);
+        const commonPrompt = await this.getCommonScenarioPrompt(orbitingBody);
         const prompt = `${commonPrompt}
 Donald assigned a research mission to a bridge crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
 
@@ -262,38 +301,7 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
     }
 
     async generateFailureConsequences(textGenerator) {
-        const commonPrompt = this.getCommonScenarioPrompt(this.orbitingBody);
-        
-        // Get current inventory and shuttle status through event bus
-        let currentInventory = {};
-        let shuttleStatus = [];
-        
-        // Create promise to wait for inventory response
-        const inventoryPromise = new Promise(resolve => {
-            const inventoryHandler = (inventory) => {
-                currentInventory = inventory;
-                this.eventBus.off('inventoryChanged', inventoryHandler);
-                resolve();
-            };
-            this.eventBus.on('inventoryChanged', inventoryHandler);
-        });
-        
-        // Create promise to wait for shuttlecraft response
-        const shuttlePromise = new Promise(resolve => {
-            const shuttleHandler = (shuttles) => {
-                shuttleStatus = shuttles;
-                this.eventBus.off('shuttlecraftChanged', shuttleHandler);
-                resolve();
-            };
-            this.eventBus.on('shuttlecraftChanged', shuttleHandler);
-        });
-        
-        // Request current state
-        this.eventBus.emit('requestInventoryState');
-        this.eventBus.emit('requestShuttlecraftState');
-        
-        // Wait for both responses
-        await Promise.all([inventoryPromise, shuttlePromise]);
+        const commonPrompt = await this.getCommonScenarioPrompt(this.orbitingBody);
 
         // Format the mission steps for display
         const formattedSteps = this.steps.map((step, index) => `${index + 1}. ${step}`).join('\n');
@@ -306,13 +314,6 @@ ${formattedSteps}
 
 What equipment was lost and what damage occurred to the shuttlecraft during this failed mission?
 
-Current Ship Status:
-Inventory:
-${Object.entries(currentInventory).map(([item, amount]) => `- ${item}: ${amount} available`).join('\n')}
-
-Shuttlecraft:
-${shuttleStatus.map(shuttle => `- ${shuttle.name}: ${shuttle.health} health`).join('\n')}
-
 Consider the difficulty (${this.difficulty}/10) when determining losses. More difficult missions should have more severe consequences.
 Consider the current inventory levels when determining losses - you cannot lose more items than are available.
 Consider current shuttle health when determining damage - total health cannot go below 0.
@@ -323,7 +324,7 @@ Inventory Losses:
 - Item Name: X
 (where X is a plain number with no symbols, commas, or text)
 
-Shuttle Damage:
+Shuttle Damage Received:
 - Shuttle N: X
 (where N is the shuttle number and X is a plain number with no symbols, commas, or text)
 
@@ -335,9 +336,9 @@ Only include items that were actually lost or shuttles that were actually damage
                 prompt,
                 (text) => { consequencesText = text; },
                 0.7, // Lower temperature for more consistent output
-                500  // Max tokens
+                1000  // Max tokens
             );
-            console.log(consequencesText);
+            console.log('Raw consequences text:', consequencesText);
 
             // Initialize consequences object
             this.failureConsequences = {
@@ -347,40 +348,69 @@ Only include items that were actually lost or shuttles that were actually damage
 
             // Parse inventory losses and validate against current inventory
             const inventorySection = consequencesText.split('Inventory Losses:')[1]?.split('Shuttle Damage:')[0];
+            console.log('Inventory section:', inventorySection);
+            
             if (inventorySection) {
                 const inventoryLines = inventorySection.split('\n').filter(line => line.trim().startsWith('-'));
+                console.log('Inventory lines:', inventoryLines);
+                
                 inventoryLines.forEach(line => {
+                    console.log('Processing inventory line:', line);
                     // More robust pattern matching - capture item name and number separately
                     const match = line.match(/^-\s*([^:]+):\s*(\d+)\s*$/);
+                    console.log('Inventory match:', match);
+                    
                     if (match) {
                         const itemName = match[1].trim();
                         const lossAmount = parseInt(match[2]);
+                        console.log('Parsed item:', itemName, 'amount:', lossAmount);
+                        console.log('Current inventory for item:', this.currentInventory[itemName]);
+                        
                         // Only include loss if item exists and loss amount is valid
-                        if (currentInventory[itemName] && lossAmount <= currentInventory[itemName] && lossAmount > 0) {
+                        if (this.currentInventory[itemName] && lossAmount <= this.currentInventory[itemName] && lossAmount > 0) {
+                            console.log('Adding inventory loss:', itemName, lossAmount);
                             this.failureConsequences.inventoryLosses[itemName] = lossAmount;
+                        } else {
+                            console.log('Skipping invalid inventory loss:', itemName, lossAmount);
                         }
                     }
                 });
             }
 
             // Parse shuttle damage and validate against current health
-            const shuttleSection = consequencesText.split('Shuttle Damage:')[1];
+            const shuttleSection = consequencesText.split('Shuttle Damage Received:')[1];
+            console.log('Shuttle section:', shuttleSection);
+            
             if (shuttleSection) {
                 const shuttleLines = shuttleSection.split('\n').filter(line => line.trim().startsWith('-'));
+                console.log('Shuttle lines:', shuttleLines);
+                
                 shuttleLines.forEach(line => {
+                    console.log('Processing shuttle line:', line);
                     // More robust pattern matching - capture shuttle number and damage separately
                     const match = line.match(/^-\s*Shuttle\s+(\d+):\s*(\d+)\s*$/);
+                    console.log('Shuttle match:', match);
+                    
                     if (match) {
                         const shuttleId = parseInt(match[1]);
                         const damageAmount = parseInt(match[2]);
-                        const shuttle = shuttleStatus.find(s => s.id === shuttleId);
+                        console.log('Parsed shuttle:', shuttleId, 'damage:', damageAmount);
+                        
+                        const shuttle = this.shuttleStatus.find(s => s.id === shuttleId);
+                        console.log('Found shuttle:', shuttle);
+                        
                         // Only include damage if shuttle exists, damage is valid, and wouldn't reduce health below 0
                         if (shuttle && damageAmount <= shuttle.health && damageAmount > 0) {
+                            console.log('Adding shuttle damage:', shuttleId, damageAmount);
                             this.failureConsequences.shuttleDamage[shuttleId] = damageAmount;
+                        } else {
+                            console.log('Skipping invalid shuttle damage:', shuttleId, damageAmount);
                         }
                     }
                 });
             }
+
+            console.log('Final failure consequences:', this.failureConsequences);
 
         } catch (error) {
             console.error('Error generating failure consequences:', error);
