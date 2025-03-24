@@ -266,6 +266,8 @@ export class ScanUI extends BaseWindowUI {
 
     renderMainWindow() {
         super.renderMainWindow();
+
+        this.sketch.push();
         
         const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
         let x = (this.sketch.width - windowWidth) / 2;
@@ -337,6 +339,8 @@ export class ScanUI extends BaseWindowUI {
         }
         
         this.sketch.endShape();
+
+        this.sketch.pop();
     }
 
     generateRandomWaves() {
