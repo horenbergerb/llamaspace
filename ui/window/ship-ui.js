@@ -6,6 +6,8 @@ export class ShipUI extends BaseWindowUI {
         super(sketch, eventBus, initialScene);
         this.crewMembers = crewMembers;
         this.reputation = 0; // Track reputation
+        this.inventory = {}; // Track ship's inventory
+        this.shuttlecraft = []; // Track shuttlecraft
         
         // Ship button properties
         this.buttonWidth = 80;
@@ -55,6 +57,16 @@ export class ShipUI extends BaseWindowUI {
         // Subscribe to reputation updates
         this.eventBus.on('reputationUpdated', (newReputation) => {
             this.reputation = newReputation;
+        });
+
+        // Subscribe to inventory updates
+        this.eventBus.on('inventoryChanged', (newInventory) => {
+            this.inventory = {...newInventory};
+        });
+
+        // Subscribe to shuttlecraft updates
+        this.eventBus.on('shuttlecraftChanged', (newShuttlecraft) => {
+            this.shuttlecraft = [...newShuttlecraft];
         });
 
         this.setupButton();
@@ -186,9 +198,65 @@ export class ShipUI extends BaseWindowUI {
         let contentY = y + 20;
 
         if (this.currentTab === 'Ship') {
+            // Create a graphics buffer for the ship tab content
+            const contentWidth = width - 40; // Account for margins
+            const contentHeight = height - 40; // Account for margins
+            const pg = this.sketch.createGraphics(contentWidth, contentHeight);
+            pg.background(0, 0, 0, 0);
+            
+            // Set up the graphics context
+            pg.fill(255);
+            pg.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            pg.textSize(14);
+            
+            const lineHeight = 20; // Fixed line height
+            let infoY = 0;
+
             // Draw reputation
-            this.sketch.text(`Reputation: ${this.reputation}`, contentX, contentY);
-            // Add more ship-related content here
+            pg.text(`Reputation: ${this.reputation}`, 0, infoY);
+            infoY += lineHeight * 2; // Add extra space after reputation
+
+            // Draw shuttlecraft section
+            pg.textSize(16);
+            pg.text('Shuttlecraft:', 0, infoY);
+            infoY += lineHeight * 1.5;
+
+            // Draw shuttlecraft status
+            pg.textSize(14);
+            this.shuttlecraft.forEach(shuttle => {
+                // Choose color based on health
+                if (shuttle.health <= 0) {
+                    pg.fill(255, 0, 0); // Red for destroyed
+                } else if (shuttle.health < 30) {
+                    pg.fill(255, 100, 0); // Orange for critical
+                } else if (shuttle.health < 70) {
+                    pg.fill(255, 255, 0); // Yellow for damaged
+                } else {
+                    pg.fill(0, 255, 0); // Green for good condition
+                }
+                pg.text(`${shuttle.name}: ${shuttle.health}% health`, 10, infoY);
+                pg.fill(255); // Reset to white
+                infoY += lineHeight;
+            });
+            infoY += lineHeight; // Extra space after shuttlecraft
+
+            // Draw inventory header
+            pg.textSize(16);
+            pg.fill(255);
+            pg.text('Ship Inventory:', 0, infoY);
+            infoY += lineHeight * 1.5;
+
+            // Draw inventory items
+            pg.textSize(14);
+            Object.entries(this.inventory).forEach(([item, quantity]) => {
+                pg.text(`${item}: ${quantity}`, 10, infoY);
+                infoY += lineHeight;
+            });
+
+            // Draw the graphics buffer
+            this.sketch.image(pg, contentX, contentY);
+            pg.remove();
+
         } else if (this.currentTab === 'Crew') {
             // Create a graphics buffer for the crew properties section
             const contentWidth = width - 40; // Account for margins

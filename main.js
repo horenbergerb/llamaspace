@@ -12,6 +12,7 @@ import { SettingsUI } from './ui/window/settings-ui.js';
 import { ScanUI } from './ui/window/scan-ui.js';
 import { CrewMember } from './game-state/crew-member.js';
 import { Mission } from './game-state/mission.js';
+import { Shuttlecraft } from './game-state/shuttlecraft.js';
 import { TextGeneratorOpenRouter } from './text-gen-openrouter.js';
 import { GameEventBus } from './utils/game-events.js';
 
@@ -35,6 +36,20 @@ let crewMembers = []; // Array to store crew members
 let missions = []; // Array to store missions
 let textGenerator = null; // Instance of TextGeneratorOpenRouter
 let reputation = 0; // Track total reputation
+
+// Initialize shuttlecraft
+let shuttlecraft = [
+    new Shuttlecraft(1),
+    new Shuttlecraft(2)
+];
+
+// Initialize ship's inventory
+let shipInventory = {
+    "Research Probes": 10,
+    "Redshirts": 15,
+    "EVA Suits": 8,
+    "Repair Drones": 4
+};
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
@@ -78,6 +93,10 @@ var mapSketch = function(sketch) {
 
         // Emit initial crew update
         globalEventBus.emit('crewUpdated', crewMembers);
+
+        // Emit initial inventory and shuttlecraft state
+        globalEventBus.emit('inventoryChanged', shipInventory);
+        globalEventBus.emit('shuttlecraftChanged', shuttlecraft);
 
         controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI, scanUI);
 
@@ -208,6 +227,65 @@ var mapSketch = function(sketch) {
             reputation += mission.quality;
             globalEventBus.emit('reputationUpdated', reputation);
         }
+    });
+
+    // Subscribe to inventory update events
+    globalEventBus.on('inventoryUpdated', (itemName, quantity) => {
+        if (itemName in shipInventory) {
+            shipInventory[itemName] = quantity;
+            // Emit event with full inventory for UI updates
+            globalEventBus.emit('inventoryChanged', shipInventory);
+        }
+    });
+
+    // Subscribe to inventory use events
+    globalEventBus.on('useInventoryItem', (itemName, amount = 1) => {
+        if (itemName in shipInventory && shipInventory[itemName] >= amount) {
+            shipInventory[itemName] -= amount;
+            globalEventBus.emit('inventoryChanged', shipInventory);
+            return true;
+        }
+        return false;
+    });
+
+    // Subscribe to inventory add events
+    globalEventBus.on('addInventoryItem', (itemName, amount = 1) => {
+        if (itemName in shipInventory) {
+            shipInventory[itemName] += amount;
+        } else {
+            shipInventory[itemName] = amount;
+        }
+        globalEventBus.emit('inventoryChanged', shipInventory);
+    });
+
+    // Subscribe to shuttlecraft damage events
+    globalEventBus.on('damageShuttlecraft', (shuttleId, amount) => {
+        const shuttle = shuttlecraft.find(s => s.id === shuttleId);
+        if (shuttle) {
+            const survived = shuttle.damage(amount);
+            if (!survived) {
+                console.log(`Shuttle ${shuttleId} has been lost!`);
+            }
+            globalEventBus.emit('shuttlecraftChanged', shuttlecraft);
+        }
+    });
+
+    // Subscribe to shuttlecraft repair events
+    globalEventBus.on('repairShuttlecraft', (shuttleId, amount) => {
+        const shuttle = shuttlecraft.find(s => s.id === shuttleId);
+        if (shuttle) {
+            const fullyRepaired = shuttle.repair(amount);
+            if (fullyRepaired) {
+                console.log(`Shuttle ${shuttleId} has been fully repaired!`);
+            }
+            globalEventBus.emit('shuttlecraftChanged', shuttlecraft);
+        }
+    });
+
+    // Subscribe to shuttlecraft status check events
+    globalEventBus.on('checkShuttlecraft', (shuttleId) => {
+        const shuttle = shuttlecraft.find(s => s.id === shuttleId);
+        return shuttle ? shuttle.isOperational() : false;
     });
 };
 
