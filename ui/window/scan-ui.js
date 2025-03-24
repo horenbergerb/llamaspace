@@ -22,8 +22,8 @@ export class ScanUI extends BaseWindowUI {
         this.sliderWidth = 20;
         this.sliderHeight = 20;
         this.velocity = 0;
-        this.gravity = 0.5;
-        this.thrust = 1.0;
+        this.gravity = 500; // Increased to account for deltaTime
+        this.thrust = 1000; // Increased to account for deltaTime
         this.isPressed = false;
 
         // Signal visualization properties
@@ -31,6 +31,9 @@ export class ScanUI extends BaseWindowUI {
         this.signalY = 0; // Will be set in render
         this.time = 0; // For animation
         this.signalWaves = []; // Will be populated when window opens
+
+        // Time tracking for frame-rate independence
+        this.lastFrameTime = 0;
         
         // Subscribe to UI visibility events
         this.eventBus.on('scanUIOpened', () => {
@@ -233,17 +236,17 @@ export class ScanUI extends BaseWindowUI {
         return false;
     }
 
-    updatePhysics() {
-        // Apply gravity
-        this.velocity -= this.gravity;
+    updatePhysics(deltaTime) {
+        // Apply gravity (scaled by deltaTime)
+        this.velocity -= this.gravity * deltaTime;
         
-        // Apply thrust if pressed
+        // Apply thrust if pressed (scaled by deltaTime)
         if (this.isPressed) {
-            this.velocity += this.thrust;
+            this.velocity += this.thrust * deltaTime;
         }
         
-        // Update position
-        this.sliderX += this.velocity;
+        // Update position (scaled by deltaTime)
+        this.sliderX += this.velocity * deltaTime;
         
         // Handle collisions with slider boundaries
         if (this.sliderX <= 0) {
@@ -262,6 +265,11 @@ export class ScanUI extends BaseWindowUI {
         let x = (this.sketch.width - windowWidth) / 2;
         let y = (this.sketch.height - windowHeight) / 2;
 
+        // Calculate delta time
+        const currentTime = this.sketch.millis() / 1000; // Convert to seconds
+        const deltaTime = this.lastFrameTime === 0 ? 0 : currentTime - this.lastFrameTime;
+        this.lastFrameTime = currentTime;
+
         // Draw the Frequency Slider
         this.barWidth = windowWidth - 100; // Leave some margin
         const barY = y + windowHeight - 100; // Position near bottom of window
@@ -279,8 +287,8 @@ export class ScanUI extends BaseWindowUI {
         this.sketch.strokeWeight(1);
         this.sketch.rect(x + 50, barY, this.barWidth, 10);
         
-        // Update and draw the slider
-        this.updatePhysics();
+        // Update and draw the slider with delta time
+        this.updatePhysics(deltaTime);
         this.sliderY = barY - 5; // Center vertically in the bar
         this.sketch.fill(255);
         this.sketch.noStroke();
@@ -293,8 +301,8 @@ export class ScanUI extends BaseWindowUI {
         // Draw the signal visualization
         this.drawSignal(x + 50, this.signalY, this.barWidth);
         
-        // Update time for animation (fixed speed, not scaled by width)
-        this.time += 0.02;
+        // Update time for animation (scaled by deltaTime)
+        this.time += 2 * deltaTime; // Increased speed to account for deltaTime
     }
 
     drawSignal(x, y, width) {
