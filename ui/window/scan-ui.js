@@ -353,7 +353,7 @@ export class ScanUI extends BaseWindowUI {
 
     generateRandomWaves() {
         this.signalWaves = [];
-        const numWaves = 8 + Math.floor(Math.random() * 3); // 5-7 waves
+        const numWaves = 12 + Math.floor(Math.random() * 3); // 5-7 waves
         
         // Calculate base frequency to ensure consistent number of peaks
         // We want about 2-3 peaks visible at once, so we'll use a fixed frequency
@@ -363,8 +363,8 @@ export class ScanUI extends BaseWindowUI {
         // Generate the waves
         for (let i = 0; i < numWaves - 1; i++) {
             this.signalWaves.push({
-                freq: baseFreq * 2 + Math.random() * baseFreq * 3, // 0.5-2x base frequency
-                amp: 3 + Math.random() * 3, // 5-20
+                freq: baseFreq * 2 + Math.random() * baseFreq * 10, // 0.5-2x base frequency
+                amp: 1 + Math.random() * 1, // 5-20
                 phase: Math.random() * Math.PI * 2
             });
         }
