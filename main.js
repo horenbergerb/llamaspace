@@ -9,6 +9,7 @@ import { UIRenderer } from './renderers/info-ui-renderer.js';
 import { ShipUI } from './ui/window/ship-ui.js';
 import { MissionUI } from './ui/window/mission-ui.js';
 import { SettingsUI } from './ui/window/settings-ui.js';
+import { ScanUI } from './ui/window/scan-ui.js';
 import { CrewMember } from './game-state/crew-member.js';
 import { Mission } from './game-state/mission.js';
 import { TextGeneratorOpenRouter } from './text-gen-openrouter.js';
@@ -29,6 +30,7 @@ let uiRenderer = null;
 let shipUI = null;
 let missionUI = null;
 let settingsUI = null;
+let scanUI = null;
 let crewMembers = []; // Array to store crew members
 let missions = []; // Array to store missions
 let textGenerator = null; // Instance of TextGeneratorOpenRouter
@@ -67,6 +69,7 @@ var mapSketch = function(sketch) {
         shipUI = new ShipUI(sketch, globalEventBus, galaxyMapScene, crewMembers);
         missionUI = new MissionUI(sketch, globalEventBus, galaxyMapScene, missions);
         settingsUI = new SettingsUI(sketch, globalEventBus);
+        scanUI = new ScanUI(sketch, globalEventBus, galaxyMapScene);
 
         // Generate 3 crew members
         for (let i = 0; i < 3; i++) {
@@ -76,7 +79,7 @@ var mapSketch = function(sketch) {
         // Emit initial crew update
         globalEventBus.emit('crewUpdated', crewMembers);
 
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI, scanUI);
 
         camera.applyCameraTransform();
 
@@ -120,11 +123,13 @@ var mapSketch = function(sketch) {
         shipUI.renderButton(camera);
         missionUI.renderButton(camera);
         settingsUI.renderButton(camera);
+        scanUI.renderButton(camera);
 
         // Then render UI windows (so they appear on top)
         shipUI.renderWindow(camera);
         missionUI.renderWindow(camera);
         settingsUI.renderWindow(camera);
+        scanUI.renderWindow(camera);
     }
 
     function generateGalaxy() {
@@ -163,7 +168,7 @@ var mapSketch = function(sketch) {
 
         // Switch to system scene
         currentScene = systemMapScene;
-        controlHandler.attachEventListeners(sketch, camera, systemMapScene, shipUI, missionUI, settingsUI);
+        controlHandler.attachEventListeners(sketch, camera, systemMapScene, shipUI, missionUI, settingsUI, scanUI);
 
         galaxyOrbitStar = star;
 
@@ -182,7 +187,7 @@ var mapSketch = function(sketch) {
     // Function to return to galaxy map
     window.returnToGalaxyMap = function() {
         currentScene = galaxyMapScene;
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI, scanUI);
 
         spaceship.setOrbitBody(galaxyOrbitStar, true);
         spaceship.setInSystemMap(false);
