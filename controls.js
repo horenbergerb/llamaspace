@@ -17,7 +17,12 @@ export class ControlHandler {
         // Store sketch reference
         this.sketch = sketch;
 
-        // Check if touch is in ship UI first
+        // Check if touch is in scan UI first
+        if (this.scanUI && this.scanUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
+            return false;
+        }
+
+        // Check if touch is in ship UI
         if (this.shipUI && this.shipUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
         }
@@ -29,11 +34,6 @@ export class ControlHandler {
 
         // Check if touch is in settings UI
         if (this.settingsUI && this.settingsUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
-            return false;
-        }
-
-        // Check if touch is in scan UI
-        if (this.scanUI && this.scanUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
         }
 
@@ -116,6 +116,10 @@ export class ControlHandler {
     }
 
     mousePressed(sketch, camera, mapScene) {
+        // Check scan UI first
+        if (this.scanUI && this.scanUI.handleMousePressed(camera, sketch.mouseX, sketch.mouseY)) {
+            return;
+        }
         camera.handleMousePressedCamera();
         mapScene.handleMousePressedMapScene();
     }
@@ -191,6 +195,19 @@ export class ControlHandler {
         sketch.touchStarted = () => this.touchStarted(sketch, camera, mapScene);
         sketch.touchMoved = () => this.touchMoved(sketch, camera, mapScene);
         sketch.touchEnded = () => this.touchEnded(sketch, camera, mapScene);
+        
+        // Add keyboard event listeners
+        window.addEventListener('keydown', (e) => {
+            if (this.scanUI && this.scanUI.handleKeyDown(e)) {
+                e.preventDefault();
+            }
+        });
+        
+        window.addEventListener('keyup', (e) => {
+            if (this.scanUI && this.scanUI.handleKeyUp(e)) {
+                e.preventDefault();
+            }
+        });
         
         // Disable right-click menu on the canvas
         sketch.canvas.addEventListener("contextmenu", (event) => {

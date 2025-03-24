@@ -15,6 +15,16 @@ export class ScanUI extends BaseWindowUI {
         // Main UI window properties
         this.isWindowVisible = false;
         this.windowMargin = 50;
+
+        // Physics game properties
+        this.rectX = 0;
+        this.rectY = 0;
+        this.rectWidth = 20;
+        this.rectHeight = 20;
+        this.velocity = 0;
+        this.gravity = 0.5;
+        this.thrust = 1.0;
+        this.isPressed = false;
         
         // Subscribe to UI visibility events
         this.eventBus.on('scanUIOpened', () => {
@@ -116,6 +126,40 @@ export class ScanUI extends BaseWindowUI {
         this.scanButton.render();
     }
 
+    handleMousePressed(camera, mouseX, mouseY) {
+        if (!this.isWindowVisible) return false;
+
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+
+        // Check if click is within the window bounds
+        if (mouseX >= x && mouseX <= x + windowWidth &&
+            mouseY >= y && mouseY <= y + windowHeight) {
+            this.isPressed = true;
+            return true;
+        }
+
+        return false;
+    }
+
+    handleTouchStart(camera, touchX, touchY) {
+        if (!this.isWindowVisible) return false;
+
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+
+        // Check if touch is within the window bounds
+        if (touchX >= x && touchX <= x + windowWidth &&
+            touchY >= y && touchY <= y + windowHeight) {
+            this.isPressed = true;
+            return true;
+        }
+
+        return false;
+    }
+
     handleMouseReleased(camera, mouseX, mouseY) {
         // Don't handle clicks if we're not in galaxy map
         if (!this.isInGalaxyMap) return false;
@@ -138,9 +182,10 @@ export class ScanUI extends BaseWindowUI {
                 return true;
             }
 
-            // Return true for any click within the window bounds
+            // Check if click is within the window bounds
             if (mouseX >= x && mouseX <= x + windowWidth &&
                 mouseY >= y && mouseY <= y + windowHeight) {
+                this.isPressed = false;
                 return true;
             }
         }
@@ -170,14 +215,62 @@ export class ScanUI extends BaseWindowUI {
                 return true;
             }
 
-            // Return true for any touch within the window bounds
+            // Check if touch is within the window bounds
             if (touchX >= x && touchX <= x + windowWidth &&
                 touchY >= y && touchY <= y + windowHeight) {
+                this.isPressed = false;
                 return true;
             }
         }
 
         return false;
+    }
+
+    updatePhysics() {
+        // Apply gravity
+        this.velocity -= this.gravity;
+        
+        // Apply thrust if pressed
+        if (this.isPressed) {
+            this.velocity += this.thrust;
+        }
+        
+        // Update position
+        this.rectX += this.velocity;
+        
+        // Handle collisions with bar boundaries
+        if (this.rectX <= 0) {
+            this.rectX = 0;
+            this.velocity = 0;
+        } else if (this.rectX >= this.barWidth - this.rectWidth) {
+            this.rectX = this.barWidth - this.rectWidth;
+            this.velocity = 0;
+        }
+    }
+
+    renderMainWindow() {
+        super.renderMainWindow();
+        
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+
+        // Draw the physics game
+        this.barWidth = windowWidth - 100; // Leave some margin
+        const barY = y + windowHeight - 100; // Position near bottom of window
+        
+        // Draw the bar
+        this.sketch.fill(60);
+        this.sketch.stroke(100);
+        this.sketch.strokeWeight(1);
+        this.sketch.rect(x + 50, barY, this.barWidth, 10);
+        
+        // Update and draw the rectangle
+        this.updatePhysics();
+        this.rectY = barY - 5; // Center vertically in the bar
+        this.sketch.fill(255);
+        this.sketch.noStroke();
+        this.sketch.rect(x + 50 + this.rectX, this.rectY, this.rectWidth, this.rectHeight);
     }
 
     // Calculate window dimensions based on sketch size
