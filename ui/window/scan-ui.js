@@ -16,11 +16,11 @@ export class ScanUI extends BaseWindowUI {
         this.isWindowVisible = false;
         this.windowMargin = 50;
 
-        // Physics game properties
-        this.rectX = 0;
-        this.rectY = 0;
-        this.rectWidth = 20;
-        this.rectHeight = 20;
+        // Frequency Slider properties
+        this.sliderX = 0;
+        this.sliderY = 0;
+        this.sliderWidth = 20;
+        this.sliderHeight = 20;
         this.velocity = 0;
         this.gravity = 0.5;
         this.thrust = 1.0;
@@ -236,14 +236,14 @@ export class ScanUI extends BaseWindowUI {
         }
         
         // Update position
-        this.rectX += this.velocity;
+        this.sliderX += this.velocity;
         
-        // Handle collisions with bar boundaries
-        if (this.rectX <= 0) {
-            this.rectX = 0;
+        // Handle collisions with slider boundaries
+        if (this.sliderX <= 0) {
+            this.sliderX = 0;
             this.velocity = 0;
-        } else if (this.rectX >= this.barWidth - this.rectWidth) {
-            this.rectX = this.barWidth - this.rectWidth;
+        } else if (this.sliderX >= this.barWidth - this.sliderWidth) {
+            this.sliderX = this.barWidth - this.sliderWidth;
             this.velocity = 0;
         }
     }
@@ -255,7 +255,7 @@ export class ScanUI extends BaseWindowUI {
         let x = (this.sketch.width - windowWidth) / 2;
         let y = (this.sketch.height - windowHeight) / 2;
 
-        // Draw the physics game
+        // Draw the Frequency Slider
         this.barWidth = windowWidth - 100; // Leave some margin
         const barY = y + windowHeight - 100; // Position near bottom of window
         
@@ -265,12 +265,12 @@ export class ScanUI extends BaseWindowUI {
         this.sketch.strokeWeight(1);
         this.sketch.rect(x + 50, barY, this.barWidth, 10);
         
-        // Update and draw the rectangle
+        // Update and draw the slider
         this.updatePhysics();
-        this.rectY = barY - 5; // Center vertically in the bar
+        this.sliderY = barY - 5; // Center vertically in the bar
         this.sketch.fill(255);
         this.sketch.noStroke();
-        this.sketch.rect(x + 50 + this.rectX, this.rectY, this.rectWidth, this.rectHeight);
+        this.sketch.rect(x + 50 + this.sliderX, this.sliderY, this.sliderWidth, this.sliderHeight);
     }
 
     // Calculate window dimensions based on sketch size
