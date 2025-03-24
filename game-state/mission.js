@@ -141,7 +141,7 @@ Be realistic about what is possible for the Galileo and its crew.`;
             );
             console.log(difficultyText);
             // Extract difficulty rating from response
-            const difficultyMatch = difficultyText.match(/Difficulty:\s*(\d+)/);
+            const difficultyMatch = difficultyText.match(/Difficulty:\s*\**(\d+)\**/);
             if (difficultyMatch) {
                 this.difficulty = parseInt(difficultyMatch[1]);
             } else {
@@ -149,7 +149,7 @@ Be realistic about what is possible for the Galileo and its crew.`;
                 this.difficulty = 5;
                 console.warn('Could not parse difficulty from response, defaulting to 5');
             }
-            const qualityMatch = difficultyText.match(/Quality:\s*(\d+)/);
+            const qualityMatch = difficultyText.match(/Quality:\s*\**(\d+)\**/);
             if (qualityMatch) {
                 this.quality = parseInt(qualityMatch[1]);
             } else {
