@@ -255,14 +255,14 @@ export class SettingsUI extends BaseWindowUI {
         const buttonY = contentY + 20;
         
         this.saveButton = new TextButton(
-            this.sketch,
+            pg,
             buttonX,
             buttonY,
             this.saveButtonWidth,
             this.saveButtonHeight,
             'Save Settings',
             () => this.handleSaveSettings(),
-            pg
+            null
         );
 
         // Render the Save button
