@@ -7,7 +7,7 @@ import { MapStar } from './map-objects/map-star.js';
 import { MapPlanet } from './map-objects/map-planet.js';
 import { UIRenderer } from './renderers/info-ui-renderer.js';
 import { ShipUI } from './ui/window/ship-ui/ship-ui.js';
-import { MissionUI } from './ui/window/mission-ui.js';
+import { MissionUI } from './ui/window/mission-ui/mission-ui.js';
 import { SettingsUI } from './ui/window/settings-ui.js';
 import { ScanUI } from './ui/window/scan-ui.js';
 import { UIManager } from './ui/ui-manager.js';
