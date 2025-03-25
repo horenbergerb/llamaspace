@@ -94,6 +94,20 @@ export class SettingsUI extends BaseWindowUI {
         this.apiKeyTextBox.hideMobileInput();
     }
 
+    // Calculate window dimensions based on sketch size
+    getWindowDimensions() {
+        // Width: 60% of sketch width, but capped at 600px
+        const maxWidth = 600;
+        const width = Math.min(this.sketch.width * 0.6, maxWidth);
+        
+        // Height: 50% of sketch height, with minimum margin of 40px top and bottom
+        const minMargin = 40;
+        const maxHeight = this.sketch.height - (minMargin * 2);
+        const height = Math.min(this.sketch.height * 0.5, maxHeight);
+        
+        return { width, height };
+    }
+
     render(camera) {
         // Always render the settings button
         this.renderSettingsButton();
