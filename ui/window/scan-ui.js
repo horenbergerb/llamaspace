@@ -274,6 +274,22 @@ export class ScanUI extends BaseWindowUI {
         return false;
     }
 
+    handleTouchMove(camera, touchX, touchY) {
+        // If window is visible, check if touch is within window bounds
+        if (this.isWindowVisible) {
+            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+            let x = (this.sketch.width - windowWidth) / 2;
+            let y = (this.sketch.height - windowHeight) / 2;
+
+            // Return true if touch is within window bounds to prevent map interactions
+            if (touchX >= x && touchX <= x + windowWidth &&
+                touchY >= y && touchY <= y + windowHeight) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     updatePhysics(deltaTime) {
         // Update anomaly if it exists
         this.updateAnomaly(deltaTime);
