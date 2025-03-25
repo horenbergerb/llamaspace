@@ -3,6 +3,7 @@ import { BaseWindowUI } from '../base-window-ui.js';
 import { TextGeneratorOpenRouter } from '../../../text-gen-openrouter.js';
 import { TextButton } from '../components/text-button.js';
 import { TextBox } from '../components/text-box.js';
+import { MissionButton } from './mission-button.js';
 
 export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {
@@ -13,11 +14,6 @@ export class MissionUI extends BaseWindowUI {
         this.isInSystemScene = false; // Track if we're in a system scene
         this.currentScene = initialScene; // Track current scene
         this.orbitingBody = null; // Track current orbiting body
-        
-        // Mission button properties
-        this.buttonWidth = 80;
-        this.buttonHeight = 40;
-        this.buttonMargin = 20;
         
         // Main UI window properties
         this.isWindowVisible = false;
@@ -150,41 +146,13 @@ export class MissionUI extends BaseWindowUI {
             }
         });
 
-        // Set up buttons
-        this.setupButtons();
-    }
-
-    setupButtons() {
-        // Create mission button
-        this.missionButton = new TextButton(
-            this.sketch,
-            this.buttonMargin + this.buttonWidth + this.buttonMargin,
-            this.sketch.height - this.buttonHeight - this.buttonMargin,
-            this.buttonWidth,
-            this.buttonHeight,
-            'Missions',
-            () => {
-                this.eventBus.emit('closeAllInfoUIs');
-                if (!this.isWindowVisible) {
-                    this.eventBus.emit('missionUIOpened');
-                } else {
-                    this.eventBus.emit('missionUIClosed');
-                }
-            }
-        );
-
-        // Create mission button (will be updated in renderAddMissionPage)
-        this.createMissionButton = null;
+        // Initialize mission button
+        this.missionButton = new MissionButton(sketch, eventBus);
     }
 
     updateButtonPosition() {
         if (!this.missionButton) return;
-        
-        const y = this.sketch.height - this.buttonHeight - this.buttonMargin;
-        this.missionButton.updatePosition(
-            this.buttonMargin + this.buttonWidth + this.buttonMargin,
-            y
-        );
+        this.missionButton.updatePosition();
     }
 
     renderMissionButton() {
