@@ -8,153 +8,22 @@ export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {
         super(sketch, eventBus, initialScene);
         this.missions = missions;
-        this.textGenerator = null; // Will be set when API key is available
-        this.crewMembers = []; // Will be populated from event
-        this.isInSystemScene = false; // Track if we're in a system scene
-        this.currentScene = initialScene; // Track current scene
-        this.orbitingBody = null; // Track current orbiting body
+        this.textGenerator = null;
+        this.crewMembers = [];
+        this.isInSystemScene = false;
+        this.orbitingBody = null;
         
-        // Mission button properties
-        this.buttonWidth = 80;
-        this.buttonHeight = 40;
-        this.buttonMargin = 20;
+        // UI Properties
+        this.initializeUIProperties();
         
-        // Main UI window properties
-        this.isWindowVisible = false;
-        this.windowMargin = 50;
-
-        // Add button properties
-        this.addButtonSize = 24;
-        this.addButtonMargin = 10;
-
-        // Back arrow properties
-        this.backArrowSize = 24;
-        this.backArrowMargin = 10;
-
-        // Text field properties
-        this.textFieldHeight = 30;
-        this.textFieldMargin = 20;
-        this.labelHeight = 20;
-        this.createButtonHeight = 40;
-        this.createButtonWidth = 150;
-
-        // Dropdown properties
-        this.selectedCrewIndex = -1;
-        this.isDropdownOpen = false;
-
-        // Create text boxes
-        this.objectiveTextBox = new TextBox(sketch, eventBus, {
-            width: 400,
-            height: this.textFieldHeight,
-            placeholder: ''
-        });
-
-        // Loading state
-        this.isGeneratingMission = false;
-        this.loadingAngle = 0;
-
-        // Scroll properties for add mission page
-        this.scrollOffset = 0;
-        this.maxScrollOffset = 0;
-        this.contentStartY = 60; // Start below top buttons
-
-        // Page state
-        this.currentPage = 'list'; // 'list' or 'add'
-
-        // Graphics buffer for content
-        this.contentBuffer = null;
-
-        // Mission properties
-        this.currentMission = null;
-        this.missionProgress = 0;
-        this.missionStatus = 'Not Started'; // 'Not Started', 'In Progress', 'Complete'
+        // Create UI Elements
+        this.createUIElements(sketch, eventBus);
         
-        // Subscribe to mission updates
-        this.eventBus.on('missionUpdated', (mission) => {
-            this.currentMission = mission;
-        });
-
-        this.eventBus.on('missionProgressUpdated', (progress) => {
-            this.missionProgress = progress;
-        });
-
-        this.eventBus.on('missionStatusUpdated', (status) => {
-            this.missionStatus = status;
-        });
-
-        // Set up animation frame callback
-        this.sketch.registerMethod('pre', () => {
-            if (this.isGeneratingMission) {
-                this.loadingAngle += 10; // Rotate 10 degrees per frame
-            }
-            // Update all missions
-            this.missions.forEach(mission => mission.update());
-        });
-
-        // Subscribe to UI visibility events
-        this.eventBus.on('missionUIOpened', () => {
-            this.isWindowVisible = true;
-            this.currentPage = 'list'; // Reset to list page when opening
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.setText(''); // Clear text fields when opening
-        });
-        this.eventBus.on('missionUIClosed', () => {
-            this.isWindowVisible = false;
-            this.currentPage = 'list'; // Reset to list page when closing
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
-        });
-        this.eventBus.on('shipUIOpened', () => {
-            this.isWindowVisible = false;
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
-        });
-        this.eventBus.on('settingsUIOpened', () => {
-            this.isWindowVisible = false;
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
-        });
-
-        // Subscribe to scene changes
-        this.eventBus.on('sceneChanged', (scene) => {
-            this.currentScene = scene;
-            // Close the window when changing scenes
-            this.isWindowVisible = false;
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
-        });
-
-        // Subscribe to orbit body changes
-        this.eventBus.on('orbitBodyChanged', (body) => {
-            this.orbitingBody = body;
-        });
-
-        // Subscribe to system enter/exit events
-        this.eventBus.on('enterSystem', () => {
-            this.isInSystemScene = true;
-        });
-
-        this.eventBus.on('returnToGalaxy', () => {
-            this.isInSystemScene = false;
-            // Close the window when returning to galaxy
-            this.isWindowVisible = false;
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
-        });
-
-        // Subscribe to API key updates
-        this.eventBus.on('apiKeyUpdated', (apiKey) => {
-            this.textGenerator = new TextGeneratorOpenRouter(apiKey);
-        });
-
-        // Subscribe to crew updates
-        this.eventBus.on('crewUpdated', (crew) => {
-            this.crewMembers = crew;
-            if (this.selectedCrewIndex >= this.crewMembers.length) {
-                this.selectedCrewIndex = -1;
-            }
-        });
-
+        // Set up event subscriptions
+        this.setupSceneEventSubscriptions();
+        this.setupMissionEventSubscriptions();
+        this.setupAPIEventSubscriptions();
+        
         // Set up keyboard event listeners
         window.addEventListener('keydown', (e) => {
             if (this.handleKeyDown(e)) {
@@ -167,9 +36,123 @@ export class MissionUI extends BaseWindowUI {
                 e.preventDefault();
             }
         });
+        
+        // Set up animation frame callback
+        this.setupAnimationCallback();
+    }
 
-        // Set up buttons
+    initializeUIProperties() {
+        // Button properties
+        this.buttonWidth = 80;
+        this.buttonHeight = 40;
+        this.buttonMargin = 20;
+        
+        // Add/Back button properties
+        this.addButtonSize = 24;
+        this.addButtonMargin = 10;
+        this.backArrowSize = 24;
+        this.backArrowMargin = 10;
+        
+        // Text field properties
+        this.textFieldHeight = 30;
+        this.textFieldMargin = 20;
+        this.labelHeight = 20;
+        this.createButtonHeight = 40;
+        this.createButtonWidth = 150;
+        
+        // Dropdown properties
+        this.selectedCrewIndex = -1;
+        this.isDropdownOpen = false;
+        
+        // Loading state
+        this.isGeneratingMission = false;
+        this.loadingAngle = 0;
+        
+        // Page state
+        this.currentPage = 'list';
+        this.contentBuffer = null;
+    }
+
+    createUIElements(sketch, eventBus) {
+        // Create text boxes
+        this.objectiveTextBox = new TextBox(sketch, eventBus, {
+            width: 400,
+            height: this.textFieldHeight,
+            placeholder: ''
+        });
+        
+        // Set up mission button
         this.setupButtons();
+    }
+
+    setupSceneEventSubscriptions() {
+        // Scene state changes
+        this.eventBus.on('enterSystem', () => {
+            this.isInSystemScene = true;
+        });
+
+        this.eventBus.on('returnToGalaxy', () => {
+            this.isInSystemScene = false;
+            this.isWindowVisible = false;
+            this.objectiveTextBox.setActive(false);
+            this.objectiveTextBox.hideMobileInput();
+        });
+
+        this.eventBus.on('orbitBodyChanged', (body) => {
+            this.orbitingBody = body;
+        });
+    }
+
+    setupMissionEventSubscriptions() {
+        // Mission state updates
+        this.eventBus.on('missionUpdated', (mission) => {
+            this.currentMission = mission;
+        });
+
+        this.eventBus.on('missionProgressUpdated', (progress) => {
+            this.missionProgress = progress;
+        });
+
+        this.eventBus.on('missionStatusUpdated', (status) => {
+            this.missionStatus = status;
+        });
+    }
+
+    setupAPIEventSubscriptions() {
+        // API and crew updates
+        this.eventBus.on('apiKeyUpdated', (apiKey) => {
+            this.textGenerator = new TextGeneratorOpenRouter(apiKey);
+        });
+
+        this.eventBus.on('crewUpdated', (crew) => {
+            this.crewMembers = crew;
+            if (this.selectedCrewIndex >= this.crewMembers.length) {
+                this.selectedCrewIndex = -1;
+            }
+        });
+    }
+
+    setupAnimationCallback() {
+        this.sketch.registerMethod('pre', () => {
+            if (this.isGeneratingMission) {
+                this.loadingAngle += 10;
+            }
+            this.missions.forEach(mission => mission.update());
+        });
+    }
+
+    // Override base class methods
+    handleUIOpened() {
+        this.currentPage = 'list';
+        this.scrollOffset = 0;
+        this.objectiveTextBox.setActive(false);
+        this.objectiveTextBox.setText('');
+    }
+
+    handleUIClosed() {
+        this.currentPage = 'list';
+        this.objectiveTextBox.setActive(false);
+        this.objectiveTextBox.hideMobileInput();
     }
 
     setupButtons() {
@@ -868,19 +851,5 @@ export class MissionUI extends BaseWindowUI {
         
         return mouseX >= backX && mouseX <= backX + this.backArrowSize &&
                mouseY >= backY && mouseY <= backY + this.backArrowSize;
-    }
-
-    // Calculate window dimensions based on sketch size
-    getWindowDimensions() {
-        // Width: 80% of sketch width, but capped at 800px
-        const maxWidth = 800;
-        const width = Math.min(this.sketch.width * 0.8, maxWidth);
-        
-        // Height: 70% of sketch height, with minimum margin of 40px top and bottom
-        const minMargin = 40;
-        const maxHeight = this.sketch.height - (minMargin * 2);
-        const height = Math.min(this.sketch.height * 0.7, maxHeight);
-        
-        return { width, height };
     }
 } 
