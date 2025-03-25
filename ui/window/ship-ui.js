@@ -44,6 +44,11 @@ export class ShipUI extends BaseWindowUI {
             this.activeTextField = null; // Reset active text field
         });
 
+        // Subscribe to scan UI events
+        this.eventBus.on('scanUIOpened', () => {
+            this.isWindowVisible = false;
+        });
+
         // Subscribe to scene changes
         this.eventBus.on('sceneChanged', (scene) => {
             this.isWindowVisible = false;
@@ -366,6 +371,23 @@ export class ShipUI extends BaseWindowUI {
                 mouseY >= y && mouseY <= y + windowHeight) {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    handleMousePressed(camera, mouseX, mouseY) {
+        // Only handle mouse press if window is visible
+        if (!this.isWindowVisible) return false;
+
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+
+        // Return true if press is within window bounds to capture the interaction
+        if (mouseX >= x && mouseX <= x + windowWidth &&
+            mouseY >= y && mouseY <= y + windowHeight) {
+            return true;
         }
 
         return false;
