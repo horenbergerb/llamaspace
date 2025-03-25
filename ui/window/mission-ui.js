@@ -64,24 +64,6 @@ export class MissionUI extends BaseWindowUI {
         // Graphics buffer for content
         this.contentBuffer = null;
 
-        // Mission properties
-        this.currentMission = null;
-        this.missionProgress = 0;
-        this.missionStatus = 'Not Started'; // 'Not Started', 'In Progress', 'Complete'
-        
-        // Subscribe to mission updates
-        this.eventBus.on('missionUpdated', (mission) => {
-            this.currentMission = mission;
-        });
-
-        this.eventBus.on('missionProgressUpdated', (progress) => {
-            this.missionProgress = progress;
-        });
-
-        this.eventBus.on('missionStatusUpdated', (status) => {
-            this.missionStatus = status;
-        });
-
         // Set up animation frame callback
         this.sketch.registerMethod('pre', () => {
             if (this.isGeneratingMission) {
