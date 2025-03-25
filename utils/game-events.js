@@ -3,9 +3,9 @@ export class GameEventBus {
         this.subscribers = new Map();
     }
     
-    emit(event, data) {
+    emit(event, ...args) {
         if (this.subscribers.has(event)) {
-            this.subscribers.get(event).forEach(callback => callback(data));
+            this.subscribers.get(event).forEach(callback => callback(...args));
         }
     }
     

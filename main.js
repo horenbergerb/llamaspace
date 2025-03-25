@@ -271,14 +271,21 @@ var mapSketch = function(sketch) {
 
     // Subscribe to shuttlecraft damage events
     globalEventBus.on('damageShuttlecraft', (shuttleId, amount) => {
-        const shuttle = shuttlecraft.find(s => s.id === shuttleId);
+        // Ensure both parameters are integers
+        const validShuttleId = parseInt(shuttleId);
+        const validAmount = parseInt(amount) || 0;
+        console.log(`Looking for shuttle ${validShuttleId} to apply ${validAmount} damage`);
+        const shuttle = shuttlecraft.find(s => s.id === validShuttleId);
         if (shuttle) {
-            const survived = shuttle.damage(amount);
-            console.log(`Shuttle ${shuttleId} took ${amount} damage`);
+            const oldHealth = shuttle.health;
+            const survived = shuttle.damage(validAmount);
+            console.log(`Shuttle ${validShuttleId} health: ${oldHealth} -> ${shuttle.health}`);
             if (!survived) {
-                console.log(`Shuttle ${shuttleId} has been lost!`);
+                console.log(`Shuttle ${validShuttleId} has been lost!`);
             }
             globalEventBus.emit('shuttlecraftChanged', shuttlecraft);
+        } else {
+            console.log(`Could not find shuttle with id ${validShuttleId}`);
         }
     });
 
