@@ -70,30 +70,6 @@ export class SettingsUI extends BaseWindowUI {
         this.maxScrollOffset = 0;
         this.contentStartY = 60; // Start below top buttons
 
-        // Subscribe to UI visibility events
-        this.eventBus.on('settingsUIOpened', () => {
-            this.isWindowVisible = true;
-            this.apiKeyTextBox.setActive(false);
-        });
-        this.eventBus.on('settingsUIClosed', () => {
-            this.isWindowVisible = false;
-            this.apiKeyTextBox.setActive(false);
-        });
-        this.eventBus.on('missionUIOpened', () => {
-            this.isWindowVisible = false;
-            this.apiKeyTextBox.setActive(false);
-        });
-        this.eventBus.on('shipUIOpened', () => {
-            this.isWindowVisible = false;
-            this.apiKeyTextBox.setActive(false);
-        });
-
-        // Subscribe to close all UIs event
-        this.eventBus.on('closeAllInfoUIs', () => {
-            this.isWindowVisible = false;
-            this.apiKeyTextBox.setActive(false);
-        });
-
         // Set up keyboard event listeners
         window.addEventListener('keydown', (e) => {
             if (this.handleKeyDown(e)) {
@@ -106,6 +82,16 @@ export class SettingsUI extends BaseWindowUI {
                 e.preventDefault();
             }
         });
+    }
+
+    // Override base class methods
+    handleUIOpened() {
+        this.apiKeyTextBox.setActive(false);
+    }
+
+    handleUIClosed() {
+        this.apiKeyTextBox.setActive(false);
+        this.apiKeyTextBox.hideMobileInput();
     }
 
     // Calculate window dimensions based on sketch size

@@ -61,36 +61,9 @@ export class ScanUI extends BaseWindowUI {
             true // isHoldable = true
         );
 
-        // Subscribe to UI visibility events
-        this.eventBus.on('scanUIOpened', () => {
-            this.isWindowVisible = true;
-            this.generateRandomWaves();
-            this.anomaly = null; // Reset anomaly when opening UI
-        });
-        this.eventBus.on('scanUIClosed', () => {
-            this.isWindowVisible = false;
-        });
-        this.eventBus.on('shipUIOpened', () => {
-            this.isWindowVisible = false;
-        });
-        this.eventBus.on('missionUIOpened', () => {
-            this.isWindowVisible = false;
-        });
-        this.eventBus.on('settingsUIOpened', () => {
-            this.isWindowVisible = false;
-        });
-
-        // Subscribe to scene changes
-        this.eventBus.on('sceneChanged', (scene) => {
-            this.currentScene = scene;
-            // Close the window when changing scenes
-            this.isWindowVisible = false;
-        });
-
         // Subscribe to system enter/exit events
         this.eventBus.on('enterSystem', () => {
             this.isInGalaxyMap = false;
-            // Close the window when entering system
             this.isWindowVisible = false;
         });
 
@@ -100,6 +73,12 @@ export class ScanUI extends BaseWindowUI {
 
         // Set up buttons
         this.setupButton();
+    }
+
+    // Override base class methods
+    handleUIOpened() {
+        this.generateRandomWaves();
+        this.anomaly = null; // Reset anomaly when opening UI
     }
 
     setupButton() {

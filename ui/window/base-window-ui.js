@@ -33,7 +33,50 @@ export class BaseWindowUI {
         // Touch scrolling properties
         this.touchStartY = null;
         this.scrollStartOffset = 0;
+
+        // Set up common event subscriptions
+        this.setupCommonEventSubscriptions();
     }
+
+    setupCommonEventSubscriptions() {
+        // Subscribe to scene changes
+        this.eventBus.on('sceneChanged', (scene) => {
+            this.currentScene = scene;
+            this.isWindowVisible = false;
+        });
+
+        // Subscribe to close all UIs event
+        this.eventBus.on('closeAllInfoUIs', () => {
+            this.isWindowVisible = false;
+            this.handleUIClosed();
+        });
+
+        // Subscribe to other UI open events to close this one
+        const uiEvents = ['shipUIOpened', 'missionUIOpened', 'settingsUIOpened', 'scanUIOpened'];
+        uiEvents.forEach(event => {
+            if (!event.includes(this.constructor.name.toLowerCase())) { // Don't subscribe to our own open event
+                this.eventBus.on(event, () => {
+                    this.isWindowVisible = false;
+                    this.handleUIClosed();
+                });
+            }
+        });
+
+        // Subscribe to our own UI events
+        const thisUIBase = this.constructor.name.toLowerCase().replace('ui', '');
+        this.eventBus.on(`${thisUIBase}UIOpened`, () => {
+            this.isWindowVisible = true;
+            this.handleUIOpened();
+        });
+        this.eventBus.on(`${thisUIBase}UIClosed`, () => {
+            this.isWindowVisible = false;
+            this.handleUIClosed();
+        });
+    }
+
+    // Override these in child classes if needed
+    handleUIOpened() {}
+    handleUIClosed() {}
 
     // Calculate window dimensions based on sketch size
     getWindowDimensions() {

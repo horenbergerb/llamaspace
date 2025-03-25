@@ -29,31 +29,6 @@ export class ShipUI extends BaseWindowUI {
         this.crewPropertiesHeight = 0;
         this.crewPropertiesStartY = 60; // Start below tabs
 
-        // Subscribe to UI visibility events
-        this.eventBus.on('shipUIOpened', () => {
-            this.isWindowVisible = true;
-        });
-        this.eventBus.on('shipUIClosed', () => {
-            this.isWindowVisible = false;
-        });
-        this.eventBus.on('missionUIOpened', () => {
-            this.isWindowVisible = false;
-        });
-        this.eventBus.on('settingsUIOpened', () => {
-            this.isWindowVisible = false;
-            this.activeTextField = null; // Reset active text field
-        });
-
-        // Subscribe to scan UI events
-        this.eventBus.on('scanUIOpened', () => {
-            this.isWindowVisible = false;
-        });
-
-        // Subscribe to scene changes
-        this.eventBus.on('sceneChanged', (scene) => {
-            this.isWindowVisible = false;
-        });
-
         // Subscribe to window resize events
         this.eventBus.on('windowResized', () => {
             this.updateButtonPosition();
@@ -75,6 +50,11 @@ export class ShipUI extends BaseWindowUI {
         });
 
         this.setupButton();
+    }
+
+    // Override base class methods
+    handleUIClosed() {
+        this.activeTextField = null; // Reset active text field
     }
 
     setupButton() {
