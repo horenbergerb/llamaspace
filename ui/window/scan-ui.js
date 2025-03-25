@@ -49,6 +49,18 @@ export class ScanUI extends BaseWindowUI {
         // Time tracking for frame-rate independence
         this.lastFrameTime = 0;
         
+        // Scan button in window properties
+        this.scanButtonInWindow = new TextButton(
+            this.sketch,
+            0, // x will be set in render
+            0, // y will be set in render
+            120, // wider button
+            40,
+            'Hold to Scan',
+            null, // no click handler needed
+            true // isHoldable = true
+        );
+
         // Subscribe to UI visibility events
         this.eventBus.on('scanUIOpened', () => {
             this.isWindowVisible = true;
@@ -161,7 +173,11 @@ export class ScanUI extends BaseWindowUI {
         // Check if click is within the window bounds
         if (mouseX >= x && mouseX <= x + windowWidth &&
             mouseY >= y && mouseY <= y + windowHeight) {
-            this.isPressed = true;
+            
+            // Check if click is on the scan button
+            if (this.scanButtonInWindow.handlePress(mouseX, mouseY)) {
+                return true;
+            }
             return true;
         }
 
@@ -178,7 +194,11 @@ export class ScanUI extends BaseWindowUI {
         // Check if touch is within the window bounds
         if (touchX >= x && touchX <= x + windowWidth &&
             touchY >= y && touchY <= y + windowHeight) {
-            this.isPressed = true;
+            
+            // Check if touch is on the scan button
+            if (this.scanButtonInWindow.handlePress(touchX, touchY)) {
+                return true;
+            }
             return true;
         }
 
@@ -207,10 +227,12 @@ export class ScanUI extends BaseWindowUI {
                 return true;
             }
 
+            // Handle scan button release
+            this.scanButtonInWindow.handleRelease(mouseX, mouseY);
+
             // Check if click is within the window bounds
             if (mouseX >= x && mouseX <= x + windowWidth &&
                 mouseY >= y && mouseY <= y + windowHeight) {
-                this.isPressed = false;
                 return true;
             }
         }
@@ -243,8 +265,9 @@ export class ScanUI extends BaseWindowUI {
             // Check if touch is within the window bounds
             if (touchX >= x && touchX <= x + windowWidth &&
                 touchY >= y && touchY <= y + windowHeight) {
-                this.isPressed = false;
-                return true;
+                    // Handle scan button release
+                    this.scanButtonInWindow.handleRelease(touchX, touchY);
+                    return true;
             }
         }
 
@@ -372,6 +395,15 @@ export class ScanUI extends BaseWindowUI {
         const deltaTime = this.lastFrameTime === 0 ? 0 : currentTime - this.lastFrameTime;
         this.lastFrameTime = currentTime;
 
+        // Position and render the scan button
+        const scanButtonX = x + windowWidth/2 - 60; // center horizontally
+        const scanButtonY = y + 20; // position at top of window
+        this.scanButtonInWindow.updatePosition(scanButtonX, scanButtonY);
+        this.scanButtonInWindow.render();
+        
+        // Update isPressed based on button state
+        this.isPressed = this.scanButtonInWindow.isPressed;
+
         // Draw the Frequency Slider
         this.barWidth = windowWidth - 100; // Leave some margin
         const barY = y + windowHeight - 100; // Position near bottom of window
@@ -405,6 +437,8 @@ export class ScanUI extends BaseWindowUI {
         
         // Update time for animation (scaled by deltaTime)
         this.time += 2 * deltaTime; // Increased speed to account for deltaTime
+
+        this.sketch.pop();
     }
 
     drawSignal(x, y, width) {
@@ -462,7 +496,6 @@ export class ScanUI extends BaseWindowUI {
         }
         
         this.sketch.endShape();
-        this.sketch.pop();
     }
 
     generateRandomWaves() {

@@ -5,10 +5,7 @@ export class ControlHandler {
     constructor(sketch) {
         this.isTouchEvent = false;
         this.sketch = null;
-        this.shipUI = null;
-        this.missionUI = null;
-        this.settingsUI = null;
-        this.scanUI = null;
+        this.uiManager = null;
     }
 
     touchStarted(sketch, camera, mapScene) {
@@ -17,23 +14,8 @@ export class ControlHandler {
         // Store sketch reference
         this.sketch = sketch;
 
-        // Check if touch is in scan UI first
-        if (this.scanUI && this.scanUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
-            return false;
-        }
-
-        // Check if touch is in ship UI
-        if (this.shipUI && this.shipUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
-            return false;
-        }
-
-        // Check if touch is in mission UI
-        if (this.missionUI && this.missionUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
-            return false;
-        }
-
-        // Check if touch is in settings UI
-        if (this.settingsUI && this.settingsUI.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
+        // Check if touch is in UI first
+        if (this.uiManager && this.uiManager.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
         }
 
@@ -58,23 +40,8 @@ export class ControlHandler {
     touchMoved(sketch, camera, mapScene) {
         if (!sketch.touches || sketch.touches.length === 0) return false;
 
-        // Check if touch is in ship UI first
-        if (this.shipUI && this.shipUI.handleTouchMove(camera, sketch.touches[0].x, sketch.touches[0].y)) {
-            return false;
-        }
-
-        // Check if touch is in mission UI
-        if (this.missionUI && this.missionUI.handleTouchMove(camera, sketch.touches[0].x, sketch.touches[0].y)) {
-            return false;
-        }
-
-        // Check if touch is in settings UI
-        if (this.settingsUI && this.settingsUI.handleTouchMove(camera, sketch.touches[0].x, sketch.touches[0].y)) {
-            return false;
-        }
-
-        // Check if touch is in scan UI
-        if (this.scanUI && this.scanUI.handleTouchMove(camera, sketch.touches[0].x, sketch.touches[0].y)) {
+        // Check if touch is in UI first
+        if (this.uiManager && this.uiManager.handleTouchMove(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
         }
 
@@ -92,16 +59,7 @@ export class ControlHandler {
         let lastTouchY = sketch.touches.length > 0 ? sketch.touches[0].y : sketch.mouseY;
         
         // Handle UI touch events first and return if they handle the touch
-        if (this.shipUI && this.shipUI.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
-            return false;
-        }
-        if (this.missionUI && this.missionUI.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
-            return false;
-        }
-        if (this.settingsUI && this.settingsUI.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
-            return false;
-        }
-        if (this.scanUI && this.scanUI.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
+        if (this.uiManager && this.uiManager.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
             return false;
         }
         if (mapScene.handleTouchEndMapScene(camera, lastTouchX, lastTouchY)) {
@@ -116,32 +74,18 @@ export class ControlHandler {
     }
 
     mousePressed(sketch, camera, mapScene) {
-        // Check scan UI first
-        if (this.scanUI && this.scanUI.handleMousePressed(camera, sketch.mouseX, sketch.mouseY)) {
+        // Check UI first
+        if (this.uiManager && this.uiManager.handleMousePressed(camera, sketch.mouseX, sketch.mouseY)) {
             return;
         }
+        
         camera.handleMousePressedCamera();
         mapScene.handleMousePressedMapScene();
     }
 
     mouseReleased(sketch, camera, mapScene) {
-        // Check ship UI first
-        if (this.shipUI && this.shipUI.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
-            return;
-        }
-
-        // Check mission UI
-        if (this.missionUI && this.missionUI.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
-            return;
-        }
-
-        // Check settings UI
-        if (this.settingsUI && this.settingsUI.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
-            return;
-        }
-
-        // Check scan UI
-        if (this.scanUI && this.scanUI.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
+        // Check UI first
+        if (this.uiManager && this.uiManager.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
             return;
         }
         
@@ -157,19 +101,7 @@ export class ControlHandler {
 
     mouseWheel(event, camera, mapScene) {
         // Check if we should handle UI scrolling first
-        if (this.shipUI && this.shipUI.handleMouseWheel(event)) {
-            return false;
-        }
-        // Check mission UI scrolling
-        if (this.missionUI && this.missionUI.handleMouseWheel(event)) {
-            return false;
-        }
-        // Check settings UI scrolling
-        if (this.settingsUI && this.settingsUI.handleMouseWheel(event)) {
-            return false;
-        }
-        // Check scan UI scrolling
-        if (this.scanUI && this.scanUI.handleMouseWheel(event)) {
+        if (this.uiManager && this.uiManager.handleMouseWheel(event)) {
             return false;
         }
         // Then check map scene UI
@@ -180,12 +112,9 @@ export class ControlHandler {
         return camera.handleMouseWheelCamera(event);
     }
 
-    attachEventListeners(sketch, camera, mapScene, shipUI, missionUI, settingsUI, scanUI) {
+    attachEventListeners(sketch, camera, mapScene, uiManager) {
         this.sketch = sketch;
-        this.shipUI = shipUI;
-        this.missionUI = missionUI;
-        this.settingsUI = settingsUI;
-        this.scanUI = scanUI;
+        this.uiManager = uiManager;
         
         // Attach event listeners
         sketch.mousePressed = () => this.mousePressed(sketch, camera, mapScene);
@@ -198,13 +127,13 @@ export class ControlHandler {
         
         // Add keyboard event listeners
         window.addEventListener('keydown', (e) => {
-            if (this.scanUI && this.scanUI.handleKeyDown(e)) {
+            if (this.uiManager && this.uiManager.handleKeyDown(e)) {
                 e.preventDefault();
             }
         });
         
         window.addEventListener('keyup', (e) => {
-            if (this.scanUI && this.scanUI.handleKeyUp(e)) {
+            if (this.uiManager && this.uiManager.handleKeyUp(e)) {
                 e.preventDefault();
             }
         });

@@ -307,14 +307,13 @@ export class MissionUI extends BaseWindowUI {
         const buttonY = contentY + 20;
         
         this.createMissionButton = new TextButton(
-            this.sketch,
+            this.contentBuffer,
             buttonX,
             buttonY,
             this.createButtonWidth,
             this.createButtonHeight,
             this.isGeneratingMission ? 'Generating...' : 'Create Mission',
-            () => this.handleCreateMission(),
-            this.contentBuffer
+            () => this.handleCreateMission()
         );
 
         // Render the Create Mission button

@@ -1,5 +1,5 @@
 export class TextButton {
-    constructor(sketch, x, y, width, height, text, onClick, graphicsBuffer = null) {
+    constructor(sketch, x, y, width, height, text, onClick, isHoldable = false, graphicsBuffer = null) {
         this.sketch = sketch;
         this.x = x;
         this.y = y;
@@ -7,6 +7,8 @@ export class TextButton {
         this.height = height;
         this.text = text;
         this.onClick = onClick;
+        this.isHoldable = isHoldable;
+        this.isPressed = false;
         this.graphicsBuffer = graphicsBuffer;
     }
 
@@ -19,8 +21,8 @@ export class TextButton {
         const target = this.graphicsBuffer || this.sketch;
         target.push();
         
-        // Draw button background
-        target.fill(40);
+        // Draw button background with different color when pressed
+        target.fill(this.isPressed ? 60 : 40);
         target.stroke(100);
         target.strokeWeight(2);
         target.rect(this.x, this.y, this.width, this.height, 5);
@@ -40,9 +42,31 @@ export class TextButton {
                mouseY >= this.y && mouseY <= this.y + this.height;
     }
 
+    handlePress(mouseX, mouseY) {
+        if (this.isClicked(mouseX, mouseY)) {
+            this.isPressed = true;
+            if (!this.isHoldable && this.onClick) {
+                this.onClick();
+            }
+            return true;
+        }
+        return false;
+    }
+
+    handleRelease(mouseX, mouseY) {
+        if (this.isHoldable && this.isPressed && this.isClicked(mouseX, mouseY)) {
+            if (this.onClick) {
+                this.onClick();
+            }
+        }
+        this.isPressed = false;
+    }
+
     handleClick(mouseX, mouseY) {
         if (this.isClicked(mouseX, mouseY)) {
-            this.onClick();
+            if (!this.isHoldable && this.onClick) {
+                this.onClick();
+            }
             return true;
         }
         return false;

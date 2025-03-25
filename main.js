@@ -10,6 +10,7 @@ import { ShipUI } from './ui/window/ship-ui.js';
 import { MissionUI } from './ui/window/mission-ui.js';
 import { SettingsUI } from './ui/window/settings-ui.js';
 import { ScanUI } from './ui/window/scan-ui.js';
+import { UIManager } from './ui/ui-manager.js';
 import { CrewMember } from './game-state/crew-member.js';
 import { Mission } from './game-state/mission.js';
 import { Shuttlecraft } from './game-state/shuttlecraft.js';
@@ -28,10 +29,7 @@ let currentScene = null; // Track which scene is active
 let camera = null;
 let controlHandler = null;
 let uiRenderer = null;
-let shipUI = null;
-let missionUI = null;
-let settingsUI = null;
-let scanUI = null;
+let uiManager = null;
 let crewMembers = []; // Array to store crew members
 let missions = []; // Array to store missions
 let textGenerator = null; // Instance of TextGeneratorOpenRouter
@@ -60,6 +58,7 @@ var mapSketch = function(sketch) {
         camera = new Camera(sketch);
         controlHandler = new ControlHandler();
         uiRenderer = new UIRenderer(sketch);
+        uiManager = new UIManager();
         
         // Subscribe to API key updates
         globalEventBus.on('apiKeyUpdated', async (apiKey) => {
@@ -81,10 +80,11 @@ var mapSketch = function(sketch) {
         let w = sketchHolder.clientWidth;
         sketch.createCanvas(w, sketch.windowHeight*0.7);
 
-        shipUI = new ShipUI(sketch, globalEventBus, galaxyMapScene, crewMembers);
-        missionUI = new MissionUI(sketch, globalEventBus, galaxyMapScene, missions);
-        settingsUI = new SettingsUI(sketch, globalEventBus);
-        scanUI = new ScanUI(sketch, globalEventBus, galaxyMapScene);
+        // Initialize UI components
+        uiManager.addUI('ship', new ShipUI(sketch, globalEventBus, galaxyMapScene, crewMembers));
+        uiManager.addUI('mission', new MissionUI(sketch, globalEventBus, galaxyMapScene, missions));
+        uiManager.addUI('settings', new SettingsUI(sketch, globalEventBus));
+        uiManager.addUI('scan', new ScanUI(sketch, globalEventBus, galaxyMapScene));
 
         // Generate 3 crew members
         for (let i = 0; i < 3; i++) {
@@ -98,7 +98,7 @@ var mapSketch = function(sketch) {
         globalEventBus.emit('inventoryChanged', shipInventory);
         globalEventBus.emit('shuttlecraftChanged', shuttlecraft);
 
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI, scanUI);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, uiManager);
 
         camera.applyCameraTransform();
 
@@ -139,16 +139,10 @@ var mapSketch = function(sketch) {
         camera.endCameraTransform();
 
         // Render UI buttons first (so they appear behind windows)
-        shipUI.renderButton(camera);
-        missionUI.renderButton(camera);
-        settingsUI.renderButton(camera);
-        scanUI.renderButton(camera);
+        uiManager.renderButtons(camera);
 
         // Then render UI windows (so they appear on top)
-        shipUI.renderWindow(camera);
-        missionUI.renderWindow(camera);
-        settingsUI.renderWindow(camera);
-        scanUI.renderWindow(camera);
+        uiManager.renderWindows(camera);
     }
 
     function generateGalaxy() {
@@ -187,7 +181,7 @@ var mapSketch = function(sketch) {
 
         // Switch to system scene
         currentScene = systemMapScene;
-        controlHandler.attachEventListeners(sketch, camera, systemMapScene, shipUI, missionUI, settingsUI, scanUI);
+        controlHandler.attachEventListeners(sketch, camera, systemMapScene, uiManager);
 
         galaxyOrbitStar = star;
 
@@ -206,7 +200,7 @@ var mapSketch = function(sketch) {
     // Function to return to galaxy map
     window.returnToGalaxyMap = function() {
         currentScene = galaxyMapScene;
-        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, shipUI, missionUI, settingsUI, scanUI);
+        controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, uiManager);
 
         spaceship.setOrbitBody(galaxyOrbitStar, true);
         spaceship.setInSystemMap(false);
