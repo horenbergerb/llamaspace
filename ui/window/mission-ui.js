@@ -337,7 +337,7 @@ export class MissionUI extends BaseWindowUI {
         }
 
         // If window is visible, check window interactions
-        if (this.isWindowVisible) {
+        if (super.handleMouseReleased(camera, mouseX, mouseY)) {
             const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
             let x = (this.sketch.width - windowWidth) / 2;
             let y = (this.sketch.height - windowHeight) / 2;
@@ -413,19 +413,51 @@ export class MissionUI extends BaseWindowUI {
                 }
             }
 
-            // Return true for any click within the window bounds
-            if (mouseX >= x && mouseX <= x + windowWidth &&
-                mouseY >= y && mouseY <= y + windowHeight) {
-                return true;
-            }
-
-            // If we clicked outside the window, deactivate text boxes
-            this.objectiveTextBox.setActive(false);
+            return true;
         }
 
         // Close dropdown if clicking outside
         this.isDropdownOpen = false;
 
+        return false;
+    }
+
+    handleMousePressed(camera, mouseX, mouseY) {
+        if (!this.isInSystemScene) return false;
+        return super.handleMousePressed(camera, mouseX, mouseY);
+    }
+
+    handleMouseWheel(event) {
+        if (!this.isInSystemScene) return false;
+        if (super.handleMouseWheel(event)) {
+            // Update scroll offset based on wheel delta
+            this.scrollOffset += event.delta;
+            this.scrollOffset = Math.max(-this.maxScrollOffset, Math.min(0, this.scrollOffset));
+            return true;
+        }
+        return false;
+    }
+
+    handleTouchStart(camera, touchX, touchY) {
+        if (!this.isInSystemScene) return false;
+        if (super.handleTouchStart(camera, touchX, touchY)) {
+            this.touchStartY = touchY;
+            this.scrollStartOffset = this.scrollOffset;
+            return true;
+        }
+        return false;
+    }
+
+    handleTouchMove(camera, touchX, touchY) {
+        if (!this.isInSystemScene) return false;
+        if (super.handleTouchMove(camera, touchX, touchY)) {
+            if (this.touchStartY !== null) {
+                const deltaY = touchY - this.touchStartY;
+                this.scrollOffset = this.scrollStartOffset + deltaY;
+                this.scrollOffset = Math.max(-this.maxScrollOffset, Math.min(0, this.scrollOffset));
+            }
+            return true;
+        }
         return false;
     }
 
@@ -438,8 +470,8 @@ export class MissionUI extends BaseWindowUI {
             return true;
         }
 
-        // If window is visible, handle window interactions
-        if (this.isWindowVisible) {
+        // If window is visible, check window interactions
+        if (super.handleTouchEnd(camera, touchX, touchY)) {
             const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
             let x = (this.sketch.width - windowWidth) / 2;
             let y = (this.sketch.height - windowHeight) / 2;
@@ -515,14 +547,7 @@ export class MissionUI extends BaseWindowUI {
                 }
             }
 
-            // Return true for any touch within the window bounds
-            if (touchX >= x && touchX <= x + windowWidth &&
-                touchY >= y && touchY <= y + windowHeight) {
-                return true;
-            }
-
-            // If we touched outside the window, deactivate text boxes
-            this.objectiveTextBox.setActive(false);
+            return true;
         }
 
         // Close dropdown if touching outside
