@@ -1,8 +1,8 @@
 import { Mission } from '../../game-state/mission.js';
 import { BaseWindowUI } from './base-window-ui.js';
 import { TextGeneratorOpenRouter } from '../../text-gen-openrouter.js';
-import { TextButton } from './text-button.js';
-import { TextBox } from './text-box.js';
+import { TextButton } from './components/text-button.js';
+import { TextBox } from './components/text-box.js';
 
 export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {

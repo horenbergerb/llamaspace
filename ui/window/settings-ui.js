@@ -1,7 +1,7 @@
 import { TextGeneratorOpenRouter } from '../../text-gen-openrouter.js';
 import { BaseWindowUI } from './base-window-ui.js';
-import { TextBox } from './text-box.js';
-import { TextButton } from './text-button.js';
+import { TextBox } from './components/text-box.js';
+import { TextButton } from './components/text-button.js';
 
 export class SettingsUI extends BaseWindowUI {
     constructor(sketch, eventBus) {

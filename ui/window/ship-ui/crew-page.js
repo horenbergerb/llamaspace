@@ -1,4 +1,4 @@
-import { ScrollableGraphicsBuffer } from './scrollable-graphics-buffer.js';
+import { ScrollableGraphicsBuffer } from '../components/scrollable-graphics-buffer.js';
 
 export class CrewPage {
     constructor(sketch, eventBus, crewMembers) {

@@ -1,4 +1,4 @@
-import { TextButton } from '../text-button.js';
+import { TextButton } from '../components/text-button.js';
 
 export class ShipButton extends TextButton {
     constructor(sketch, eventBus) {

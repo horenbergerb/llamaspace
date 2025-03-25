@@ -1,5 +1,5 @@
 import { BaseWindowUI } from './base-window-ui.js';
-import { TextButton } from './text-button.js';
+import { TextButton } from './components/text-button.js';
 
 export class ScanUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene) {
