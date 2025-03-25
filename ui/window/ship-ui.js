@@ -210,16 +210,19 @@ export class ShipUI extends BaseWindowUI {
             pg.textSize(14);
             
             const lineHeight = 20; // Fixed line height
-            let infoY = 0;
+            let infoY = this.scrollOffset;
+            let totalHeight = 0;
 
             // Draw reputation
             pg.text(`Reputation: ${this.reputation}`, 0, infoY);
             infoY += lineHeight * 2; // Add extra space after reputation
+            totalHeight += lineHeight * 2;
 
             // Draw shuttlecraft section
             pg.textSize(16);
             pg.text('Shuttlecraft:', 0, infoY);
             infoY += lineHeight * 1.5;
+            totalHeight += lineHeight * 1.5;
 
             // Draw shuttlecraft status
             pg.textSize(14);
@@ -237,25 +240,35 @@ export class ShipUI extends BaseWindowUI {
                 pg.text(`${shuttle.name}: ${shuttle.health}% health`, 10, infoY);
                 pg.fill(255); // Reset to white
                 infoY += lineHeight;
+                totalHeight += lineHeight;
             });
             infoY += lineHeight; // Extra space after shuttlecraft
+            totalHeight += lineHeight;
 
             // Draw inventory header
             pg.textSize(16);
             pg.fill(255);
             pg.text('Ship Inventory:', 0, infoY);
             infoY += lineHeight * 1.5;
+            totalHeight += lineHeight * 1.5;
 
             // Draw inventory items
             pg.textSize(14);
             Object.entries(this.inventory).forEach(([item, quantity]) => {
                 pg.text(`${item}: ${quantity}`, 10, infoY);
                 infoY += lineHeight;
+                totalHeight += lineHeight;
             });
 
             // Draw the graphics buffer
             this.sketch.image(pg, contentX, contentY);
             pg.remove();
+
+            // Calculate max scroll offset based on total content height
+            this.maxScrollOffset = Math.max(0, totalHeight - contentHeight);
+
+            // Draw scroll indicator
+            this.renderScrollIndicator(x, y, width, height, totalHeight, contentHeight);
 
         } else if (this.currentTab === 'Crew') {
             // Create a graphics buffer for the crew properties section
