@@ -49,6 +49,18 @@ export class BaseWindowUI {
         return { width, height };
     }
 
+    // Helper method to check if coordinates are within window bounds
+    isWithinWindowBounds(x, y) {
+        if (!this.isWindowVisible) return false;
+        
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        const windowX = (this.sketch.width - windowWidth) / 2;
+        const windowY = (this.sketch.height - windowHeight) / 2;
+        
+        return x >= windowX && x <= windowX + windowWidth &&
+               y >= windowY && y <= windowY + windowHeight;
+    }
+
     // Base render method - should be overridden by child classes
     render(camera) {
         if (this.isWindowVisible) {
@@ -115,69 +127,51 @@ export class BaseWindowUI {
                mouseY >= closeY && mouseY <= closeY + this.closeButtonSize;
     }
 
-    // Shared mouse wheel handling
+    // Base event handlers that check window bounds
     handleMouseWheel(event) {
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            // Check if mouse is over the content area
-            if (this.sketch.mouseX >= x && this.sketch.mouseX <= x + windowWidth &&
-                this.sketch.mouseY >= y + this.contentStartY && 
-                this.sketch.mouseY <= y + windowHeight - 20) {
-                
-                // Update scroll offset with a multiplier to make scrolling smoother
-                const scrollMultiplier = 1.5;
-                this.scrollOffset = Math.max(-this.maxScrollOffset, 
-                    Math.min(0, this.scrollOffset - (event.deltaY * scrollMultiplier)));
-                return true;
-            }
+        if (this.isWithinWindowBounds(this.sketch.mouseX, this.sketch.mouseY)) {
+            // Child classes can override this to add behavior
+            return true;
         }
         return false;
     }
 
-    // Shared touch handling
+    handleMousePressed(camera, mouseX, mouseY) {
+        if (this.isWithinWindowBounds(mouseX, mouseY)) {
+            // Child classes can override this to add behavior
+            return true;
+        }
+        return false;
+    }
+
+    handleMouseReleased(camera, mouseX, mouseY) {
+        if (this.isWithinWindowBounds(mouseX, mouseY)) {
+            // Child classes can override this to add behavior
+            return true;
+        }
+        return false;
+    }
+
     handleTouchStart(camera, touchX, touchY) {
-        if (this.isWindowVisible) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            // Store touch start position and current scroll offset for drag calculations
-            if (touchX >= x && touchX <= x + windowWidth &&
-                touchY >= y + this.contentStartY && touchY <= y + windowHeight) {
-                this.touchStartY = touchY;
-                this.scrollStartOffset = this.scrollOffset;
-            }
-            
-            return touchX >= x && touchX <= x + windowWidth &&
-                   touchY >= y && touchY <= y + windowHeight;
+        if (this.isWithinWindowBounds(touchX, touchY)) {
+            // Child classes can override this to add behavior
+            return true;
         }
         return false;
     }
 
     handleTouchMove(camera, touchX, touchY) {
-        if (this.isWindowVisible && this.touchStartY !== null) {
-            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
-            let x = (this.sketch.width - windowWidth) / 2;
-            let y = (this.sketch.height - windowHeight) / 2;
-            
-            // Only handle scroll if touch is within window bounds
-            if (touchX >= x && touchX <= x + windowWidth &&
-                touchY >= y && touchY <= y + windowHeight) {
-                
-                // Calculate touch movement
-                const touchDelta = touchY - this.touchStartY;
-                
-                // Update scroll offset based on touch movement
-                this.scrollOffset = Math.max(
-                    -this.maxScrollOffset,
-                    Math.min(0, this.scrollStartOffset + touchDelta)
-                );
-                
-                return true;
-            }
+        if (this.isWithinWindowBounds(touchX, touchY)) {
+            // Child classes can override this to add behavior
+            return true;
+        }
+        return false;
+    }
+
+    handleTouchEnd(camera, touchX, touchY) {
+        if (this.isWithinWindowBounds(touchX, touchY)) {
+            // Child classes can override this to add behavior
+            return true;
         }
         return false;
     }
