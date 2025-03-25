@@ -3,8 +3,6 @@ import { BaseWindowUI } from './base-window-ui.js';
 import { TextGeneratorOpenRouter } from '../../text-gen-openrouter.js';
 import { TextButton } from './text-button.js';
 import { TextBox } from './text-box.js';
-import { Button } from '../components/button.js';
-import { UIComponent } from '../components/ui-component.js';
 
 export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {
@@ -65,54 +63,6 @@ export class MissionUI extends BaseWindowUI {
 
         // Graphics buffer for content
         this.contentBuffer = null;
-
-        // Create root UI component
-        this.rootComponent = new UIComponent(0, 0, 0, 0);
-        
-        // Create add button
-        this.addButton = new Button(
-            this.addButtonMargin,
-            this.addButtonMargin,
-            this.addButtonSize,
-            this.addButtonSize,
-            '+',
-            () => {
-                this.currentPage = 'add';
-                this.scrollOffset = 0;
-            }
-        ).setAsIcon();
-        
-        // Create close button
-        this.closeButton = new Button(
-            0, // Will be positioned in renderMainWindow
-            0,
-            this.closeButtonSize,
-            this.closeButtonSize,
-            '×',
-            () => {
-                this.isWindowVisible = false;
-                this.eventBus.emit('missionUIClosed');
-            }
-        ).setAsIcon();
-
-        // Create back button
-        this.backButton = new Button(
-            this.backArrowMargin,
-            this.backArrowMargin,
-            this.backArrowSize,
-            this.backArrowSize,
-            '<',
-            () => {
-                this.currentPage = 'list';
-                this.scrollOffset = 0;
-                this.objectiveTextBox.setActive(false);
-            }
-        ).setAsIcon();
-
-        // Add components to root
-        this.rootComponent.addChild(this.addButton);
-        this.rootComponent.addChild(this.closeButton);
-        this.rootComponent.addChild(this.backButton);
 
         // Set up animation frame callback
         this.sketch.registerMethod('pre', () => {
@@ -244,6 +194,13 @@ export class MissionUI extends BaseWindowUI {
     }
 
     renderAddMissionPage(x, y, width, height) {
+        // Draw back arrow in top left
+        let backX = x + this.backArrowMargin;
+        let backY = y + this.backArrowMargin;
+        this.sketch.stroke(150);
+        this.sketch.line(backX + this.backArrowSize/2, backY, backX, backY + this.backArrowSize/2);
+        this.sketch.line(backX, backY + this.backArrowSize/2, backX + this.backArrowSize/2, backY + this.backArrowSize);
+
         // Draw page title
         this.sketch.fill(255);
         this.sketch.noStroke();
@@ -385,18 +342,28 @@ export class MissionUI extends BaseWindowUI {
             let x = (this.sketch.width - windowWidth) / 2;
             let y = (this.sketch.height - windowHeight) / 2;
 
-            // Update root component position
-            this.rootComponent.setPosition(x, y);
-
-            // Handle interactions through component system
-            if (this.rootComponent.handleMouseReleased(mouseX, mouseY)) {
+            // Check close button
+            if (this.isCloseButtonClicked(mouseX, mouseY)) {
+                this.isWindowVisible = false;
+                this.eventBus.emit('missionUIClosed');
                 return true;
             }
 
-            // Handle other window interactions
-            if (mouseX >= x && mouseX <= x + windowWidth &&
-                mouseY >= y && mouseY <= y + windowHeight) {
-                
+            // Handle page-specific button clicks
+            if (this.currentPage === 'list') {
+                if (this.isAddButtonClicked(mouseX, mouseY)) {
+                    this.currentPage = 'add';
+                    this.scrollOffset = 0; // Reset scroll when changing pages
+                    return true;
+                }
+            } else {
+                if (this.isBackButtonClicked(mouseX, mouseY)) {
+                    this.currentPage = 'list';
+                    this.scrollOffset = 0; // Reset scroll when changing pages
+                    this.objectiveTextBox.setActive(false);
+                    return true;
+                }
+
                 // Check if click is within the content area
                 const contentX = x + 20;
                 const contentY = y + this.contentStartY;
@@ -406,46 +373,49 @@ export class MissionUI extends BaseWindowUI {
                 if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
                     mouseY >= contentY && mouseY <= contentY + contentHeight) {
                     
-                    if (this.currentPage === 'add') {
-                        // Calculate field positions including scroll offset
-                        const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
-                        const dropdownY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
+                    // Calculate field positions including scroll offset
+                    const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
+                    const dropdownY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
 
-                        // Check if click is on objective text box
-                        if (mouseY >= objectiveFieldY && mouseY <= objectiveFieldY + this.textFieldHeight) {
-                            this.objectiveTextBox.handleClick(mouseX - contentX, mouseY - objectiveFieldY);
-                            return true;
-                        }
+                    // Check if click is on objective text box
+                    if (mouseY >= objectiveFieldY && mouseY <= objectiveFieldY + this.textFieldHeight) {
+                        this.objectiveTextBox.handleClick(mouseX - contentX, mouseY - objectiveFieldY);
+                        return true;
+                    }
 
-                        // Check if click is on crew dropdown
-                        if (mouseY >= dropdownY && mouseY <= dropdownY + this.textFieldHeight) {
-                            this.isDropdownOpen = !this.isDropdownOpen;
-                            return true;
-                        }
+                    // Check if click is on crew dropdown
+                    if (mouseY >= dropdownY && mouseY <= dropdownY + this.textFieldHeight) {
+                        this.isDropdownOpen = !this.isDropdownOpen;
+                        return true;
+                    }
 
-                        // Check if click is on dropdown options
-                        if (this.isDropdownOpen) {
-                            const optionsStartY = dropdownY + this.textFieldHeight;
-                            const optionsEndY = optionsStartY + (this.crewMembers.length * this.textFieldHeight);
-                            
-                            if (mouseY >= optionsStartY && mouseY <= optionsEndY) {
-                                const clickedIndex = Math.floor((mouseY - optionsStartY) / this.textFieldHeight);
-                                if (clickedIndex >= 0 && clickedIndex < this.crewMembers.length) {
-                                    this.selectedCrewIndex = clickedIndex;
-                                    this.isDropdownOpen = false;
-                                    return true;
-                                }
+                    // Check if click is on dropdown options
+                    if (this.isDropdownOpen) {
+                        const optionsStartY = dropdownY + this.textFieldHeight;
+                        const optionsEndY = optionsStartY + (this.crewMembers.length * this.textFieldHeight);
+                        
+                        if (mouseY >= optionsStartY && mouseY <= optionsEndY) {
+                            const clickedIndex = Math.floor((mouseY - optionsStartY) / this.textFieldHeight);
+                            if (clickedIndex >= 0 && clickedIndex < this.crewMembers.length) {
+                                this.selectedCrewIndex = clickedIndex;
+                                this.isDropdownOpen = false;
+                                return true;
                             }
                         }
+                    }
 
-                        // Check if click is on Create Mission button
-                        if (this.createMissionButton && this.createMissionButton.handleClick(mouseX - contentX, mouseY - contentY)) {
-                            return true;
-                        }
+                    // Check if click is on Create Mission button
+                    if (this.createMissionButton && this.createMissionButton.handleClick(mouseX - contentX, mouseY - contentY)) {
+                        return true;
                     }
                     
                     return true;
                 }
+            }
+
+            // Return true for any click within the window bounds
+            if (mouseX >= x && mouseX <= x + windowWidth &&
+                mouseY >= y && mouseY <= y + windowHeight) {
                 return true;
             }
 
@@ -474,18 +444,28 @@ export class MissionUI extends BaseWindowUI {
             let x = (this.sketch.width - windowWidth) / 2;
             let y = (this.sketch.height - windowHeight) / 2;
 
-            // Update root component position
-            this.rootComponent.setPosition(x, y);
-
-            // Handle interactions through component system
-            if (this.rootComponent.handleTouchEnd(touchX, touchY)) {
+            // Check close button
+            if (this.isCloseButtonClicked(touchX, touchY)) {
+                this.isWindowVisible = false;
+                this.eventBus.emit('missionUIClosed');
                 return true;
             }
 
-            // Handle other window interactions
-            if (touchX >= x && touchX <= x + windowWidth &&
-                touchY >= y && touchY <= y + windowHeight) {
-                
+            // Handle page-specific button clicks
+            if (this.currentPage === 'list') {
+                if (this.isAddButtonClicked(touchX, touchY)) {
+                    this.currentPage = 'add';
+                    this.scrollOffset = 0; // Reset scroll when changing pages
+                    return true;
+                }
+            } else {
+                if (this.isBackButtonClicked(touchX, touchY)) {
+                    this.currentPage = 'list';
+                    this.scrollOffset = 0; // Reset scroll when changing pages
+                    this.objectiveTextBox.setActive(false);
+                    return true;
+                }
+
                 // Check if touch ended within the content area
                 const contentX = x + 20;
                 const contentY = y + this.contentStartY;
@@ -495,41 +475,49 @@ export class MissionUI extends BaseWindowUI {
                 if (touchX >= contentX && touchX <= contentX + contentWidth &&
                     touchY >= contentY && touchY <= contentY + contentHeight) {
                     
-                    if (this.currentPage === 'add') {
-                        // Calculate field positions including scroll offset
-                        const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
-                        const dropdownY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
+                    // Calculate field positions including scroll offset
+                    const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
+                    const dropdownY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
 
-                        // Check if touch ended on objective text box
-                        if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
-                            this.objectiveTextBox.handleTouchEnd(touchX - contentX, touchY - objectiveFieldY);
-                            return true;
-                        }
+                    // Check if touch ended on objective text box
+                    if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
+                        this.objectiveTextBox.handleTouchEnd(touchX - contentX, touchY - objectiveFieldY);
+                        return true;
+                    }
 
-                        // Check if touch ended on crew dropdown
-                        if (touchY >= dropdownY && touchY <= dropdownY + this.textFieldHeight) {
-                            this.isDropdownOpen = !this.isDropdownOpen;
-                            return true;
-                        }
+                    // Check if touch ended on crew dropdown
+                    if (touchY >= dropdownY && touchY <= dropdownY + this.textFieldHeight) {
+                        this.isDropdownOpen = !this.isDropdownOpen;
+                        return true;
+                    }
 
-                        // Check if touch ended on dropdown options
-                        if (this.isDropdownOpen) {
-                            const optionsStartY = dropdownY + this.textFieldHeight;
-                            const optionsEndY = optionsStartY + (this.crewMembers.length * this.textFieldHeight);
-                            
-                            if (touchY >= optionsStartY && touchY <= optionsEndY) {
-                                const clickedIndex = Math.floor((touchY - optionsStartY) / this.textFieldHeight);
-                                if (clickedIndex >= 0 && clickedIndex < this.crewMembers.length) {
-                                    this.selectedCrewIndex = clickedIndex;
-                                    this.isDropdownOpen = false;
-                                    return true;
-                                }
+                    // Check if touch ended on dropdown options
+                    if (this.isDropdownOpen) {
+                        const optionsStartY = dropdownY + this.textFieldHeight;
+                        const optionsEndY = optionsStartY + (this.crewMembers.length * this.textFieldHeight);
+                        
+                        if (touchY >= optionsStartY && touchY <= optionsEndY) {
+                            const clickedIndex = Math.floor((touchY - optionsStartY) / this.textFieldHeight);
+                            if (clickedIndex >= 0 && clickedIndex < this.crewMembers.length) {
+                                this.selectedCrewIndex = clickedIndex;
+                                this.isDropdownOpen = false;
+                                return true;
                             }
                         }
+                    }
+
+                    // Check if touch ended on Create Mission button
+                    if (this.createMissionButton && this.createMissionButton.handleClick(touchX - contentX, touchY - contentY)) {
+                        return true;
                     }
                     
                     return true;
                 }
+            }
+
+            // Return true for any touch within the window bounds
+            if (touchX >= x && touchX <= x + windowWidth &&
+                touchY >= y && touchY <= y + windowHeight) {
                 return true;
             }
 
@@ -616,41 +604,11 @@ export class MissionUI extends BaseWindowUI {
     }
 
     renderMainWindow() {
+        super.renderMainWindow();
+        
         const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
         let x = (this.sketch.width - windowWidth) / 2;
         let y = (this.sketch.height - windowHeight) / 2;
-
-        // Update root component position
-        this.rootComponent.setPosition(x, y);
-
-        // Update button positions
-        this.closeButton.setPosition(
-            x + windowWidth - this.closeButtonSize - 10,
-            y + 10
-        );
-        this.addButton.setPosition(
-            x + this.addButtonMargin,
-            y + this.addButtonMargin
-        );
-        this.backButton.setPosition(
-            x + this.backArrowMargin,
-            y + this.backArrowMargin
-        );
-
-        // Draw window background
-        this.sketch.push();
-        this.sketch.fill(40);
-        this.sketch.stroke(100);
-        this.sketch.strokeWeight(2);
-        this.sketch.rect(x, y, windowWidth, windowHeight, 5);
-        this.sketch.pop();
-
-        // Only show add button on list page and back button on add page
-        this.addButton.setVisible(this.currentPage === 'list');
-        this.backButton.setVisible(this.currentPage === 'add');
-
-        // Render all UI components
-        this.rootComponent.render(this.sketch);
 
         // Render the appropriate page based on current state
         if (this.currentPage === 'list') {
@@ -661,6 +619,13 @@ export class MissionUI extends BaseWindowUI {
     }
 
     renderMissionListPage(x, y, width, height) {
+        // Draw add button in top left
+        let addX = x + this.addButtonMargin;
+        let addY = y + this.addButtonMargin;
+        this.sketch.stroke(150);
+        this.sketch.line(addX, addY + this.addButtonSize/2, addX + this.addButtonSize, addY + this.addButtonSize/2);
+        this.sketch.line(addX + this.addButtonSize/2, addY, addX + this.addButtonSize/2, addY + this.addButtonSize);
+
         // Create a graphics buffer for the content section
         const contentWidth = width - 40; // Account for margins
         const contentHeight = height - this.contentStartY - 20; // Leave some bottom padding
@@ -863,6 +828,28 @@ export class MissionUI extends BaseWindowUI {
         
         // Reset hover state for next frame
         this.hoveredStep = null;
+    }
+
+    isAddButtonClicked(mouseX, mouseY) {
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+        let addX = x + this.addButtonMargin;
+        let addY = y + this.addButtonMargin;
+        
+        return mouseX >= addX && mouseX <= addX + this.addButtonSize &&
+               mouseY >= addY && mouseY <= addY + this.addButtonSize;
+    }
+
+    isBackButtonClicked(mouseX, mouseY) {
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+        let backX = x + this.backArrowMargin;
+        let backY = y + this.backArrowMargin;
+        
+        return mouseX >= backX && mouseX <= backX + this.backArrowSize &&
+               mouseY >= backY && mouseY <= backY + this.backArrowSize;
     }
 
 } 
