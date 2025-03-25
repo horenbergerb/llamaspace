@@ -533,20 +533,6 @@ export class ScanUI extends BaseWindowUI {
         }
     }
 
-    // Calculate window dimensions based on sketch size
-    getWindowDimensions() {
-        // Width: 80% of sketch width, but capped at 800px
-        const maxWidth = 800;
-        const width = Math.min(this.sketch.width * 0.8, maxWidth);
-        
-        // Height: 70% of sketch height, with minimum margin of 40px top and bottom
-        const minMargin = 40;
-        const maxHeight = this.sketch.height - (minMargin * 2);
-        const height = Math.min(this.sketch.height * 0.7, maxHeight);
-        
-        return { width, height };
-    }
-
     handleKeyDown(camera, key) {
         // Only handle keys if window is visible
         if (!this.isWindowVisible) return false;
