@@ -18,20 +18,26 @@ export class ConfirmTravelUI extends BaseWindowUI {
         this.continueButton = null;
         this.cancelButton = null;
 
-        this.eventBus.on('setDestination', () => {
+        // Store target body
+        this.targetBody = null;
+
+        // Subscribe to UI visibility events
+        this.eventBus.on('trySetDestination', (body) => {
+            this.targetBody = body;
             this.isWindowVisible = true;
         });
-        // Subscribe to UI visibility events
         this.eventBus.on('confirmTravelUIOpened', () => {
             this.isWindowVisible = true;
         });
         this.eventBus.on('confirmTravelUIClosed', () => {
             this.isWindowVisible = false;
+            this.targetBody = null;
         });
 
         // Subscribe to close all UIs event
         this.eventBus.on('closeAllInfoUIs', () => {
             this.isWindowVisible = false;
+            this.targetBody = null;
         });
     }
 
@@ -223,7 +229,9 @@ export class ConfirmTravelUI extends BaseWindowUI {
     }
 
     handleContinue() {
-        // TODO: Implement continue action
+        if (this.targetBody) {
+            this.eventBus.emit('setDestination', this.targetBody);
+        }
         this.isWindowVisible = false;
         this.eventBus.emit('confirmTravelUIClosed');
     }

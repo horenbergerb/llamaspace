@@ -106,7 +106,7 @@ export class BodyInfoUI {
 
         // Check Set Destination button
         if (this.isDestinationButtonClicked(mouseXTransformed, mouseYTransformed)) {
-            this.eventBus.emit('setDestination', this.body);
+            this.eventBus.emit('trySetDestination', this.body);
             this.close();
             return true;
         }

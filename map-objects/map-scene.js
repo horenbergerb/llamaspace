@@ -129,7 +129,7 @@ export class MapScene {
                 this.openBodyInfo(nearest);
             }
             else if (pressDuration < 300) {
-                this.eventBus.emit('setDestination', nearest);
+                this.eventBus.emit('trySetDestination', nearest);
             } else {
                 // Long press to open body info
                 this.openBodyInfo(nearest);
