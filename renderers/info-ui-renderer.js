@@ -139,10 +139,11 @@ export class UIRenderer {
             const enterButtonY = ui.uiY + ui.uiHeight - 35 + 25/2;
             this.sketch.text("Enter System", ui.uiX + 70, enterButtonY);
         } else {
-            // Research button
-            this.sketch.fill(255, 150, 50);
+            // Research button - grey out if spaceship isn't at this body
+            const canResearch = ui.currentSpaceshipBody === ui.body;
+            this.sketch.fill(canResearch ? 255 : 100, canResearch ? 150 : 50, canResearch ? 50 : 25);
             this.sketch.rect(ui.uiX + 20, ui.uiY + ui.uiHeight - 35, 100, 25, 5);
-            this.sketch.fill(255);
+            this.sketch.fill(canResearch ? 255 : 150);
             const researchButtonY = ui.uiY + ui.uiHeight - 35 + 25/2;
             this.sketch.text("Research", ui.uiX + 70, researchButtonY);
 

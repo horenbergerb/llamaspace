@@ -85,6 +85,10 @@ export class MissionUI extends BaseWindowUI {
             this.listBuffer.resetScroll();
             this.addBuffer.resetScroll();
         });
+        this.eventBus.on('missionUIAddPage', () => {
+            this.currentPage = 'add';
+            this.addBuffer.resetScroll();
+        });
         this.eventBus.on('missionUIClosed', () => {
             this.isWindowVisible = false;
             this.currentPage = 'list'; // Reset to list page when closing

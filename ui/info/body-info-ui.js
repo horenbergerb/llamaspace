@@ -120,8 +120,12 @@ export class BodyInfoUI {
                     this.close();
                 }
             } else {
-                this.eventBus.emit('research', this.body);
-                this.close();
+                // Only allow research if spaceship is at this body
+                if (this.isResearchAvailable()) {
+                    this.eventBus.emit('missionUIOpened');
+                    this.eventBus.emit('missionUIAddPage');
+                    this.close();
+                }
             }
             return true;
         }
@@ -175,6 +179,10 @@ export class BodyInfoUI {
                 x <= returnX + 120 && 
                 y >= returnY && 
                 y <= returnY + 25);
+    }
+
+    isResearchAvailable() {
+        return this.currentSpaceshipBody === this.body;
     }
 
     handleTouchStart(camera, touchX, touchY) {
