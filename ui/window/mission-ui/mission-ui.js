@@ -5,6 +5,7 @@ import { TextButton } from '../components/text-button.js';
 import { TextBox } from '../components/text-box.js';
 import { MissionButton } from './mission-button.js';
 import { ScrollableGraphicsBuffer } from '../components/scrollable-graphics-buffer.js';
+import { Dropdown } from '../components/dropdown.js';
 
 export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {
@@ -35,15 +36,21 @@ export class MissionUI extends BaseWindowUI {
         this.createButtonHeight = 40;
         this.createButtonWidth = 150;
 
-        // Dropdown properties
-        this.selectedCrewIndex = -1;
-        this.isDropdownOpen = false;
-
         // Create text boxes
         this.objectiveTextBox = new TextBox(sketch, eventBus, {
             width: 400,
             height: this.textFieldHeight,
             placeholder: ''
+        });
+
+        // Create crew dropdown
+        this.crewDropdown = new Dropdown(sketch, eventBus, {
+            width: 400,
+            height: this.textFieldHeight,
+            placeholder: 'Select crew member...',
+            onSelect: (index) => {
+                this.selectedCrewIndex = index;
+            }
         });
 
         // Loading state
@@ -130,9 +137,7 @@ export class MissionUI extends BaseWindowUI {
         // Subscribe to crew updates
         this.eventBus.on('crewUpdated', (crew) => {
             this.crewMembers = crew;
-            if (this.selectedCrewIndex >= this.crewMembers.length) {
-                this.selectedCrewIndex = -1;
-            }
+            this.crewDropdown.setOptions(crew);
         });
 
         // Set up keyboard event listeners
@@ -226,51 +231,15 @@ export class MissionUI extends BaseWindowUI {
         buffer.text('Assign To:', 0, contentY);
         contentY += this.labelHeight;
 
-        // Draw dropdown
-        buffer.fill(this.isDropdownOpen ? 80 : 60);
-        buffer.stroke(100);
-        buffer.strokeWeight(1);
-        buffer.rect(0, contentY, contentWidth, this.textFieldHeight, 3);
+        // Draw crew dropdown base (without options)
 
-        // Draw selected crew member or placeholder
-        buffer.fill(255);
-        buffer.noStroke();
-        buffer.textAlign(this.sketch.LEFT, this.sketch.CENTER);
-        const selectedText = this.selectedCrewIndex >= 0 
-            ? this.crewMembers[this.selectedCrewIndex].name 
-            : 'Select crew member...';
-        buffer.text(selectedText, 5, contentY + this.textFieldHeight/2);
+        let dropdownY = contentY;
+        buffer.push();
+        buffer.translate(0, dropdownY);
+        this.crewDropdown.renderBase(0, 0, buffer);
+        buffer.pop();
 
-        // Draw dropdown arrow
-        buffer.stroke(255);
-        buffer.strokeWeight(2);
-        const arrowX = contentWidth - 20;
-        const arrowY = contentY + this.textFieldHeight/2;
-        buffer.line(arrowX, arrowY - 3, arrowX + 5, arrowY + 3);
-        buffer.line(arrowX + 10, arrowY - 3, arrowX + 5, arrowY + 3);
-
-        // Draw dropdown options if open
-        if (this.isDropdownOpen && this.crewMembers.length > 0) {
-            const dropdownHeight = this.crewMembers.length * this.textFieldHeight;
-            buffer.fill(80);
-            buffer.stroke(100);
-            buffer.rect(0, contentY + this.textFieldHeight, contentWidth, dropdownHeight, 3);
-
-            this.crewMembers.forEach((crew, index) => {
-                const optionY = contentY + this.textFieldHeight + (index * this.textFieldHeight);
-                if (index === this.selectedCrewIndex) {
-                    buffer.fill(100);
-                    buffer.noStroke();
-                    buffer.rect(0, optionY, contentWidth, this.textFieldHeight);
-                }
-                buffer.fill(255);
-                buffer.noStroke();
-                buffer.textAlign(this.sketch.LEFT, this.sketch.CENTER);
-                buffer.text(crew.name, 5, optionY + this.textFieldHeight/2);
-            });
-        }
-
-        contentY += this.textFieldHeight + (this.isDropdownOpen ? this.crewMembers.length * this.textFieldHeight : 0) + this.textFieldMargin;
+        contentY += this.textFieldHeight + this.textFieldMargin;
 
         // Create and render Create Mission button
         const buttonX = (contentWidth - this.createButtonWidth) / 2;
@@ -289,8 +258,18 @@ export class MissionUI extends BaseWindowUI {
         // Render the Create Mission button
         this.createMissionButton.render();
 
+
+        // Render dropdown options on top if open
+        if (this.crewDropdown.isOpen) {
+            buffer.push();
+            buffer.translate(0, dropdownY);
+            this.crewDropdown.renderOptions(0, 0, buffer);
+            buffer.pop();
+        }
+
         // Render the graphics buffer
         this.addBuffer.render(x + 20, y + this.contentStartY);
+
     }
 
     handleMouseReleased(camera, mouseX, mouseY) {
@@ -319,13 +298,13 @@ export class MissionUI extends BaseWindowUI {
             if (this.currentPage === 'list') {
                 if (this.isAddButtonClicked(mouseX, mouseY)) {
                     this.currentPage = 'add';
-                    this.scrollOffset = 0; // Reset scroll when changing pages
+                    this.addBuffer.resetScroll();
                     return true;
                 }
             } else {
                 if (this.isBackButtonClicked(mouseX, mouseY)) {
                     this.currentPage = 'list';
-                    this.scrollOffset = 0; // Reset scroll when changing pages
+                    this.listBuffer.resetScroll();
                     this.objectiveTextBox.setActive(false);
                     return true;
                 }
@@ -340,7 +319,7 @@ export class MissionUI extends BaseWindowUI {
                     mouseY >= contentY && mouseY <= contentY + contentHeight) {
                     
                     // Calculate field positions including scroll offset
-                    const objectiveFieldY = contentY + this.scrollOffset + this.labelHeight;
+                    const objectiveFieldY = contentY + this.addBuffer.scrollOffset + this.labelHeight;
                     const dropdownY = objectiveFieldY + this.textFieldHeight + this.textFieldMargin + this.labelHeight;
 
                     // Check if click is on objective text box
@@ -350,24 +329,10 @@ export class MissionUI extends BaseWindowUI {
                     }
 
                     // Check if click is on crew dropdown
-                    if (mouseY >= dropdownY && mouseY <= dropdownY + this.textFieldHeight) {
-                        this.isDropdownOpen = !this.isDropdownOpen;
+                    if (mouseY >= dropdownY && mouseY <= dropdownY + this.textFieldHeight + 
+                        (this.crewDropdown.isOpen ? this.crewMembers.length * this.textFieldHeight : 0)) {
+                        this.crewDropdown.handleClick(mouseX - contentX, mouseY - dropdownY);
                         return true;
-                    }
-
-                    // Check if click is on dropdown options
-                    if (this.isDropdownOpen) {
-                        const optionsStartY = dropdownY + this.textFieldHeight;
-                        const optionsEndY = optionsStartY + (this.crewMembers.length * this.textFieldHeight);
-                        
-                        if (mouseY >= optionsStartY && mouseY <= optionsEndY) {
-                            const clickedIndex = Math.floor((mouseY - optionsStartY) / this.textFieldHeight);
-                            if (clickedIndex >= 0 && clickedIndex < this.crewMembers.length) {
-                                this.selectedCrewIndex = clickedIndex;
-                                this.isDropdownOpen = false;
-                                return true;
-                            }
-                        }
                     }
 
                     // Check if click is on Create Mission button
@@ -381,9 +346,6 @@ export class MissionUI extends BaseWindowUI {
 
             return true;
         }
-
-        // Close dropdown if clicking outside
-        this.isDropdownOpen = false;
 
         return false;
     }
@@ -462,24 +424,10 @@ export class MissionUI extends BaseWindowUI {
                     }
 
                     // Check if touch is on crew dropdown
-                    if (touchY >= dropdownY && touchY <= dropdownY + this.textFieldHeight) {
+                    if (touchY >= dropdownY && touchY <= dropdownY + this.textFieldHeight + 
+                        (this.crewDropdown.isOpen ? this.crewMembers.length * this.textFieldHeight : 0)) {
                         // Don't toggle dropdown here, wait for touch end
                         return true;
-                    }
-
-                    // Check if touch is on dropdown options
-                    if (this.isDropdownOpen) {
-                        const optionsStartY = dropdownY + this.textFieldHeight;
-                        const optionsEndY = optionsStartY + (this.crewMembers.length * this.textFieldHeight);
-                        
-                        if (touchY >= optionsStartY && touchY <= optionsEndY) {
-                            const clickedIndex = Math.floor((touchY - optionsStartY) / this.textFieldHeight);
-                            if (clickedIndex >= 0 && clickedIndex < this.crewMembers.length) {
-                                this.selectedCrewIndex = clickedIndex;
-                                this.isDropdownOpen = false;
-                                return true;
-                            }
-                        }
                     }
 
                     // Check if touch is on Create Mission button
@@ -547,24 +495,10 @@ export class MissionUI extends BaseWindowUI {
                 }
 
                 // Check if touch ended on crew dropdown
-                if (touchY >= dropdownY && touchY <= dropdownY + this.textFieldHeight) {
-                    this.isDropdownOpen = !this.isDropdownOpen;
+                if (touchY >= dropdownY && touchY <= dropdownY + this.textFieldHeight + 
+                    (this.crewDropdown.isOpen ? this.crewMembers.length * this.textFieldHeight : 0)) {
+                    this.crewDropdown.handleTouchEnd(touchX - contentX, touchY - dropdownY);
                     return true;
-                }
-
-                // Check if touch ended on dropdown options
-                if (this.isDropdownOpen) {
-                    const optionsStartY = dropdownY + this.textFieldHeight;
-                    const optionsEndY = optionsStartY + (this.crewMembers.length * this.textFieldHeight);
-                    
-                    if (touchY >= optionsStartY && touchY <= optionsEndY) {
-                        const clickedIndex = Math.floor((touchY - optionsStartY) / this.textFieldHeight);
-                        if (clickedIndex >= 0 && clickedIndex < this.crewMembers.length) {
-                            this.selectedCrewIndex = clickedIndex;
-                            this.isDropdownOpen = false;
-                            return true;
-                        }
-                    }
                 }
 
                 // Check if touch ended on Create Mission button
@@ -603,14 +537,14 @@ export class MissionUI extends BaseWindowUI {
     async handleCreateMission() {
         const objective = this.objectiveTextBox.getText().trim();
         
-        if (objective === '' || this.selectedCrewIndex < 0) {
+        if (objective === '' || this.crewDropdown.selectedIndex < 0) {
             return;
         }
 
         // Create new mission
         const mission = new Mission(
             objective,
-            this.selectedCrewIndex >= 0 ? this.crewMembers[this.selectedCrewIndex] : null
+            this.crewDropdown.selectedIndex >= 0 ? this.crewMembers[this.crewDropdown.selectedIndex] : null
         );
         
         // Store the orbiting body and event bus
@@ -622,7 +556,7 @@ export class MissionUI extends BaseWindowUI {
 
         // Clear input fields and return to list
         this.objectiveTextBox.setText('');
-        this.selectedCrewIndex = -1;
+        this.crewDropdown.setSelectedIndex(-1);
         this.currentPage = 'list';
         this.objectiveTextBox.setActive(false);
 
