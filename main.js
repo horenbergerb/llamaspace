@@ -74,6 +74,11 @@ var mapSketch = function(sketch) {
         globalEventBus.on('returnToGalaxy', () => {
             returnToGalaxyMap();
         });
+
+        // Subscribe to missions request
+        globalEventBus.on('requestMissions', () => {
+            globalEventBus.emit('missionsUpdated', missions);
+        });
     };
 
     sketch.setup = async function() {
