@@ -10,6 +10,7 @@ import { ShipUI } from './ui/window/ship-ui/ship-ui.js';
 import { MissionUI } from './ui/window/mission-ui/mission-ui.js';
 import { SettingsUI } from './ui/window/settings-ui.js';
 import { ScanUI } from './ui/window/scan-ui.js';
+import { ConfirmTravelUI } from './ui/window/confirm-travel-ui.js';
 import { UIManager } from './ui/ui-manager.js';
 import { CrewMember } from './game-state/crew-member.js';
 import { Mission } from './game-state/mission.js';
@@ -85,6 +86,7 @@ var mapSketch = function(sketch) {
         uiManager.addUI('mission', new MissionUI(sketch, globalEventBus, galaxyMapScene, missions));
         uiManager.addUI('settings', new SettingsUI(sketch, globalEventBus));
         uiManager.addUI('scan', new ScanUI(sketch, globalEventBus, galaxyMapScene));
+        uiManager.addUI('confirmTravel', new ConfirmTravelUI(sketch, globalEventBus));
 
         // Generate 3 crew members
         for (let i = 0; i < 3; i++) {
