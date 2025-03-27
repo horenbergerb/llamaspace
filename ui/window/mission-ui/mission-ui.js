@@ -757,7 +757,7 @@ export class MissionUI extends BaseWindowUI {
         // Create a temporary graphics buffer for text wrapping
         const pg = this.sketch.createGraphics(maxTooltipWidth, 100);
         pg.textSize(12);
-        const wrappedText = this.wrapText(pg, this.hoveredStep.text, maxTooltipWidth - (padding * 2));
+        const wrappedText = wrapText(pg, this.hoveredStep.text, maxTooltipWidth - (padding * 2));
         const lines = wrappedText.split('\n');
         pg.remove();
         
