@@ -1,4 +1,5 @@
 import { ScrollableGraphicsBuffer } from '../components/scrollable-graphics-buffer.js';
+import { wrapTextToLines } from '../../../utils/text-utils.js';
 
 export class CrewPage {
     constructor(sketch, eventBus, crewMembers) {
@@ -21,16 +22,18 @@ export class CrewPage {
         buffer.textSize(12);
         
         const lineHeight = 16; // Fixed line height for 12pt text
+        const paragraphSpacing = 24; // Extra space between paragraphs
 
         // First pass: calculate total height needed
         let totalHeight = 0;
         for (const crew of this.crewMembers) {
             totalHeight += lineHeight; // Name and race
-            totalHeight += lineHeight; // "Skills:" label
-            totalHeight += Object.keys(crew.skillLevels).length * lineHeight; // Skills
+            // Calculate height needed for race description
+            const raceDescriptionLines = wrapTextToLines(buffer, crew.races[crew.race].description, contentWidth - 20);
+            totalHeight += raceDescriptionLines.length * lineHeight;
             totalHeight += lineHeight; // "Demeanor:" label
-            totalHeight += lineHeight; // Demeanor traits
-            totalHeight += lineHeight * 1.5; // Extra space between crew members
+            totalHeight += crew.demeanor.length * lineHeight; // Demeanor traits
+            totalHeight += paragraphSpacing; // Extra space between crew members
         }
 
         // Draw crew members into the graphics buffer
@@ -38,22 +41,28 @@ export class CrewPage {
 
         for (const crew of this.crewMembers) {
             // Draw crew member name and race
+            buffer.fill(255);
             buffer.text(`${crew.name} (${crew.race})`, 0, infoY);
             infoY += lineHeight;
 
-            // Draw skills
-            buffer.text('Skills:', 10, infoY);
-            infoY += lineHeight;
-            for (const [skill, level] of Object.entries(crew.skillLevels)) {
-                buffer.text(`  ${skill}: ${level}/5`, 20, infoY);
+            // Draw race description with wrapping
+            buffer.fill(200);
+            const raceDescriptionLines = wrapTextToLines(buffer, crew.races[crew.race].description, contentWidth - 20);
+            raceDescriptionLines.forEach(line => {
+                buffer.text(line, 10, infoY);
                 infoY += lineHeight;
-            }
+            });
 
             // Draw demeanor traits
+            buffer.fill(255);
             buffer.text('Demeanor:', 10, infoY);
             infoY += lineHeight;
-            buffer.text(`  ${crew.demeanor.join(', ')}`, 20, infoY);
-            infoY += lineHeight * 1.5; // Add extra space between crew members
+            crew.demeanor.forEach(trait => {
+                buffer.text(`  ${trait}`, 20, infoY);
+                infoY += lineHeight;
+            });
+
+            infoY += paragraphSpacing; // Add extra space between crew members
         }
 
         // Set max scroll offset based on total content height

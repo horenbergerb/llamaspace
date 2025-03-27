@@ -6,6 +6,7 @@ import { TextBox } from '../components/text-box.js';
 import { MissionButton } from './mission-button.js';
 import { ScrollableGraphicsBuffer } from '../components/scrollable-graphics-buffer.js';
 import { Dropdown } from '../components/dropdown.js';
+import { wrapText } from '../../../utils/text-utils.js';
 
 export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {
@@ -656,7 +657,7 @@ export class MissionUI extends BaseWindowUI {
             // Draw objective with wrapping
             buffer.textSize(16);
             const maxObjectiveWidth = contentWidth - 120; // Leave space for status
-            const wrappedObjective = this.wrapText(buffer, mission.objective, maxObjectiveWidth);
+            const wrappedObjective = wrapText(buffer, mission.objective, maxObjectiveWidth);
             buffer.text(wrappedObjective, 10, contentY + 10);
 
             // Draw completion status
@@ -728,28 +729,6 @@ export class MissionUI extends BaseWindowUI {
 
         // Draw step tooltip if hovering
         this.renderStepTooltip();
-    }
-
-    wrapText(buffer, text, maxWidth) {
-        if (!text) return '';
-        
-        const words = text.split(' ');
-        let lines = [];
-        let currentLine = words[0];
-
-        for (let i = 1; i < words.length; i++) {
-            const word = words[i];
-            const width = buffer.textWidth(currentLine + ' ' + word);
-            if (width < maxWidth) {
-                currentLine += ' ' + word;
-            } else {
-                lines.push(currentLine);
-                currentLine = word;
-            }
-        }
-        lines.push(currentLine);
-
-        return lines.join('\n');
     }
 
     checkStepNodeHover(nodeX, nodeY, nodeRadius, stepText) {
