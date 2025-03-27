@@ -1,4 +1,5 @@
 import { MapBody } from './map-body.js';
+import { Anomaly } from './anomaly.js';
 
 export class MapPlanet extends MapBody {
     constructor(sketch, parentStar, orbitIndex) {
@@ -19,6 +20,9 @@ export class MapPlanet extends MapBody {
         
         this.generatePlanetProperties(sketch);
         this.updatePosition(); // Initial position
+
+        // Add anomaly with 1/3 chance
+        this.anomaly = sketch.random() < 0.33 ? new Anomaly() : null;
     }
 
     generatePlanetProperties(sketch) {

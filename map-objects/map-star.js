@@ -1,5 +1,6 @@
 import { MapBody } from './map-body.js';
 import { MapPlanet } from './map-planet.js';
+import { Anomaly } from './anomaly.js';
 
 export class MapStar extends MapBody {
     static usedNames = new Set(); // Stores already assigned names
@@ -19,6 +20,9 @@ export class MapStar extends MapBody {
 
         // Naming
         this.name = this.generateStarName();
+
+        // Add anomaly with 1/6 chance
+        this.anomaly = sketch.random() < 0.167 ? new Anomaly() : null;
 
         // Generate planets if the star has them
         if (this.bodyProperties.hasPlanets) {
