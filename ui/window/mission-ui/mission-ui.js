@@ -661,9 +661,13 @@ export class MissionUI extends BaseWindowUI {
 
             // Draw completion status
             buffer.textAlign(this.sketch.RIGHT, this.sketch.TOP);
-            buffer.fill(mission.completed ? (mission.outcome ? '#4CAF50' : '#FFA500') : '#FFA500');
+            buffer.fill(mission.completed ? 
+                       (mission.cancelled ? '#808080' : // Grey for cancelled
+                        mission.outcome ? '#4CAF50' : '#FFA500') : // Green for success, Orange for failure
+                       '#FFA500'); // Orange for in progress
             buffer.text(mission.completed ? 
-                       (mission.outcome ? `Completed (Reputation: +${mission.quality})` : 'Failure') : 
+                       (mission.cancelled ? 'Cancelled' :
+                        mission.outcome ? `Completed (Reputation: +${mission.quality})` : 'Failure') : 
                        (mission.steps.length === 0 ? 'Preparing...' : `Step ${mission.currentStep + 1}/${mission.steps.length}`), 
                        contentWidth - 10, contentY + 10);
 

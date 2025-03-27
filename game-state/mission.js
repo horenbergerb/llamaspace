@@ -3,6 +3,7 @@ export class Mission {
         this.objective = objective;
         this.steps = [];
         this.completed = false;
+        this.cancelled = false;
         this.createdAt = new Date();
         this.assignedCrew = assignedCrew;
         this.currentStep = 0;
@@ -26,8 +27,8 @@ export class Mission {
         if (this.eventBus) {
             this.eventBus.emit('missionCompleted', this);
             
-            // If mission failed, apply the consequences
-            if (!this.outcome && this.failureConsequences) {
+            // If mission failed and wasn't cancelled, apply the consequences
+            if (!this.outcome && !this.cancelled && this.failureConsequences) {
                 // Apply inventory losses
                 if (this.failureConsequences.inventoryLosses) {
                     Object.entries(this.failureConsequences.inventoryLosses).forEach(([item, amount]) => {
@@ -45,7 +46,12 @@ export class Mission {
                 }
             }
         }
-        console.log(`Mission "${this.objective}" completed!`);
+        console.log(`Mission "${this.objective}" ${this.cancelled ? 'cancelled' : 'completed'}!`);
+    }
+
+    cancel() {
+        this.cancelled = true;
+        this.complete();
     }
 
     assignTo(crewMember) {

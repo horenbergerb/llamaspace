@@ -79,6 +79,16 @@ var mapSketch = function(sketch) {
         globalEventBus.on('requestMissions', () => {
             globalEventBus.emit('missionsUpdated', missions);
         });
+
+        // Subscribe to setDestination to cancel in-progress missions
+        globalEventBus.on('setDestination', (body) => {
+            // Cancel any in-progress missions
+            missions.forEach(mission => {
+                if (!mission.completed) {
+                    mission.cancel();
+                }
+            });
+        });
     };
 
     sketch.setup = async function() {
