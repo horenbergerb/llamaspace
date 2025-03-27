@@ -417,7 +417,7 @@ export class MissionUI extends BaseWindowUI {
 
                     // Check if touch is on objective text box
                     if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
-                        this.objectiveTextBox.handleTouchStart(touchX - contentX, touchY - objectiveFieldY);
+                        this.objectiveTextBox.handleClick(touchX - contentX, touchY - objectiveFieldY);
                         return true;
                     }
 
@@ -490,6 +490,10 @@ export class MissionUI extends BaseWindowUI {
                 if (touchY >= objectiveFieldY && touchY <= objectiveFieldY + this.textFieldHeight) {
                     this.objectiveTextBox.handleTouchEnd(touchX - contentX, touchY - objectiveFieldY);
                     return true;
+                }
+                else {
+                    this.objectiveTextBox.setActive(false);
+                    this.objectiveTextBox.hideMobileInput();
                 }
 
                 // Check if touch ended on crew dropdown

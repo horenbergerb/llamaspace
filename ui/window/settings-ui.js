@@ -328,6 +328,33 @@ export class SettingsUI extends BaseWindowUI {
                mouseY >= y && mouseY <= y + this.buttonHeight;
     }
 
+    handleTouchStart(camera, touchX, touchY) {
+        // If window is visible, check window interactions
+        if (this.isWindowVisible) {
+            const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+            let x = (this.sketch.width - windowWidth) / 2;
+            let y = (this.sketch.height - windowHeight) / 2;
+
+            // Check if touch ended within the content area
+            const contentX = x + 20;
+            const contentY = y + this.contentStartY;
+            const contentWidth = windowWidth - 40;
+            const contentHeight = windowHeight - this.contentStartY - 20;
+
+            if (touchX >= contentX && touchX <= contentX + contentWidth &&
+                touchY >= contentY && touchY <= contentY + contentHeight) {
+                
+                // Check if touch ended on API key text box
+                const apiKeyFieldY = contentY + this.scrollOffset + this.labelHeight;
+                if (touchY >= apiKeyFieldY && touchY <= apiKeyFieldY + this.textFieldHeight) {
+                    this.apiKeyTextBox.handleClick(touchX - contentX, touchY - apiKeyFieldY);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     handleTouchEnd(camera, touchX, touchY) {
         // Check settings button first (always visible)
         if (this.isSettingsButtonClicked(touchX, touchY)) {
@@ -367,6 +394,10 @@ export class SettingsUI extends BaseWindowUI {
                 if (touchY >= apiKeyFieldY && touchY <= apiKeyFieldY + this.textFieldHeight) {
                     this.apiKeyTextBox.handleTouchEnd(touchX - contentX, touchY - apiKeyFieldY);
                     return true;
+                }
+                else {
+                    this.apiKeyTextBox.setActive(false);
+                    this.apiKeyTextBox.hideMobileInput();
                 }
 
                 // Check if touch ended on Save button
