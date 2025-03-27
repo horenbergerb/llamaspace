@@ -18,6 +18,10 @@ export class ScrollableGraphicsBuffer {
         this.contentHeight = height;
         this.visibleWidth = width;
         this.visibleHeight = height;
+        if (this.buffer) {
+            this.buffer.remove();
+            this.buffer = null;
+        }
         this.buffer = this.sketch.createGraphics(width, height);
         this.buffer.background(0, 0, 0, 0);
     }
