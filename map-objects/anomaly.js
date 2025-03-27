@@ -5,31 +5,51 @@ export class Anomaly {
         this.eventBus = eventBus;
         this.textGenerator = null;
         this.firstReport = null;
-        this.properties = {
-            originType: this.randomChoice(['organic', 'synthetic']),
-            stability: this.randomChoice(['stable', 'volatile', 'decaying', 'fluctuating']),
-            activityLevel: this.randomChoice(['dormant', 'active', 'reactive', 'unknown']),
-            threatLevel: this.randomChoice(['none', 'low', 'moderate', 'high']),
-            energySignature: this.randomChoice(['thermal', 'radioactive', 'psionic', 'gravitic', 'unknown']),
-            temporalStatus: this.randomChoice(['present', 'phased', 'looping', 'out-of-sync']),
-            composition: this.randomChoice(['biomatter', 'metallic', 'crystalline', 'liquid', 'plasma']),
-            behavioralPattern: this.randomChoice(['stationary', 'mobile', 'orbiting', 'emergent']),
-            signalType: this.randomChoice(['none', 'encoded', 'distress', 'broadcast', 'subliminal']),
-            accessibility: this.randomChoice(['surface-level', 'buried', 'in orbit', 'interdimensional']),
-            artifactAge: this.randomChoice(['ancient', 'recent', 'contemporary', 'indeterminate']),
-            energyOutput: this.randomFloat(0, 1e6).toFixed(2), // in megawatts
-            signalStrength: this.randomFloat(0, 100).toFixed(1), // arbitrary units
-            radiationLevel: this.randomFloat(0, 500).toFixed(1), // mSv/h
-            massEstimate: this.randomFloat(1, 1e9).toFixed(0), // in kg
-            density: this.randomFloat(0.1, 50).toFixed(2), // g/cm^3
-            ageEstimate: this.randomFloat(0, 1e6).toFixed(0), // in years
-            anomalyIndex: this.randomFloat(0, 100).toFixed(1), // 0–100 scale
-            temperature: this.randomFloat(-200, 10000).toFixed(1), // °C
-            magneticFieldStrength: this.randomFloat(0, 1000).toFixed(2), // μT
-            scanConfidence: this.randomFloat(50, 100).toFixed(1), // %
-            spatialDistortion: this.randomFloat(0, 5).toFixed(2), // % deviation
-            timeDisplacement: this.randomFloat(-300, 300).toFixed(1) // seconds
+        this.properties = {};
+
+        // Define all possible properties with their options
+        const propertyDefinitions = {
+            originType: ['organic', 'synthetic'],
+            stability: ['stable', 'volatile', 'decaying', 'fluctuating'],
+            activityLevel: ['dormant', 'active', 'reactive', 'unknown'],
+            threatLevel: ['none', 'low', 'moderate', 'high'],
+            energySignature: ['thermal', 'radioactive', 'psionic', 'gravitic', 'unknown'],
+            temporalStatus: ['present', 'phased', 'looping', 'out-of-sync'],
+            composition: ['biomatter', 'metallic', 'crystalline', 'liquid', 'plasma'],
+            behavioralPattern: ['stationary', 'mobile', 'orbiting', 'emergent'],
+            signalType: ['none', 'encoded', 'distress', 'broadcast', 'subliminal'],
+            accessibility: ['surface-level', 'buried', 'in orbit', 'interdimensional'],
+            artifactAge: ['ancient', 'recent', 'contemporary', 'indeterminate']
         };
+
+        // Add each property with 1/6 chance
+        for (const [key, options] of Object.entries(propertyDefinitions)) {
+            if (Math.random() < 0.167) { // 1/6 chance
+                this.properties[key] = this.randomChoice(options);
+            }
+        }
+
+        // Add numerical properties with 1/6 chance each
+        const numericalProperties = {
+            energyOutput: { min: 0, max: 1e6, unit: 'MW', decimals: 2 },
+            signalStrength: { min: 0, max: 100, unit: '', decimals: 1 },
+            radiationLevel: { min: 0, max: 500, unit: 'mSv/h', decimals: 1 },
+            massEstimate: { min: 1, max: 1e9, unit: 'kg', decimals: 0 },
+            density: { min: 0.1, max: 50, unit: 'g/cm³', decimals: 2 },
+            ageEstimate: { min: 0, max: 1e6, unit: 'years', decimals: 0 },
+            anomalyIndex: { min: 0, max: 100, unit: '', decimals: 1 },
+            temperature: { min: -200, max: 10000, unit: '°C', decimals: 1 },
+            magneticFieldStrength: { min: 0, max: 1000, unit: 'μT', decimals: 2 },
+            scanConfidence: { min: 50, max: 100, unit: '%', decimals: 1 },
+            spatialDistortion: { min: 0, max: 5, unit: '%', decimals: 2 },
+            timeDisplacement: { min: -300, max: 300, unit: 'seconds', decimals: 1 }
+        };
+
+        for (const [key, config] of Object.entries(numericalProperties)) {
+            if (Math.random() < 0.167) { // 1/6 chance
+                this.properties[key] = this.randomFloat(config.min, config.max).toFixed(config.decimals);
+            }
+        }
 
         // Add variables needed for getCommonScenarioPrompt
         this.currentInventory = {}; // Store current inventory state
@@ -113,31 +133,31 @@ ${orbitingBody.getDescription()}`;
         this.firstReport = "Scanning anomaly...";
         const commonPrompt = await this.getCommonScenarioPrompt(orbitingBody);
 
-        const anomalyInfo = `
-Anomaly Properties:
-Origin Type: ${this.properties.originType}
-Stability: ${this.properties.stability}
-Activity Level: ${this.properties.activityLevel}
-Threat Level: ${this.properties.threatLevel}
-Energy Signature: ${this.properties.energySignature}
-Temporal Status: ${this.properties.temporalStatus}
-Composition: ${this.properties.composition}
-Behavioral Pattern: ${this.properties.behavioralPattern}
-Signal Type: ${this.properties.signalType}
-Accessibility: ${this.properties.accessibility}
-Artifact Age: ${this.properties.artifactAge}
-Energy Output: ${this.properties.energyOutput} MW
-Signal Strength: ${this.properties.signalStrength}
-Radiation Level: ${this.properties.radiationLevel} mSv/h
-Mass Estimate: ${this.properties.massEstimate} kg
-Density: ${this.properties.density} g/cm³
-Age Estimate: ${this.properties.ageEstimate} years
-Anomaly Index: ${this.properties.anomalyIndex}
-Temperature: ${this.properties.temperature}°C
-Magnetic Field Strength: ${this.properties.magneticFieldStrength} μT
-Scan Confidence: ${this.properties.scanConfidence}%
-Spatial Distortion: ${this.properties.spatialDistortion}%
-Time Displacement: ${this.properties.timeDisplacement} seconds`;
+        // Only include properties that were actually defined
+        const anomalyInfo = Object.entries(this.properties)
+            .map(([key, value]) => {
+                // Format the key to be more readable
+                const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                
+                // Add units for numerical properties
+                const units = {
+                    energyOutput: ' MW',
+                    signalStrength: '',
+                    radiationLevel: ' mSv/h',
+                    massEstimate: ' kg',
+                    density: ' g/cm³',
+                    ageEstimate: ' years',
+                    anomalyIndex: '',
+                    temperature: '°C',
+                    magneticFieldStrength: ' μT',
+                    scanConfidence: '%',
+                    spatialDistortion: '%',
+                    timeDisplacement: ' seconds'
+                };
+
+                return `${formattedKey}: ${value}${units[key] || ''}`;
+            })
+            .join('\n');
 
         const prompt = `${commonPrompt}
 
