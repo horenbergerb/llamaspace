@@ -134,6 +134,8 @@ var mapSketch = function(sketch) {
         galaxyOrbitStar = galaxyMapScene.getRandomBody();
         spaceship.setOrbitBody(galaxyOrbitStar, true);
         camera.setAutoCamera(spaceship.orbitBody.baseX, spaceship.orbitBody.baseY, 1.0);
+
+        uiManager.getUI('settings').emitApiKeyUpdated();
     }
 
     sketch.draw = function() {
@@ -165,7 +167,7 @@ var mapSketch = function(sketch) {
 
     function generateGalaxy() {
         for (let i = 0; i < 120; i++) {
-            galaxyMapScene.mapBodies.push(new MapStar(sketch));
+            galaxyMapScene.mapBodies.push(new MapStar(sketch, globalEventBus));
         }
     }
 

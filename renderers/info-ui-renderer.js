@@ -116,6 +116,42 @@ export class UIRenderer {
             pg.text(`${prop.label}: ${prop.value}`, 15, infoY);
             infoY += 20;
         }
+
+        // Add anomaly information if present
+        if (ui.body && ui.body.anomaly) {
+            // Add some spacing
+            infoY += 10;
+            
+            if (ui.body.anomaly.firstReport === null) {
+                // Show scanning message
+                pg.fill(255, 255, 0); // Yellow color for scanning message
+                pg.text("Scanning anomaly...", 15, infoY);
+            } else {
+                // Show the anomaly report
+                pg.fill(255, 0, 0); // Red color for anomaly report
+                pg.text("Anomaly report:", 15, infoY);
+                infoY += 20;
+                
+                // Split the report into multiple lines if needed
+                const words = ui.body.anomaly.firstReport.split(' ');
+                let currentLine = '';
+                pg.fill(255, 255, 255); // White color for report text
+                
+                for (const word of words) {
+                    const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                    if (pg.textWidth(testLine) < ui.uiWidth - 30) { // 30 pixels for margins
+                        currentLine = testLine;
+                    } else {
+                        pg.text(currentLine, 15, infoY);
+                        infoY += 20;
+                        currentLine = word;
+                    }
+                }
+                if (currentLine) {
+                    pg.text(currentLine, 15, infoY);
+                }
+            }
+        }
     }
 
     renderCommonButtons(ui) {

@@ -5,7 +5,7 @@ import { Anomaly } from './anomaly.js';
 export class MapStar extends MapBody {
     static usedNames = new Set(); // Stores already assigned names
 
-    constructor(sketch) {
+    constructor(sketch, eventBus) {
         super(sketch);
         this.baseX = sketch.random(-0.5 * sketch.width, sketch.width * 1.5);
         this.baseY = sketch.random(-0.5 * sketch.height, sketch.height * 1.5);
@@ -22,12 +22,12 @@ export class MapStar extends MapBody {
         this.name = this.generateStarName();
 
         // Add anomaly with 1/6 chance
-        this.anomaly = sketch.random() < 0.167 ? new Anomaly() : null;
+        this.anomaly = sketch.random() < 0.167 ? new Anomaly(eventBus) : null;
 
         // Generate planets if the star has them
         if (this.bodyProperties.hasPlanets) {
             for (let i = 0; i < this.bodyProperties.numPlanets; i++) {
-                const planet = new MapPlanet(sketch, this, i);
+                const planet = new MapPlanet(sketch, this, i, eventBus);
                 this.planets.push(planet);
             }
         }
@@ -227,6 +227,13 @@ export class MapStar extends MapBody {
 
         if (this.isSelected) {
             this.drawSelector();
+            
+            // Generate first report if body has an anomaly and report hasn't been generated yet
+            if (this.anomaly && this.anomaly.firstReport === null) {
+                this.anomaly.generateFirstReport(
+                    this
+                );
+            }
         }
     }
 }

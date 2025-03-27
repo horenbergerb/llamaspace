@@ -2,7 +2,7 @@ import { MapBody } from './map-body.js';
 import { Anomaly } from './anomaly.js';
 
 export class MapPlanet extends MapBody {
-    constructor(sketch, parentStar, orbitIndex) {
+    constructor(sketch, parentStar, orbitIndex, eventBus) {
         super(sketch);
         this.parentStar = parentStar;
         this.orbitIndex = orbitIndex; // Used to determine orbit radius
@@ -22,7 +22,7 @@ export class MapPlanet extends MapBody {
         this.updatePosition(); // Initial position
 
         // Add anomaly with 1/3 chance
-        this.anomaly = sketch.random() < 0.33 ? new Anomaly() : null;
+        this.anomaly = sketch.random() < 0.33 ? new Anomaly(eventBus) : null;
     }
 
     generatePlanetProperties(sketch) {
@@ -176,6 +176,13 @@ export class MapPlanet extends MapBody {
         
         if (this.isSelected) {
             this.drawSelector();
+            
+            // Generate first report if body has an anomaly and report hasn't been generated yet
+            if (this.anomaly && this.anomaly.firstReport === null) {
+                this.anomaly.generateFirstReport(
+                this
+                );
+            }
         }
         
         this.sketch.pop();

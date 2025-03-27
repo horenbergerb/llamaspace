@@ -101,6 +101,13 @@ export class SettingsUI extends BaseWindowUI {
         });
     }
 
+    emitApiKeyUpdated() {
+        const apiKey = this.apiKeyTextBox.getText().trim();
+        if (apiKey !== '') {
+            this.eventBus.emit('apiKeyUpdated', apiKey);
+        }
+    }
+
     render(camera) {
         // Always render the settings button
         this.renderSettingsButton();
