@@ -115,6 +115,7 @@ var mapSketch = function(sketch) {
         globalEventBus.emit('inventoryChanged', shipInventory);
         globalEventBus.emit('shuttlecraftChanged', shuttlecraft);
 
+        controlHandler.attachUniversalEventListeners(sketch, uiManager);
         controlHandler.attachEventListeners(sketch, camera, galaxyMapScene, uiManager);
 
         camera.applyCameraTransform();

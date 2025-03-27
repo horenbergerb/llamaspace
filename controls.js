@@ -112,19 +112,9 @@ export class ControlHandler {
         return camera.handleMouseWheelCamera(event);
     }
 
-    attachEventListeners(sketch, camera, mapScene, uiManager) {
-        this.sketch = sketch;
+    attachUniversalEventListeners(sketch, uiManager) {
         this.uiManager = uiManager;
-        
-        // Attach event listeners
-        sketch.mousePressed = () => this.mousePressed(sketch, camera, mapScene);
-        sketch.mouseReleased = () => this.mouseReleased(sketch, camera, mapScene);
-        sketch.mouseDragged = () => this.mouseDragged(camera);
-        sketch.mouseWheel = (event) => this.mouseWheel(event, camera, mapScene);
-        sketch.touchStarted = () => this.touchStarted(sketch, camera, mapScene);
-        sketch.touchMoved = () => this.touchMoved(sketch, camera, mapScene);
-        sketch.touchEnded = () => this.touchEnded(sketch, camera, mapScene);
-        
+
         // Add keyboard event listeners
         window.addEventListener('keydown', (e) => {
             if (this.uiManager && this.uiManager.handleKeyDown(e)) {
@@ -142,5 +132,19 @@ export class ControlHandler {
         sketch.canvas.addEventListener("contextmenu", (event) => {
             event.preventDefault();
         });
+    }
+
+    attachEventListeners(sketch, camera, mapScene, uiManager) {
+        this.sketch = sketch;
+        this.uiManager = uiManager;
+        
+        // Attach event listeners
+        sketch.mousePressed = () => this.mousePressed(sketch, camera, mapScene);
+        sketch.mouseReleased = () => this.mouseReleased(sketch, camera, mapScene);
+        sketch.mouseDragged = () => this.mouseDragged(camera);
+        sketch.mouseWheel = (event) => this.mouseWheel(event, camera, mapScene);
+        sketch.touchStarted = () => this.touchStarted(sketch, camera, mapScene);
+        sketch.touchMoved = () => this.touchMoved(sketch, camera, mapScene);
+        sketch.touchEnded = () => this.touchEnded(sketch, camera, mapScene);
     }
 }
