@@ -136,6 +136,7 @@ export class MapScene {
             }
 
             this.eventBus.emit('selectBody', nearest);
+            return true;
         } else {
             if (this.selectedBody) {
                 this.selectedBody.isSelected = false;
