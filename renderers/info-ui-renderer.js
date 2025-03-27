@@ -108,29 +108,34 @@ export class UIRenderer {
         const properties = ui.getProperties();
         
         // Calculate total height and update scroll offset
-        ui.setMaxScrollOffset();
+        let totalHeight = 0;
+        let currentY = ui.scrollOffset;
         
         // Render each property
-        let infoY = ui.scrollOffset;
         for (const prop of properties) {
-            pg.text(`${prop.label}: ${prop.value}`, 15, infoY);
-            infoY += 20;
+            pg.text(`${prop.label}: ${prop.value}`, 15, currentY);
+            currentY += 20;
+            totalHeight += 20;
         }
 
         // Add anomaly information if present
         if (ui.body && ui.body.anomaly) {
-            // Add some spacing
-            infoY += 10;
+            // Add minimal spacing
+            currentY += 5;
+            totalHeight += 5;
             
             if (ui.body.anomaly.firstReport === null) {
                 // Show scanning message
                 pg.fill(255, 255, 0); // Yellow color for scanning message
-                pg.text("Scanning anomaly...", 15, infoY);
+                pg.text("Scanning anomaly...", 15, currentY);
+                currentY += 20;
+                totalHeight += 20;
             } else {
                 // Show the anomaly report
                 pg.fill(255, 0, 0); // Red color for anomaly report
-                pg.text("Anomaly report:", 15, infoY);
-                infoY += 20;
+                pg.text("Anomaly report:", 15, currentY);
+                currentY += 20;
+                totalHeight += 20;
                 
                 // Split the report into multiple lines if needed
                 const words = ui.body.anomaly.firstReport.split(' ');
@@ -142,16 +147,21 @@ export class UIRenderer {
                     if (pg.textWidth(testLine) < ui.uiWidth - 30) { // 30 pixels for margins
                         currentLine = testLine;
                     } else {
-                        pg.text(currentLine, 15, infoY);
-                        infoY += 20;
+                        pg.text(currentLine, 15, currentY);
+                        currentY += 20;
+                        totalHeight += 20;
                         currentLine = word;
                     }
                 }
                 if (currentLine) {
-                    pg.text(currentLine, 15, infoY);
+                    pg.text(currentLine, 15, currentY);
+                    totalHeight += 20;
                 }
             }
         }
+
+        // Update the max scroll offset based on total content height
+        ui.maxScrollOffset = Math.max(0, totalHeight - ui.propertiesHeight);
     }
 
     renderCommonButtons(ui) {

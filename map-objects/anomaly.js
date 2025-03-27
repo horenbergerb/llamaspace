@@ -141,11 +141,13 @@ Time Displacement: ${this.properties.timeDisplacement} seconds`;
 
         const prompt = `${commonPrompt}
 
+The ship has become aware of an anomaly on or near the body. These are some of the properties of the anomaly:
+
 ${anomalyInfo}
 
-The science officer has just completed preliminary scans of the anomaly. Write a single paragraph report from the science officer to Captain Donald describing what they've found. The report should be professional but accessible, focusing on the most significant and concerning aspects of the anomaly. Include specific measurements and observations that stand out, and note any potential risks or areas that need further investigation.
+The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write a single paragraph from the science officer to Captain Donald describing what they've found. The report should focus on what they can see paired with a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious.
 
-Format your response as a single paragraph with no additional text or formatting.`;
+Format your response as a single paragraph with no additional text or formatting. It's a verbal report only moments after the anomaly was detected.`;
 
         let reportText = '';
         try {
@@ -156,6 +158,7 @@ Format your response as a single paragraph with no additional text or formatting
                 2000  // Max tokens
             );
             this.firstReport = reportText.trim();
+            console.log('Anomaly report generated:', this.firstReport);
         } catch (error) {
             this.firstReport = null;
             console.error('Error generating anomaly report:', error);
