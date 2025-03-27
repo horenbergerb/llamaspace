@@ -19,17 +19,20 @@ export class Anomaly {
             behavioralPattern: ['stationary', 'mobile', 'orbiting', 'emergent'],
             signalType: ['none', 'encoded', 'distress', 'broadcast', 'subliminal'],
             accessibility: ['surface-level', 'buried', 'in orbit', 'interdimensional'],
-            artifactAge: ['ancient', 'recent', 'contemporary', 'indeterminate']
+            artifactAge: ['ancient', 'recent', 'contemporary', 'indeterminate'],
+            sentienceLevel: ['none', 'suspected', 'confirmed', 'hive-like'],
+            observerInfluence: ['passive', 'reactive', 'adaptive', 'aggressive'],
+            technologicalSignature: ['low', 'mid-tech', 'advanced', 'unreadable']
         };
 
-        // Add each property with 1/6 chance
+        // Add each property with 1/8 chance
         for (const [key, options] of Object.entries(propertyDefinitions)) {
-            if (Math.random() < 0.167) { // 1/6 chance
+            if (Math.random() < 0.125) { // 1/8 chance
                 this.properties[key] = this.randomChoice(options);
             }
         }
 
-        // Add numerical properties with 1/6 chance each
+        // Add numerical properties with 1/8 chance each
         const numericalProperties = {
             energyOutput: { min: 0, max: 1e6, unit: 'MW', decimals: 2 },
             signalStrength: { min: 0, max: 100, unit: '', decimals: 1 },
@@ -46,7 +49,7 @@ export class Anomaly {
         };
 
         for (const [key, config] of Object.entries(numericalProperties)) {
-            if (Math.random() < 0.167) { // 1/6 chance
+            if (Math.random() < 0.125) { // 1/8 chance
                 this.properties[key] = this.randomFloat(config.min, config.max).toFixed(config.decimals);
             }
         }
