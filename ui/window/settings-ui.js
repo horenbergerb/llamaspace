@@ -94,13 +94,6 @@ export class SettingsUI extends BaseWindowUI {
             this.apiKeyTextBox.setActive(false);
         });
 
-        // Set up keyboard event listeners
-        window.addEventListener('keydown', (e) => {
-            if (this.handleKeyDown(e)) {
-                e.preventDefault();
-            }
-        });
-
         window.addEventListener('keypress', (e) => {
             if (this.handleKeyPress(e)) {
                 e.preventDefault();

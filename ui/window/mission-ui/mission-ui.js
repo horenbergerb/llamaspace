@@ -145,13 +145,6 @@ export class MissionUI extends BaseWindowUI {
             this.crewDropdown.setOptions(crew);
         });
 
-        // Set up keyboard event listeners
-        window.addEventListener('keydown', (e) => {
-            if (this.handleKeyDown(e)) {
-                e.preventDefault();
-            }
-        });
-
         window.addEventListener('keypress', (e) => {
             if (this.handleKeyPress(e)) {
                 e.preventDefault();
