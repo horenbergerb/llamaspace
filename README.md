@@ -6,6 +6,8 @@ The game revolves around traveling to different star systems and coming up with 
 
 This game uses the OpenRouter API to do its LLM stuff.  All you need is an API key.
 
+If you like this game and want to see it developed further, [a donation would be greatly appreciated.](https://ko-fi.com/beauhorenberger)
+
 # Setup/Installation
 
 You can play this game on the web for free at [The Horenberger Zone.](https://horenbergerb.github.io/llamaspace.html)
