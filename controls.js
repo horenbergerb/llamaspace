@@ -31,10 +31,9 @@ export class ControlHandler {
         }
         
         // Single touch - handle as regular press
-        let out = true;
-        out &= camera.handleTouchStartCamera();
-        out &= mapScene.handleMousePressedMapScene();
-        return out;
+        camera.handleTouchStartCamera();
+        mapScene.handleMousePressedMapScene();
+        return;
     }
 
     touchMoved(sketch, camera, mapScene) {
