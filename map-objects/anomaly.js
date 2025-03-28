@@ -8,6 +8,41 @@ export class Anomaly {
         this.properties = {};
         this.reportStyle = {};
 
+        const reportStyleHints = [
+            // 🎭 Style / Voice
+            "The science officer has a flair for metaphor and rarely speaks in plain terms.",
+            "The officer prefers concise, emotionally neutral phrasing, but often slips in dry humor.",
+            "Reports are often tinged with philosophical musing, especially when anomalies defy classification.",
+            "The science officer tends to frame observations as open questions or thought experiments.",
+            "The officer avoids stock phrases and strives to describe anomalies in new and evocative ways.",
+            "The science officer is known for theatrical flair—sometimes to the annoyance of the crew.",
+            "Reports typically begin with the most striking visual detail, even if it's not the most relevant.",
+            "The officer prefers stream-of-consciousness observations, letting raw impressions guide the report.",
+            "The science officer despises clichés and takes pride in crafting unique, vivid descriptions.",
+            "When reporting anomalies, the officer often draws comparisons to myths, literature, or art.",
+          
+            // 🧠 Psychological / Emotional Angle
+            "The officer's voice trembles slightly when faced with the unknown, but they keep speaking.",
+            "This officer tries to mask awe with professionalism, but it leaks into the opening line.",
+            "The science officer occasionally lets personal bias color their initial summary.",
+            "The crew’s unease often bleeds into the science officer’s tone, especially when anomalies feel “wrong.”",
+            "The science officer is calm and clinical, but sometimes a hint of reverence seeps through.",
+            "Reports tend to mirror the officer’s mood more than the anomaly’s threat level.",
+            "When anomalies disturb the officer deeply, they start with sensory impressions rather than data.",
+          
+            // 📡 Procedural / Contextual
+            "The science officer was caught off-guard mid-scan and is improvising this first assessment.",
+            "This anomaly was spotted during an unscheduled system check; the officer is still making sense of it.",
+            "The officer begins this report based on only partial data, with confidence in their intuition.",
+            "Anomaly scans are incomplete, but the officer is compelled to share what they’ve seen.",
+            "The anomaly revealed itself suddenly, prompting an unusually instinctive reaction from the science officer.",
+            "This is the officer’s third anomaly report of the day—they’re tired, but this one feels different.",
+            "The officer has just returned from a shuttle survey and is still shaking off what they saw."
+          ];
+
+          
+        this.reportStyleHint = this.randomChoice(reportStyleHints);
+
         // Define all possible properties with their options
         const propertyDefinitions = {
             originType: ['organic', 'synthetic'],
@@ -210,7 +245,7 @@ ${reportStyleContext.length > 0 ? `Additional Context:\n${reportStyleContext.joi
 
 The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write a single paragraph from the science officer to Captain Donald describing what they've found. The report should focus on what they can see paired with a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious.
 
-The science officer always tries to open with an original observation or metaphor, avoiding routine phrasing.
+${this.reportStyleHint}
 
 Format your response as a single paragraph with no additional text or formatting. It's a verbal report only moments after the anomaly was detected.`;
 
