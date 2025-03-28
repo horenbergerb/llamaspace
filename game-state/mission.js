@@ -154,6 +154,12 @@ export class Mission {
         // Wait for both responses
         await Promise.all([inventoryPromise, shuttlePromise]);
 
+        // Check for anomaly report
+        let anomalyReport = '';
+        if (orbitingBody.anomaly && orbitingBody.anomaly.firstReport) {
+            anomalyReport = `\nThe science officer has reported an anomaly on or near this body:\n${orbitingBody.anomaly.firstReport}\n`;
+        }
+
         return `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
 The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
@@ -173,7 +179,7 @@ ${bodyContext}
 
 Here is some information about the body the ship is orbiting:
 
-${orbitingBody.getDescription()}`;
+${orbitingBody.getDescription()}${anomalyReport}`;
     }
 
     async generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody) {

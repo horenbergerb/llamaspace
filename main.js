@@ -176,7 +176,7 @@ var mapSketch = function(sketch) {
         systemMapScene = new MapScene(sketch, globalEventBus);
         
         // Create a centered version of the star for the system view
-        let centralStar = new MapStar(sketch);
+        let centralStar = new MapStar(sketch, globalEventBus);
         Object.assign(centralStar, star); // Copy properties from the galaxy star
         centralStar.baseX = sketch.width / 2;
         centralStar.baseY = sketch.height / 2;
