@@ -124,13 +124,7 @@ export class UIRenderer {
             currentY += 5;
             totalHeight += 5;
             
-            if (ui.body.anomaly.firstReport === null) {
-                // Show scanning message
-                pg.fill(255, 255, 0); // Yellow color for scanning message
-                pg.text("Scanning anomaly...", 15, currentY);
-                currentY += 20;
-                totalHeight += 20;
-            } else {
+            if (ui.body.anomaly.firstReport !== null) {
                 // Show the anomaly report
                 pg.fill(255, 0, 0); // Red color for anomaly report
                 pg.text("Anomaly report:", 15, currentY);

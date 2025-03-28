@@ -230,7 +230,7 @@ Severity: ${this.severity}
 Descriptors: ${this.adjectives}
 
 ${reportStyleContext.length > 0 ? `Additional Context:\n${reportStyleContext.join('\n')}\n` : ''}
-The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write a single paragraph from the science officer to Captain Donald describing what they've found. The report should focus on what they can see paired with a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable.
+The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write three or four sentences from the science officer to Captain Donald describing what they've found. The report should focus on what they can see and, optionally, a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable.
 
 ${this.reportStyleHint}
 

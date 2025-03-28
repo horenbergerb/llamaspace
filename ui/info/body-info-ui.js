@@ -53,6 +53,7 @@ export class BodyInfoUI {
     close() {
         this.isVisible = false;
         this.body = null;
+        this.scrollOffset = 0;
     }
 
     handleScroll(delta) {
