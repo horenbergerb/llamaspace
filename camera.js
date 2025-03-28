@@ -1,5 +1,3 @@
-import { isMouseInsideCanvas } from "./utils/utils.js";
-
 export class Camera{
     constructor(sketch) {
         this.sketch = sketch
@@ -35,10 +33,6 @@ export class Camera{
     }
 
     handleTouchStartCamera() {
-        if (!isMouseInsideCanvas(this.sketch)) {
-            return;
-        }
-
         if (this.sketch.touches.length === 2) {
             const touch1 = this.sketch.touches[0];
             const touch2 = this.sketch.touches[1];
@@ -51,9 +45,6 @@ export class Camera{
     }
 
     handleTouchMovedCamera() {
-        if (!isMouseInsideCanvas(this.sketch)) {
-            return;
-        }
         if (this.sketch.touches.length === 2) {
             // Pinch zoom
             const touch1 = this.sketch.touches[0];
@@ -89,9 +80,6 @@ export class Camera{
     }
 
     handleMouseReleasedCamera() {
-        if (!isMouseInsideCanvas(this.sketch)) {
-            return;
-        }
         if (this.startMouseX === this.sketch.mouseX && this.startMouseY === this.sketch.mouseY){
             let mouseXRel = (this.sketch.mouseX - this.panX) / this.scaleFactor;
             let mouseYRel = (this.sketch.mouseY - this.panY) / this.scaleFactor;
@@ -103,9 +91,6 @@ export class Camera{
     }
 
     handleMouseDraggedCamera() {
-        if (!isMouseInsideCanvas(this.sketch)) {
-            return;
-        }
         if (this.isDragging) {
             this.panX += (this.sketch.mouseX - this.lastMouseX);
             this.panY += (this.sketch.mouseY - this.lastMouseY);
@@ -127,10 +112,6 @@ export class Camera{
     }
 
     handleMouseWheelCamera(event) {
-        if (!isMouseInsideCanvas(this.sketch)) {
-            return;
-        }
-
         this.isAutoPanning = false;
 
         let zoomAmount = 0.1; // Sensitivity

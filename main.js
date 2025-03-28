@@ -57,7 +57,7 @@ var mapSketch = function(sketch) {
         spaceship = new Spaceship(sketch, globalEventBus);
         galaxyMapScene = new MapScene(sketch, globalEventBus);
         camera = new Camera(sketch);
-        controlHandler = new ControlHandler();
+        controlHandler = new ControlHandler(sketch);
         uiRenderer = new UIRenderer(sketch);
         uiManager = new UIManager();
         
