@@ -4,7 +4,7 @@ export class ControlHandler {
 
     constructor(sketch) {
         this.isTouchEvent = false;
-        this.sketch = sketch;
+        this.sketch = null;
         this.uiManager = null;
     }
 
@@ -13,9 +13,6 @@ export class ControlHandler {
         
         // Store sketch reference
         this.sketch = sketch;
-
-        // Check if touch is inside canvas
-        if (!isMouseInsideCanvas(this.sketch)) return false;
 
         // Check if touch is in UI first
         if (this.uiManager && this.uiManager.handleTouchStart(camera, sketch.touches[0].x, sketch.touches[0].y)) {
@@ -43,9 +40,6 @@ export class ControlHandler {
     touchMoved(sketch, camera, mapScene) {
         if (!sketch.touches || sketch.touches.length === 0) return false;
 
-        // Check if touch is inside canvas
-        if (!isMouseInsideCanvas(this.sketch)) return false;
-
         // Check if touch is in UI first
         if (this.uiManager && this.uiManager.handleTouchMove(camera, sketch.touches[0].x, sketch.touches[0].y)) {
             return false;
@@ -64,9 +58,6 @@ export class ControlHandler {
         let lastTouchX = sketch.touches.length > 0 ? sketch.touches[0].x : sketch.mouseX;
         let lastTouchY = sketch.touches.length > 0 ? sketch.touches[0].y : sketch.mouseY;
         
-        // Check if touch is inside canvas
-        if (!isMouseInsideCanvas(this.sketch)) return false;
-        
         // Handle UI touch events first and return if they handle the touch
         if (this.uiManager && this.uiManager.handleTouchEnd(camera, lastTouchX, lastTouchY)) {
             return false;
@@ -83,9 +74,6 @@ export class ControlHandler {
     }
 
     mousePressed(sketch, camera, mapScene) {
-        // Check if mouse is inside canvas
-        if (!isMouseInsideCanvas(this.sketch)) return;
-
         // Check UI first
         if (this.uiManager && this.uiManager.handleMousePressed(camera, sketch.mouseX, sketch.mouseY)) {
             return;
@@ -96,9 +84,6 @@ export class ControlHandler {
     }
 
     mouseReleased(sketch, camera, mapScene) {
-        // Check if mouse is inside canvas
-        if (!isMouseInsideCanvas(this.sketch)) return;
-
         // Check UI first
         if (this.uiManager && this.uiManager.handleMouseReleased(camera, sketch.mouseX, sketch.mouseY)) {
             return;
@@ -111,16 +96,10 @@ export class ControlHandler {
     }
 
     mouseDragged(camera) {
-        // Check if mouse is inside canvas
-        if (!isMouseInsideCanvas(this.sketch)) return false;
-        
         return camera.handleMouseDraggedCamera();
     }
 
     mouseWheel(event, camera, mapScene) {
-        // Check if mouse is inside canvas
-        if (!isMouseInsideCanvas(this.sketch)) return false;
-
         // Check if we should handle UI scrolling first
         if (this.uiManager && this.uiManager.handleMouseWheel(event)) {
             return false;
