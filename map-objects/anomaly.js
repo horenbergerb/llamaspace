@@ -52,7 +52,10 @@ export class Anomaly {
             "clouded", "vined", "incised", "auroral"
         ];
 
-        this.adjectives = this.randomChoice(anomalyAdjectives);
+        // Select two random adjectives and join them
+        const firstAdjective = this.randomChoice(anomalyAdjectives);
+        const secondAdjective = this.randomChoice(anomalyAdjectives);
+        this.adjectives = `${firstAdjective}, ${secondAdjective}`;
         
         const reportStyleHints = [
             // 🎭 Style / Voice
@@ -71,18 +74,18 @@ export class Anomaly {
             "The officer's voice trembles slightly when faced with the unknown, but they keep speaking.",
             "This officer tries to mask awe with professionalism, but it leaks into the opening line.",
             "The science officer occasionally lets personal bias color their initial summary.",
-            "The crew’s unease often bleeds into the science officer’s tone, especially when anomalies feel “wrong.”",
+            "The crew's unease often bleeds into the science officer's tone, especially when anomalies feel \"wrong.\"",
             "The science officer is calm and clinical, but sometimes a hint of reverence seeps through.",
-            "Reports tend to mirror the officer’s mood more than the anomaly’s threat level.",
+            "Reports tend to mirror the officer's mood more than the anomaly's threat level.",
             "When anomalies disturb the officer deeply, they start with sensory impressions rather than data.",
           
             // 📡 Procedural / Contextual
             "The science officer was caught off-guard mid-scan and is improvising this first assessment.",
             "This anomaly was spotted during an unscheduled system check; the officer is still making sense of it.",
             "The officer begins this report based on only partial data, with confidence in their intuition.",
-            "Anomaly scans are incomplete, but the officer is compelled to share what they’ve seen.",
+            "Anomaly scans are incomplete, but the officer is compelled to share what they've seen.",
             "The anomaly revealed itself suddenly, prompting an unusually instinctive reaction from the science officer.",
-            "This is the officer’s third anomaly report of the day—they’re tired, but this one feels different.",
+            "This is the officer's third anomaly report of the day—they're tired, but this one feels different.",
             "The officer has just returned from a shuttle survey and is still shaking off what they saw."
           ];
 
