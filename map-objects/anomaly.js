@@ -6,6 +6,7 @@ export class Anomaly {
         this.textGenerator = null;
         this.firstReport = null;
         this.properties = {};
+        this.reportStyle = {};
 
         // Define all possible properties with their options
         const propertyDefinitions = {
@@ -51,6 +52,22 @@ export class Anomaly {
         for (const [key, config] of Object.entries(numericalProperties)) {
             if (Math.random() < 0.125) { // 1/8 chance
                 this.properties[key] = this.randomFloat(config.min, config.max).toFixed(config.decimals);
+            }
+        }
+
+        // Add report style properties with 1/8 chance each
+        const reportStyleProperties = {
+            detectionMethod: ['routine scan', 'anomaly alert', 'crew observation', 'sensor malfunction', 'distress signal'],
+            anomalyVisibility: ['immediate', 'phased in', 'gradual', 'masked'],
+            reportTone: ['professional', 'concerned', 'excited', 'cautious', 'confused', 'alarmed'],
+            crewReaction: ['curious', 'nervous', 'fascinated', 'apprehensive', 'confident', 'overwhelmed'],
+            scienceOfficerStyle: ['by-the-book', 'sarcastic', 'overly poetic', 'paranoid', 'curt', 'excitable'],
+            reportFormat: ['direct observation', 'theory summary', 'stream of consciousness', 'technical log', 'fragmented']
+        };
+
+        for (const [key, options] of Object.entries(reportStyleProperties)) {
+            if (Math.random() < 0.2) { // 1/8 chance
+                this.reportStyle[key] = this.randomChoice(options);
             }
         }
 
@@ -162,11 +179,34 @@ ${orbitingBody.getDescription()}`;
             })
             .join('\n');
 
+        // Add report style context if any are defined
+        const reportStyleContext = [];
+        if (this.reportStyle.detectionMethod) {
+            reportStyleContext.push(`The anomaly was detected through ${this.reportStyle.detectionMethod}.`);
+        }
+        if (this.reportStyle.anomalyVisibility) {
+            reportStyleContext.push(`The anomaly's visibility status is ${this.reportStyle.anomalyVisibility}.`);
+        }
+        if (this.reportStyle.reportTone) {
+            reportStyleContext.push(`The science officer's report should be ${this.reportStyle.reportTone} in tone.`);
+        }
+        if (this.reportStyle.crewReaction) {
+            reportStyleContext.push(`The crew is feeling ${this.reportStyle.crewReaction} about the discovery.`);
+        }
+        if (this.reportStyle.scienceOfficerStyle) {
+            reportStyleContext.push(`The science officer is known for their ${this.reportStyle.scienceOfficerStyle} approach.`);
+        }
+        if (this.reportStyle.reportFormat) {
+            reportStyleContext.push(`The report should be ${this.reportStyle.reportFormat} in format.`);
+        }
+
         const prompt = `${commonPrompt}
 
 The ship has become aware of an anomaly on or near the body. These are some of the properties of the anomaly:
 
 ${anomalyInfo}
+
+${reportStyleContext.length > 0 ? `Additional Context:\n${reportStyleContext.join('\n')}\n` : ''}
 
 The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write a single paragraph from the science officer to Captain Donald describing what they've found. The report should focus on what they can see paired with a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious.
 
