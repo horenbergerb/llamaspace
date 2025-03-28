@@ -1,5 +1,7 @@
 # LLaMaSpace: A space adventure RPG
 
+https://github.com/user-attachments/assets/bc48204e-0e3a-4a4e-a9d9-101d965a7931
+
 LLaMaSpace is a game about traveling the stars on a research mission. You and your ragtag team are in search of scientific anomalies so that you can further the knowledge of all humankind. It's also kind of your last chance to prove yourself as a captain.
 
 The game revolves around traveling to different star systems and coming up with research missions regarding the planetary bodies. The missions are evaluated and expanded upon by an LLM. Coming up with interesting and achievable missions will be rewarded.
