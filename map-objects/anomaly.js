@@ -210,6 +210,8 @@ ${reportStyleContext.length > 0 ? `Additional Context:\n${reportStyleContext.joi
 
 The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write a single paragraph from the science officer to Captain Donald describing what they've found. The report should focus on what they can see paired with a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious.
 
+The science officer always tries to open with an original observation or metaphor, avoiding routine phrasing.
+
 Format your response as a single paragraph with no additional text or formatting. It's a verbal report only moments after the anomaly was detected.`;
 
         let reportText = '';
@@ -217,7 +219,7 @@ Format your response as a single paragraph with no additional text or formatting
             await this.textGenerator.generateText(
                 prompt,
                 (text) => { reportText = text; },
-                1.3, // Lower temperature for more focused output
+                1.0, // Lower temperature for more focused output
                 2000  // Max tokens
             );
             this.firstReport = reportText.trim();
