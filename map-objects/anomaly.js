@@ -5,9 +5,55 @@ export class Anomaly {
         this.eventBus = eventBus;
         this.textGenerator = null;
         this.firstReport = null;
-        this.properties = {};
+        this.severity = null;
+        this.adjectives = null;
         this.reportStyle = {};
 
+        const severities = ["minor (interesting but not substantial, research is optional)", "standard (quite unusual; clearly merits research)", "major (totally unprecedented; could have major implications. Research is required.)"];
+        this.severity = this.randomChoice(severities);
+
+        const anomalyAdjectives = [
+            "crystalline", "sentinel-like", "metallic", "dormant", "alien", "self-repairing", "sunken",
+            "hollow", "photosynthetic", "pulsing", "fibrous", "microscopic", "population", "intelligent",
+            "orbiting", "herd", "geometric", "disguised", "monolithic", "modular", "fractal", "repeating",
+            "buried", "emergent", "signal-emitting", "shifting", "bioluminescent", "decaying",
+            "semi-sentient", "entangled", "exoskeletal", "fronded", "spore-producing", "reactive",
+            "camouflaged", "drifting", "burgeoning", "subterranean", "symbiotic", "networked", "encoded",
+            "replicating", "anchored", "cyclical", "rhythmic", "invasive", "cracked", "latticed",
+            "calcified", "irregular", "echoing", "dispersed", "stratified", "spindly", "orbital",
+            "localized", "intermittent",
+        
+            "antigravitic", "ceremonial", "grafted", "recursive", "probabilistic", "petrified", "sibilant",
+            "vascular", "lantern-like", "ossified", "fungal", "inflated", "etched", "iridescent",
+            "asymmetrical", "sharded", "gravitic", "tethered", "vocal", "conical", "jittering", "oozing",
+            "cratered", "brittle", "glyphic", "vined", "spiraled", "inverted", "forked", "luminous",
+            "bubbling", "planar", "dusted", "barbed", "magnetized", "reflective", "spindled", "segmented",
+            "pocketed", "transparent", "conjoined", "cruciform", "staggered", "distorted", "hive-like",
+            "withered", "veined", "laminated", "seared", "tumescent", "helical", "hovering", "polyhedral",
+            "refractive", "twitching", "radiant", "perforated", "knotted", "sprawling", "stenchful",
+            "slithering",
+        
+            "glistening", "cavernous", "ringed", "migratory", "crackling", "sheathed", "hairlike",
+            "pitted", "jagged", "mottled", "twinned", "blistered", "fragmentary", "vibratory",
+            "collapsing", "amorphous", "recoiling", "encrusted", "resonant", "honeycombed", "webbed",
+            "irregularly-pulsed", "evaporating", "gaseous", "pyramidal", "speckled", "dormitory-like",
+            "mirror-surfaced", "eyed", "shell-like", "interlaced", "shingled", "emitting-hum", "baroque",
+            "imprinted", "void-touched", "crystallizing", "magnetized-core", "repellent", "lichenous",
+            "petrifying", "lamellar", "threaded", "feathered", "ciliated", "spindled", "braided",
+            "brachiated", "embossed", "humming", "tessellated", "pancaked", "vaporous", "semi-molten",
+            "engraved", "frozen-mid-action", "orb-webbed", "hypersaturated", "smeared", "liquescent",
+            "eclipsed", "shell-fragmented", "knuckled", "cradled", "gutted", "fossilized",
+            "compartmentalized", "harboring", "scaffolded", "dappled", "straining", "speared", "tenuous",
+            "braided-root", "quilled", "nested", "tapered", "cocooned", "clotted", "scarred", "plated",
+            "gilled", "percussive", "periscopic", "snarled", "reef-like", "seamed", "apertured", "venting",
+            "droplet-like", "shingled", "severed", "grooved", "bifurcated", "writhing", "infested",
+            "abandoned", "droning", "interwoven", "calciferous", "flaring", "crawling", "rippled",
+            "engulfing", "blooming", "murmuring", "pulsatile", "wrinkled", "woven", "convex", "divergent",
+            "clouded", "vined", "incised", "auroral"
+        ];
+
+        this.adjectives = this.randomChoice(anomalyAdjectives);
+        
         const reportStyleHints = [
             // 🎭 Style / Voice
             "The science officer has a flair for metaphor and rarely speaks in plain terms.",
@@ -42,53 +88,6 @@ export class Anomaly {
 
           
         this.reportStyleHint = this.randomChoice(reportStyleHints);
-
-        // Define all possible properties with their options
-        const propertyDefinitions = {
-            originType: ['organic', 'synthetic'],
-            stability: ['stable', 'volatile', 'decaying', 'fluctuating'],
-            activityLevel: ['dormant', 'active', 'reactive', 'unknown'],
-            threatLevel: ['none', 'low', 'moderate', 'high'],
-            energySignature: ['thermal', 'radioactive', 'psionic', 'gravitic', 'unknown'],
-            temporalStatus: ['present', 'phased', 'looping', 'out-of-sync'],
-            composition: ['biomatter', 'metallic', 'crystalline', 'liquid', 'plasma'],
-            behavioralPattern: ['stationary', 'mobile', 'orbiting', 'emergent'],
-            signalType: ['none', 'encoded', 'distress', 'broadcast', 'subliminal'],
-            accessibility: ['surface-level', 'buried', 'in orbit', 'interdimensional'],
-            artifactAge: ['ancient', 'recent', 'contemporary', 'indeterminate'],
-            sentienceLevel: ['none', 'suspected', 'confirmed', 'hive-like'],
-            observerInfluence: ['passive', 'reactive', 'adaptive', 'aggressive'],
-            technologicalSignature: ['low', 'mid-tech', 'advanced', 'unreadable']
-        };
-
-        // Add each property with 1/8 chance
-        for (const [key, options] of Object.entries(propertyDefinitions)) {
-            if (Math.random() < 0.125) { // 1/8 chance
-                this.properties[key] = this.randomChoice(options);
-            }
-        }
-
-        // Add numerical properties with 1/8 chance each
-        const numericalProperties = {
-            energyOutput: { min: 0, max: 1e6, unit: 'MW', decimals: 2 },
-            signalStrength: { min: 0, max: 100, unit: '', decimals: 1 },
-            radiationLevel: { min: 0, max: 500, unit: 'mSv/h', decimals: 1 },
-            massEstimate: { min: 1, max: 1e9, unit: 'kg', decimals: 0 },
-            density: { min: 0.1, max: 50, unit: 'g/cm³', decimals: 2 },
-            ageEstimate: { min: 0, max: 1e6, unit: 'years', decimals: 0 },
-            anomalyIndex: { min: 0, max: 100, unit: '', decimals: 1 },
-            temperature: { min: -200, max: 10000, unit: '°C', decimals: 1 },
-            magneticFieldStrength: { min: 0, max: 1000, unit: 'μT', decimals: 2 },
-            scanConfidence: { min: 50, max: 100, unit: '%', decimals: 1 },
-            spatialDistortion: { min: 0, max: 5, unit: '%', decimals: 2 },
-            timeDisplacement: { min: -300, max: 300, unit: 'seconds', decimals: 1 }
-        };
-
-        for (const [key, config] of Object.entries(numericalProperties)) {
-            if (Math.random() < 0.125) { // 1/8 chance
-                this.properties[key] = this.randomFloat(config.min, config.max).toFixed(config.decimals);
-            }
-        }
 
         // Add report style properties with 1/8 chance each
         const reportStyleProperties = {
@@ -189,30 +188,7 @@ ${orbitingBody.getDescription()}`;
         const commonPrompt = await this.getCommonScenarioPrompt(orbitingBody);
 
         // Only include properties that were actually defined
-        const anomalyInfo = Object.entries(this.properties)
-            .map(([key, value]) => {
-                // Format the key to be more readable
-                const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                
-                // Add units for numerical properties
-                const units = {
-                    energyOutput: ' MW',
-                    signalStrength: '',
-                    radiationLevel: ' mSv/h',
-                    massEstimate: ' kg',
-                    density: ' g/cm³',
-                    ageEstimate: ' years',
-                    anomalyIndex: '',
-                    temperature: '°C',
-                    magneticFieldStrength: ' μT',
-                    scanConfidence: '%',
-                    spatialDistortion: '%',
-                    timeDisplacement: ' seconds'
-                };
-
-                return `${formattedKey}: ${value}${units[key] || ''}`;
-            })
-            .join('\n');
+        const anomalyInfo = null;
 
         // Add report style context if any are defined
         const reportStyleContext = [];
@@ -236,14 +212,13 @@ ${orbitingBody.getDescription()}`;
         }
 
         const prompt = `${commonPrompt}
-
 The ship has become aware of an anomaly on or near the body. These are some of the properties of the anomaly:
 
-${anomalyInfo}
+Severity: ${this.severity}
+Descriptors: ${this.adjectives}
 
 ${reportStyleContext.length > 0 ? `Additional Context:\n${reportStyleContext.join('\n')}\n` : ''}
-
-The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write a single paragraph from the science officer to Captain Donald describing what they've found. The report should focus on what they can see paired with a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious.
+The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write a single paragraph from the science officer to Captain Donald describing what they've found. The report should focus on what they can see paired with a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable.
 
 ${this.reportStyleHint}
 
@@ -254,7 +229,7 @@ Format your response as a single paragraph with no additional text or formatting
             await this.textGenerator.generateText(
                 prompt,
                 (text) => { reportText = text; },
-                1.0, // Lower temperature for more focused output
+                1.5, // Lower temperature for more focused output
                 2000  // Max tokens
             );
             this.firstReport = reportText.trim();
