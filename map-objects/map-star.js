@@ -68,7 +68,7 @@ export class MapStar extends MapBody {
         };
 
         // Calculate planetary system properties
-        let planetProbability = Math.min(1, this.bodyProperties.mass * 0.2);
+        let planetProbability = Math.min(1, this.bodyProperties.mass * 0.4);
         this.bodyProperties.hasPlanets = sketch.random() < planetProbability;
         if (this.bodyProperties.hasPlanets) {
             this.bodyProperties.numPlanets = Math.floor(sketch.random(1, 10));
