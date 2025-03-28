@@ -184,6 +184,7 @@ var mapSketch = function(sketch) {
         centralStar.baseSize *= 4;
         centralStar.size = centralStar.baseSize;
         centralStar.isSelected = false;
+        centralStar.anomaly = star.anomaly;
         systemMapScene.mapBodies.push(centralStar);
         
         // Add all planets from the star's planet list
