@@ -21,9 +21,6 @@ export class MapStar extends MapBody {
         // Naming
         this.name = this.generateStarName();
 
-        // Add anomaly with 1/6 chance
-        this.anomaly = sketch.random() < 0.167 ? new Anomaly(eventBus) : null;
-
         // Generate planets if the star has them
         if (this.bodyProperties.hasPlanets) {
             for (let i = 0; i < this.bodyProperties.numPlanets; i++) {
