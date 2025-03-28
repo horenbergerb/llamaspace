@@ -10,7 +10,16 @@ export class Anomaly {
         this.reportStyle = {};
 
         const severities = ["minor (interesting but not substantial, research is optional)", "standard (quite unusual; clearly merits research)", "major (totally unprecedented; could have major implications. Research is required.)"];
-        this.severity = this.randomChoice(severities);
+        const severityWeights = [0.7, 0.2, 0.1]; // 70% minor, 20% standard, 10% major
+        const randomValue = Math.random();
+        let cumulativeWeight = 0;
+        for (let i = 0; i < severityWeights.length; i++) {
+            cumulativeWeight += severityWeights[i];
+            if (randomValue <= cumulativeWeight) {
+                this.severity = severities[i];
+                break;
+            }
+        }
 
         const anomalyAdjectives = [
             "crystalline", "sentinel-like", "metallic", "dormant", "alien", "self-repairing", "sunken",
