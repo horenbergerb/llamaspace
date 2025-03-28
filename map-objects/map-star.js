@@ -1,6 +1,5 @@
 import { MapBody } from './map-body.js';
 import { MapPlanet } from './map-planet.js';
-import { Anomaly } from './anomaly.js';
 
 export class MapStar extends MapBody {
     static usedNames = new Set(); // Stores already assigned names
@@ -15,6 +14,7 @@ export class MapStar extends MapBody {
         this.isSelected = false;
         this.isStar = true; // Add flag to identify stars
         this.planets = []; // Array to store planetary bodies
+        this.anomaliesDetected = false;
 
         this.generateStarProperties(sketch);
 
@@ -28,6 +28,10 @@ export class MapStar extends MapBody {
                 this.planets.push(planet);
             }
         }
+    }
+
+    scanForAnomalies(){
+        return;
     }
 
     generateStarProperties(sketch){
@@ -220,17 +224,18 @@ export class MapStar extends MapBody {
         this.sketch.fill(this.color);
         this.sketch.ellipse(this.baseX, this.baseY, this.size);
 
+        // Draw anomaly indicator if anomalies are detected
+        if (this.anomaliesDetected) {
+            this.sketch.fill(255, 0, 0); // Red color for the indicator
+            this.sketch.textSize(12);
+            this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            this.sketch.text('A', this.baseX - this.size - 5, this.baseY - this.size - 5);
+        }
+
         this.sketch.pop();
 
         if (this.isSelected) {
             this.drawSelector();
-            
-            // Generate first report if body has an anomaly and report hasn't been generated yet
-            if (this.anomaly && this.anomaly.firstReport === null) {
-                this.anomaly.generateFirstReport(
-                    this
-                );
-            }
         }
     }
 }

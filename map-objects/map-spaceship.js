@@ -81,6 +81,7 @@ export class Spaceship {
             // Emit orbit body change
             if (this.eventBus) {
                 this.eventBus.emit('orbitBodyChanged', this.orbitBody);
+                this.orbitBody.scanForAnomalies();
             }
             return;
         }
@@ -234,6 +235,7 @@ export class Spaceship {
         // Emit orbit body change
         if (this.eventBus) {
             this.eventBus.emit('orbitBodyChanged', this.orbitBody);
+            this.orbitBody.scanForAnomalies();
         }
     }
 

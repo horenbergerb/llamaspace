@@ -25,6 +25,13 @@ export class MapPlanet extends MapBody {
         this.anomaly = sketch.random() < 0.33 ? new Anomaly(eventBus) : null;
     }
 
+    scanForAnomalies(){
+        if (this.anomaly !== null && this.anomaly.firstReport === null){
+            this.parentStar.anomaliesDetected = true;
+            this.anomaly.generateFirstReport(this);
+        }
+    }
+
     generatePlanetProperties(sketch) {
         // Basic planetary properties
         this.bodyProperties = {
@@ -173,16 +180,18 @@ export class MapPlanet extends MapBody {
             this.sketch.noFill();
             this.sketch.ellipse(this.baseX, this.baseY, this.size * 2.5, this.size * 0.6); // Adjusted ring proportions
         }
+
+        // Draw anomaly indicator if planet has an anomaly and it has been reported
+        if (this.anomaly !== null && this.anomaly.firstReport !== null) {
+            this.sketch.noStroke();
+            this.sketch.fill(255, 0, 0); // Red color for the indicator
+            this.sketch.textSize(12);
+            this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            this.sketch.text('A', this.baseX - this.size - 5, this.baseY - this.size - 5);
+        }
         
         if (this.isSelected) {
             this.drawSelector();
-            
-            // Generate first report if body has an anomaly and report hasn't been generated yet
-            if (this.anomaly && this.anomaly.firstReport === null) {
-                this.anomaly.generateFirstReport(
-                this
-                );
-            }
         }
         
         this.sketch.pop();
