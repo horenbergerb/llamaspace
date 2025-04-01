@@ -148,14 +148,15 @@ export class UIRenderer {
             if (currentLine) {
                 pg.text(currentLine, 15, currentY);
                 totalHeight += 20;
+                currentY += 20;
             }
         }
 
         // Add anomaly information if present
         if (ui.body && ui.body.anomaly) {
-            // Add minimal spacing
-            currentY += 5;
-            totalHeight += 5;
+            // Add more spacing between sections
+            currentY += 5;  // Increased from 5 to 15
+            totalHeight += 5;  // Increased from 5 to 15
             
             if (ui.body.anomaly.firstReport !== null) {
                 // Show the anomaly report
