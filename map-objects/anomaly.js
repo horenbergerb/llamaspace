@@ -236,18 +236,18 @@ Severity: ${this.severity}
 Descriptors: ${this.adjectives}
 
 ${reportStyleContext.length > 0 ? `Additional Context:\n${reportStyleContext.join('\n')}\n` : ''}
-The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write three or four sentences from the science officer to Captain Donald describing what they've found. The report should focus on what they can see and, optionally, a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable.
+The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write two or three sentences from the science officer to Captain Donald describing what they've found. The report should focus on what they can see and, optionally, a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable.
 
 ${this.reportStyleHint}
 
-Format your response as a single paragraph with no additional text or formatting. It's a verbal report only moments after the anomaly was detected.`;
+Format your response as two or thre sentences with no additional text or formatting. It's a verbal report only moments after the anomaly was detected.`;
 
         let reportText = '';
         try {
             await this.textGenerator.generateText(
                 prompt,
                 (text) => { reportText = text; },
-                1.5, // Lower temperature for more focused output
+                1.3, // Lower temperature for more focused output
                 2000  // Max tokens
             );
             this.firstReport = reportText.trim();
