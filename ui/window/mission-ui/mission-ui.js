@@ -117,6 +117,10 @@ export class MissionUI extends BaseWindowUI {
         // Subscribe to orbit body changes
         this.eventBus.on('orbitBodyChanged', (body) => {
             this.orbitingBody = body;
+
+            this.isWindowVisible = false;
+            this.objectiveTextBox.setActive(false);
+            this.objectiveTextBox.hideMobileInput();
         });
 
         // Subscribe to system enter/exit events
@@ -158,9 +162,10 @@ export class MissionUI extends BaseWindowUI {
         this.missionButton.updatePosition();
     }
 
+    // Change this to not render if we're not at a planet
     renderMissionButton() {
         // Don't render the button if we're not in a system scene
-        if (!this.isInSystemScene) return;
+        if (!this.isInSystemScene || !this.orbitingBody || !this.orbitingBody.isPlanet) return;
         this.missionButton.render();
     }
 
@@ -270,7 +275,7 @@ export class MissionUI extends BaseWindowUI {
 
     handleMouseReleased(camera, mouseX, mouseY) {
         // Don't handle clicks if we're not in a system scene
-        if (!this.isInSystemScene) return false;
+        if (!this.isInSystemScene || !this.orbitingBody || !this.orbitingBody.isPlanet) return false;
 
         // Check mission button first (always visible)
         if (this.missionButton.handleClick(mouseX, mouseY)) {
