@@ -1,6 +1,8 @@
 import { TextGeneratorOpenRouter } from '../text-gen-openrouter.js';
 
 export class Anomaly {
+    static recentReports = []; // Static array to store last 10 anomaly reports
+
     constructor(eventBus) {
         this.eventBus = eventBus;
         this.textGenerator = null;
@@ -174,6 +176,13 @@ export class Anomaly {
         // Wait for both responses
         await Promise.all([inventoryPromise, shuttlePromise]);
 
+        // Add recent anomaly reports section if any exist
+        let recentReportsSection = '';
+        if (Anomaly.recentReports.length > 0) {
+            recentReportsSection = '\nRecent anomaly reports from other systems:\n' +
+                Anomaly.recentReports.map(report => `- ${report}`).join('\n') + '\n';
+        }
+
         return `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
 The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
@@ -195,11 +204,10 @@ Here is some information about the body the ship is orbiting:
 
 ${orbitingBody.getDescription()}
 
-${orbitingBody.description ? `Planet Description:\n${orbitingBody.description}` : ''}`;
+${orbitingBody.description ? `Planet Description:\n${orbitingBody.description}` : ''}${recentReportsSection}`;
     }
 
     async generateFirstReport(orbitingBody) {
-        
         await orbitingBody.generateDescription();
 
         this.firstReport = "Scanning anomaly...";
@@ -236,21 +244,21 @@ Severity: ${this.severity}
 Descriptors: ${this.adjectives}
 
 ${reportStyleContext.length > 0 ? `Additional Context:\n${reportStyleContext.join('\n')}\n` : ''}
-The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write two or three sentences from the science officer to Captain Donald describing what they've found. The report should focus on what they can see and, optionally, a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable.
+The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write two or three sentences from the science officer to Captain Donald describing what they've found. The report should focus on what they can see and, optionally, a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable. This report should be totally distinct from the recent reports on other anomalies.
 
 ${this.reportStyleHint}
 
 Format your response as two or thre sentences with no additional text or formatting. It's a verbal report only moments after the anomaly was detected.`;
 
-        let reportText = '';
         try {
             await this.textGenerator.generateText(
                 prompt,
-                (text) => { reportText = text; },
+                (text) => { this.firstReport = text; },
                 1.3, // Lower temperature for more focused output
                 2000  // Max tokens
             );
-            this.firstReport = reportText.trim();
+            Anomaly.recentReports.unshift(this.firstReport);                    // Keep only the last 10 reports
+            Anomaly.recentReports = Anomaly.recentReports.slice(0, 10);
             console.log('Anomaly report generated:', this.firstReport);
         } catch (error) {
             this.firstReport = null;
