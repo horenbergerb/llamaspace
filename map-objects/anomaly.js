@@ -196,6 +196,9 @@ ${orbitingBody.getDescription()}`;
     }
 
     async generateFirstReport(orbitingBody) {
+        
+        await orbitingBody.generateDescription();
+
         this.firstReport = "Scanning anomaly...";
         const commonPrompt = await this.getCommonScenarioPrompt(orbitingBody);
 
