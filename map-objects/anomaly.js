@@ -164,6 +164,7 @@ export class Anomaly {
                 resolve();
             };
             this.eventBus.on('shuttlecraftChanged', shuttleHandler);
+            resolve();
         });
         
         // Request current state
@@ -192,7 +193,9 @@ ${bodyContext}
 
 Here is some information about the body the ship is orbiting:
 
-${orbitingBody.getDescription()}`;
+${orbitingBody.getDescription()}
+
+${orbitingBody.description ? `Planet Description:\n${orbitingBody.description}` : ''}`;
     }
 
     async generateFirstReport(orbitingBody) {
