@@ -35,8 +35,9 @@ export class ConfirmTravelUI extends BaseWindowUI {
                 const hasInProgressMissions = missions.some(mission => !mission.completed);
                 
                 if (hasInProgressMissions) {
+                    this.eventBus.emit('setDestination', this.targetBody);
                     // Show confirmation dialog
-                    this.isWindowVisible = true;
+                    //this.isWindowVisible = true;
                 } else {
                     // No in-progress missions, proceed with travel
                     this.eventBus.emit('setDestination', this.targetBody);
@@ -45,7 +46,7 @@ export class ConfirmTravelUI extends BaseWindowUI {
         });
 
         this.eventBus.on('confirmTravelUIOpened', () => {
-            this.isWindowVisible = true;
+            //this.isWindowVisible = true;
         });
         this.eventBus.on('confirmTravelUIClosed', () => {
             this.isWindowVisible = false;
