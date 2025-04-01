@@ -64,56 +64,94 @@ export class MapPlanet extends MapBody {
 
         const planetAdjectives = {
             "Rocky": [
-              "cracked", "basaltic", "scarred", "igneous", "shattered", "uplifted", "pockmarked", "granular", "faulted", "brittle",
-              "quarried", "fractured", "cratered", "tumbled", "ridged", "lithified", "angular", "eroded", "porous", "barricaded",
-              "tectonically-stressed", "acid-etched", "veined", "cobbled", "volcanic", "collapsed", "resurfaced", "rubble-strewn",
-              "pulverized", "oxidized", "sulfur-stained", "gravity-twisted", "tidally-heaved", "basin-heavy", "geode-ridden",
-              "layered", "silicate-rich", "weatherblasted", "mined-out", "tremor-prone", "magnetically-chaotic", "ridge-locked",
-              "granitic", "ferrous", "scarlet-hued", "shard-covered", "dust-choked", "tectonic-plateaus", "rind-like", "mineral-laced"
+                "cracked", "basaltic", "scarred", "igneous", "shattered", "uplifted", "pockmarked", "granular", "faulted", "brittle",
+                "quarried", "fractured", "cratered", "tumbled", "ridged", "lithified", "angular", "eroded", "porous", "barricaded",
+                "tectonically-stressed", "acid-etched", "veined", "cobbled", "volcanic", "collapsed", "resurfaced", "rubble-strewn",
+                "pulverized", "oxidized", "sulfur-stained", "gravity-twisted", "tidally-heaved", "basin-heavy", "geode-ridden",
+                "layered", "silicate-rich", "weatherblasted", "mined-out", "tremor-prone", "magnetically-chaotic", "ridge-locked",
+                "granitic", "ferrous", "scarlet-hued", "shard-covered", "dust-choked", "tectonic-plateaus", "rind-like", "mineral-laced",
+                "slag-lined", "fault-scored", "igneous-fused", "pebble-skinned", "shear-stressed", "rift-widened", "plate-boundary-marked",
+                "folded-range", "impact-heated", "crust-sunken", "magmatic-choked", "ash-blanketed", "breccia-layered", "tilted-shelf",
+                "collapsed-basin", "seismic-pitted", "obsidian-capped", "silica-crusted", "feldspar-rich", "lava-tunnel-riddled",
+                "fissure-veined", "impact-glassed", "pyroclastic", "seared-flats", "gravel-choked", "boulder-ridden", "scar-torn",
+                "irregular-terrained", "ridge-buckled", "iron-panned", "basin-collapsed", "mantle-upwelled", "stressed-ridgelines",
+                "core-heavy", "fault-braided", "lava-seamed", "dome-scarred", "spine-crowned", "canyon-cut", "microfractured",
+                "silicified", "geologically-active", "vein-stained", "metamorphic", "tectonically-folded", "sulfur-vented",
+                "shale-layered", "batholithic"
             ],
             "Ocean": [
-              "storm-wracked", "tidally-locked", "wave-tossed", "depthless", "hydrothermal", "mineral-rich", "pressure-crushed",
-              "glacier-fed", "plankton-hazed", "algae-choked", "ever-dark", "bioluminescent", "maelstrom-prone", "ice-fringed",
-              "monsoon-drenched", "sediment-swirled", "brine-heavy", "polar-swirled", "kelp-entangled", "subducted", "current-ripped",
-              "eel-infested", "cloud-reflective", "super-saturated", "foam-banded", "vortex-riddled", "underlit", "oxygen-rich",
-              "tsunami-scoured", "salinity-spiked", "whirlpool-ridden", "shallow-shelved", "aquaplaned", "thermal-pool-covered",
-              "abyssal", "crater-lakes-dotted", "blue-shifted", "photic-layered", "tidal-resonant", "cyclonic", "wave-beaten",
-              "oceanic-trench-scarred", "humid", "pressure-bubbled", "mirror-skinned", "undersea-mountainous", "ion-sprayed",
-              "warmwater-veined", "floating-crusts"
+                "storm-wracked", "tidally-locked", "wave-tossed", "depthless", "hydrothermal", "mineral-rich", "pressure-crushed",
+                "glacier-fed", "plankton-hazed", "algae-choked", "ever-dark", "bioluminescent", "maelstrom-prone", "ice-fringed",
+                "monsoon-drenched", "sediment-swirled", "brine-heavy", "polar-swirled", "kelp-entangled", "subducted", "current-ripped",
+                "eel-infested", "cloud-reflective", "super-saturated", "foam-banded", "vortex-riddled", "underlit", "oxygen-rich",
+                "tsunami-scoured", "salinity-spiked", "whirlpool-ridden", "shallow-shelved", "aquaplaned", "thermal-pool-covered",
+                "abyssal", "crater-lakes-dotted", "blue-shifted", "photic-layered", "tidal-resonant", "cyclonic", "wave-beaten",
+                "oceanic-trench-scarred", "humid", "pressure-bubbled", "mirror-skinned", "undersea-mountainous", "ion-sprayed",
+                "warmwater-veined", "floating-crusts",
+                "kelp-forested", "cold-current-driven", "storm-drenched", "acidity-variable", "deoxygenated", "silt-heavy",
+                "thermal-ridge-lined", "photosynthetically-active", "tidal-flooded", "gyre-spun", "vent-shrouded", "coral-reef-buried",
+                "sonar-warping", "flood-basin-formed", "deep-eddy-trapped", "tidal-plume-veiled", "silicate-silted", "carbonate-enriched",
+                "methane-cloaked", "chlorophyll-stained", "oxygenated-surface", "fathomless", "atoll-ringed", "mud-flushed",
+                "algal-mirrored", "surface-churned", "trench-locked", "gyre-concentrated", "polar-basin-fed", "thermocline-defined",
+                "glacier-bound", "eddy-fed", "supercritical", "warm-saline", "current-conflicted", "storm-ringed", "surface-dappled",
+                "iceberg-littered", "permafrost-submerged", "ecologically-rich", "acoustically-deep", "turbidity-layered",
+                "ion-sheared", "wave-trapped", "plate-margin-ringed", "thermal-layered", "floodplain-spread", "biological-jungle"
             ],
             "Gas Giant": [
-              "striped", "swirled", "turbulent", "storm-belted", "radiation-heavy", "ion-rich", "hydrogen-thick", "ammonia-drenched",
-              "magneto-dominant", "aurora-wreathed", "metallic-hydrogen-core", "pressure-stacked", "perpetually-dark", "cloud-mottled",
-              "ring-shadowed", "cyclonic", "red-spotted", "glowing", "jet-stream-layered", "sunless-bright", "storm-eye-pocked",
-              "banded", "plasma-pierced", "helium-crowned", "convection-dominant", "field-raked", "super-rotating", "layer-shifting",
-              "fusion-core-theorized", "ballooned", "gravity-heavy", "phase-transitioned", "inner-core-unknown", "opaque",
-              "storm-walled", "ionized", "hazy", "anti-cyclonic", "methane-colored", "gas-torn", "thunder-laced", "static-storm-prone",
-              "windswept", "belt-encircled", "unstably-zoned", "convection-churned", "deep-atmosphere-dense", "horizonless", "seamless",
-              "vortex-flecked"
+                "striped", "swirled", "turbulent", "storm-belted", "radiation-heavy", "ion-rich", "hydrogen-thick", "ammonia-drenched",
+                "magneto-dominant", "aurora-wreathed", "metallic-hydrogen-core", "pressure-stacked", "perpetually-dark", "cloud-mottled",
+                "ring-shadowed", "cyclonic", "red-spotted", "glowing", "jet-stream-layered", "sunless-bright", "storm-eye-pocked",
+                "banded", "plasma-pierced", "helium-crowned", "convection-dominant", "field-raked", "super-rotating", "layer-shifting",
+                "fusion-core-theorized", "ballooned", "gravity-heavy", "phase-transitioned", "inner-core-unknown", "opaque",
+                "storm-walled", "ionized", "hazy", "anti-cyclonic", "methane-colored", "gas-torn", "thunder-laced", "static-storm-prone",
+                "windswept", "belt-encircled", "unstably-zoned", "convection-churned", "deep-atmosphere-dense", "horizonless", "seamless",
+                "vortex-flecked",
+                "equatorial-jetting", "chemically-segmented", "metallic-core-assumed", "infrared-bright", "sun-reflective",
+                "light-bent", "thermal-band-hazed", "gravity-lensed", "storm-evolving", "shock-wave-pulsed", "ammonia-belted",
+                "charged-layered", "roiling-clouded", "atmospheric-crashing", "gaseous-turbulence-wrapped", "resonance-laced",
+                "giant-moon-orbited", "eclipse-darkened", "dense-clouded", "insolation-variable", "ultraviolet-lit", "rotationally-sped",
+                "storm-shadowed", "multi-core-suspected", "convection-throttled", "gravitationally-skinned", "core-mystified",
+                "corona-pulsing", "plasma-bursting", "photon-diffused", "gas-sculpted", "deuterium-rich", "hydrocarbon-swirled",
+                "interior-melted", "storm-mirror-laced", "radiative-balanced", "zonal-flowing", "sun-haloed", "pulsing-bright",
+                "deep-pressured", "vapor-layered", "nebula-shaded", "chemical-phase-shifted", "shock-belted", "infra-layered",
+                "optically-thick", "unresolved-core"
             ],
             "Ice Giant": [
-              "slate-blue", "methane-rich", "diamond-raining", "frost-veiled", "deep-cooled", "glacial-cored", "cloud-smooth",
-              "methane-hazy", "ice-shelled", "haloed", "rayless", "subzero-windswept", "polar-jetted", "dimly-reflective",
-              "silence-encased", "slow-rotating", "mirror-frosted", "internal-heating", "gaseous-icebound", "ammonia-tinted",
-              "weatherless", "internal-stormed", "exosphere-heavy", "quiet-ringed", "subsurface-churning", "polar-vortex-trapped",
-              "aurora-burned", "sun-far", "diamond-patched", "glowless", "mildly-tilted", "mantle-frozen", "isothermal",
-              "refracted-light-skinned", "icy-gaseous", "moatless", "light-scattering", "deep-shadowed", "stratospheric", "blue-hued",
-              "ammonia-laced", "ice-pelleted", "heat-trapped", "frictionless", "cooled-core", "mantle-opaque", "storm-shrouded",
-              "ice-banded", "neon-ghosted", "plasma-silent"
+                "striped", "swirled", "turbulent", "storm-belted", "radiation-heavy", "ion-rich", "hydrogen-thick", "ammonia-drenched",
+                "magneto-dominant", "aurora-wreathed", "metallic-hydrogen-core", "pressure-stacked", "perpetually-dark", "cloud-mottled",
+                "ring-shadowed", "cyclonic", "red-spotted", "glowing", "jet-stream-layered", "sunless-bright", "storm-eye-pocked",
+                "banded", "plasma-pierced", "helium-crowned", "convection-dominant", "field-raked", "super-rotating", "layer-shifting",
+                "fusion-core-theorized", "ballooned", "gravity-heavy", "phase-transitioned", "inner-core-unknown", "opaque",
+                "storm-walled", "ionized", "hazy", "anti-cyclonic", "methane-colored", "gas-torn", "thunder-laced", "static-storm-prone",
+                "windswept", "belt-encircled", "unstably-zoned", "convection-churned", "deep-atmosphere-dense", "horizonless", "seamless",
+                "vortex-flecked",
+                "equatorial-jetting", "chemically-segmented", "metallic-core-assumed", "infrared-bright", "sun-reflective",
+                "light-bent", "thermal-band-hazed", "gravity-lensed", "storm-evolving", "shock-wave-pulsed", "ammonia-belted",
+                "charged-layered", "roiling-clouded", "atmospheric-crashing", "gaseous-turbulence-wrapped", "resonance-laced",
+                "giant-moon-orbited", "eclipse-darkened", "dense-clouded", "insolation-variable", "ultraviolet-lit", "rotationally-sped",
+                "storm-shadowed", "multi-core-suspected", "convection-throttled", "gravitationally-skinned", "core-mystified",
+                "corona-pulsing", "plasma-bursting", "photon-diffused", "gas-sculpted", "deuterium-rich", "hydrocarbon-swirled",
+                "interior-melted", "storm-mirror-laced", "radiative-balanced", "zonal-flowing", "sun-haloed", "pulsing-bright",
+                "deep-pressured", "vapor-layered", "nebula-shaded", "chemical-phase-shifted", "shock-belted", "infra-layered",
+                "optically-thick", "unresolved-core"
             ],
             "Desert": [
-              "dust-drenched", "heat-blasted", "parched", "horizonless", "mirage-prone", "sand-swept", "iron-rich", "scarred-dunes",
-              "wind-carved", "salt-flaked", "solar-baked", "arid", "sun-cracked", "dry-cored", "dune-migrated", "cinder-flecked",
-              "plateau-laced", "ash-covered", "glassified", "solar-flared", "scorch-shaded", "dry-seabed", "boulder-strewn",
-              "desiccated", "semi-molten", "badland-textured", "slag-stained", "thermal-vented", "flare-blasted", "crust-buckled",
-              "light-scorched", "carbon-scarred", "brimstone-colored", "canyon-choked", "superheated", "mirage-patched", "oxygen-void",
-              "withered", "hyperarid", "alkali-crusted", "obsidian-laced", "crag-ridden", "silica-blasted", "magnesium-pocked",
-              "stonewaved", "subducted-surface", "heat-pulsed", "flash-fried", "sodium-riddled", "light-sheared"
+                "cracked", "basaltic", "scarred", "igneous", "shattered", "uplifted", "pockmarked", "granular", "faulted", "brittle",
+                "quarried", "fractured", "cratered", "tumbled", "ridged", "lithified", "angular", "eroded", "porous", "barricaded",
+                "tectonically-stressed", "acid-etched", "veined", "cobbled", "volcanic", "collapsed", "resurfaced", "rubble-strewn",
+                "pulverized", "oxidized", "sulfur-stained", "gravity-twisted", "tidally-heaved", "basin-heavy", "geode-ridden",
+                "layered", "silicate-rich", "weatherblasted", "mined-out", "tremor-prone", "magnetically-chaotic", "ridge-locked",
+                "granitic", "ferrous", "scarlet-hued", "shard-covered", "dust-choked", "tectonic-plateaus", "rind-like", "mineral-laced",
+                "slag-lined", "fault-scored", "igneous-fused", "pebble-skinned", "shear-stressed", "rift-widened", "plate-boundary-marked",
+                "folded-range", "impact-heated", "crust-sunken", "magmatic-choked", "ash-blanketed", "breccia-layered", "tilted-shelf",
+                "collapsed-basin", "seismic-pitted", "obsidian-capped", "silica-crusted", "feldspar-rich", "lava-tunnel-riddled",
+                "fissure-veined", "impact-glassed", "pyroclastic", "seared-flats", "gravel-choked", "boulder-ridden", "scar-torn",
+                "irregular-terrained", "ridge-buckled", "iron-panned", "basin-collapsed", "mantle-upwelled", "stressed-ridgelines",
+                "core-heavy", "fault-braided", "lava-seamed", "dome-scarred", "spine-crowned", "canyon-cut", "microfractured",
+                "silicified", "geologically-active", "vein-stained", "metamorphic", "tectonically-folded", "sulfur-vented",
+                "shale-layered", "batholithic"
             ]
-          };
-          
-
-
+        };        
         
         // Select two random adjectives and join them
         const firstAdjective = this.randomChoice(planetAdjectives[this.bodyProperties.type]);
