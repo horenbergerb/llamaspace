@@ -3,6 +3,8 @@ import { Anomaly } from './anomaly.js';
 import { TextGeneratorOpenRouter } from '../text-gen-openrouter.js';
 
 export class MapPlanet extends MapBody {
+    static recentDescriptions = []; // Static array to store last 5 descriptions
+
     constructor(sketch, parentStar, orbitIndex, eventBus) {
         super(sketch);
         this.parentStar = parentStar;
@@ -362,6 +364,12 @@ export class MapPlanet extends MapBody {
     }
 
     async getCommonScenarioPrompt() {
+        let recentReportsSection = '';
+        if (MapPlanet.recentDescriptions.length > 0) {
+            recentReportsSection = '\nRecent planetary reports from other systems:\n' +
+                MapPlanet.recentDescriptions.map(desc => `- ${desc}`).join('\n') + '\n';
+        }
+
         return `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
 The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
@@ -369,6 +377,9 @@ The player is Donald, captain of a small starship known as the Galileo. The Gali
 The Galileo is equipped with standard research equipment and meagre weaponry. It has a small replicator and two shuttlecraft. It has most of the resources needed to sustain a crew of 15 for a year.
 
 Donald, his ship, and his crew are all nobodies. Donald's promotion to captain was something of a nepotism scandal. His crew is composed of misfits and those with complicated pasts in the service. The ship itself is old and worn out, but everyone on board is used to getting the short end of the stick. This research mission to the D-124 star system is an exile, but it's also a chance for the entire crew to redeem themselves.
+
+The science officer is responsible for writing reports on the planets they visit in the ship's log.
+${recentReportsSection}
 
 The ship is orbiting a planet named ${this.name} in the ${this.parentStar.name} system.
 
@@ -391,7 +402,7 @@ Descriptors: ${this.adjectives}
 
 This planet has a weirdness level of ${this.generateWeirdnessLevel()}
 
-The science officer is preparing their first report about this planet. Write two or three sentences from the science officer describing what they've found. The report should focus on the visual features and notable characteristics of the planet, making it feel unique and interesting. Use creative license to make the planet feel alive and mysterious, but keep it grounded in the scientific data available, and don't make it sound too fantastical.
+The science officer is preparing their first report about this planet. Write two or three sentences from the science officer describing what they've found. The report should focus on the visual features and notable characteristics of the planet, making it feel unique and interesting. Use creative license to make the planet feel alive and mysterious, but keep it grounded in the scientific data available, and don't make it sound too fantastical. This report should be totally distinct from the recent reports on other planets.
 
 Format your response as two or three sentences with no additional text or formatting. It's a quick note in the ship's log only moments after the initial scan was completed.`;
 
@@ -402,7 +413,11 @@ Format your response as two or three sentences with no additional text or format
                 1.3,
                 2000  // Max tokens
             );
-            this.description = this.description.trim();
+            // Update the static array of recent descriptions
+            MapPlanet.recentDescriptions.unshift(this.description);
+            // Keep only the last 5 descriptions
+            MapPlanet.recentDescriptions = MapPlanet.recentDescriptions.slice(0, 10);
+
             console.log('Planet description generated:', this.description);
         } catch (error) {
             this.description = null;
