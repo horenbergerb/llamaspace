@@ -118,6 +118,39 @@ export class UIRenderer {
             totalHeight += 20;
         }
 
+        // Add planet description if present
+        if (ui.body && ui.body.description) {
+            // Add minimal spacing
+            currentY += 5;
+            totalHeight += 5;
+            
+            // Show the planet description
+            pg.fill(255, 255, 255); // White color for description
+            pg.text("Planet Description:", 15, currentY);
+            currentY += 20;
+            totalHeight += 20;
+            
+            // Split the description into multiple lines if needed
+            const words = ui.body.description.split(' ');
+            let currentLine = '';
+            
+            for (const word of words) {
+                const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                if (pg.textWidth(testLine) < ui.uiWidth - 30) { // 30 pixels for margins
+                    currentLine = testLine;
+                } else {
+                    pg.text(currentLine, 15, currentY);
+                    currentY += 20;
+                    totalHeight += 20;
+                    currentLine = word;
+                }
+            }
+            if (currentLine) {
+                pg.text(currentLine, 15, currentY);
+                totalHeight += 20;
+            }
+        }
+
         // Add anomaly information if present
         if (ui.body && ui.body.anomaly) {
             // Add minimal spacing

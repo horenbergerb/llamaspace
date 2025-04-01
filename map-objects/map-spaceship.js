@@ -82,6 +82,8 @@ export class Spaceship {
             if (this.eventBus) {
                 this.eventBus.emit('orbitBodyChanged', this.orbitBody);
                 this.orbitBody.scanForAnomalies();
+                if (this.orbitBody.isPlanet)
+                    this.orbitBody.generateDescription();
             }
             return;
         }
@@ -236,6 +238,8 @@ export class Spaceship {
         if (this.eventBus) {
             this.eventBus.emit('orbitBodyChanged', this.orbitBody);
             this.orbitBody.scanForAnomalies();
+            if (this.orbitBody.isPlanet)
+                this.orbitBody.generateDescription();
         }
     }
 

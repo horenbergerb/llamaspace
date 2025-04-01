@@ -1,5 +1,6 @@
 import { MapBody } from './map-body.js';
 import { Anomaly } from './anomaly.js';
+import { TextGeneratorOpenRouter } from '../text-gen-openrouter.js';
 
 export class MapPlanet extends MapBody {
     constructor(sketch, parentStar, orbitIndex, eventBus) {
@@ -8,6 +9,10 @@ export class MapPlanet extends MapBody {
         this.orbitIndex = orbitIndex; // Used to determine orbit radius
         this.isPlanet = true;
         this.missions = [];
+        this.eventBus = eventBus;
+        this.textGenerator = null;
+        this.description = null;
+        this.adjectives = null;
         
         // Orbital properties
         this.orbitRadius = this.calculateOrbitRadius();
@@ -27,6 +32,11 @@ export class MapPlanet extends MapBody {
 
         this.sketch.registerMethod('pre', () => {
             this.missions.forEach(mission => mission.update());
+        });
+
+        // Subscribe to API key updates
+        this.eventBus.on('apiKeyUpdated', (apiKey) => {
+            this.textGenerator = new TextGeneratorOpenRouter(apiKey);
         });
     }
 
@@ -51,6 +61,17 @@ export class MapPlanet extends MapBody {
             habitability: "Uninhabitable",
             resources: this.generateResources()
         };
+
+        // Generate random adjectives for the planet
+        const planetAdjectives = [
+            "barren", "volcanic", "frozen", "temperate", "desolate",
+            "lush", "rocky", "gaseous", "stormy", "mysterious"
+        ];
+        
+        // Select two random adjectives and join them
+        const firstAdjective = this.randomChoice(planetAdjectives);
+        const secondAdjective = this.randomChoice(planetAdjectives);
+        this.adjectives = `${firstAdjective}, ${secondAdjective}`;
 
         // Adjust size based on planet type
         if (this.bodyProperties.type === 'Gas Giant') {
@@ -229,5 +250,56 @@ export class MapPlanet extends MapBody {
                `Rings: ${this.bodyProperties.hasRings ? "Yes" : "No"}\n` +
                `Habitability: ${this.bodyProperties.habitability}\n` +
                `Resources: ${this.bodyProperties.resources.join(", ")}\n`;
+    }
+
+    randomChoice(options) {
+        return options[Math.floor(Math.random() * options.length)];
+    }
+
+    async getCommonScenarioPrompt() {
+        return `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
+
+The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
+
+The Galileo is equipped with standard research equipment and meagre weaponry. It has a small replicator and two shuttlecraft. It has most of the resources needed to sustain a crew of 15 for a year.
+
+Donald, his ship, and his crew are all nobodies. Donald's promotion to captain was something of a nepotism scandal. His crew is composed of misfits and those with complicated pasts in the service. The ship itself is old and worn out, but everyone on board is used to getting the short end of the stick. This research mission to the D-124 star system is an exile, but it's also a chance for the entire crew to redeem themselves.
+
+The ship is orbiting a planet named ${this.name} in the ${this.parentStar.name} system.
+
+Here is some information about the planet:
+
+${this.getDescription()}`;
+    }
+
+    async generateDescription() {
+        if (this.description) return this.description;
+        
+        this.description = "Scanning planet...";
+        const commonPrompt = await this.getCommonScenarioPrompt();
+
+        const prompt = `${commonPrompt}
+
+The ship has completed its initial scan of the planet. These are some descriptors of the planet:
+
+Descriptors: ${this.adjectives}
+
+The science officer is preparing their first report about this planet. Write three or four sentences from the science officer to Captain Donald describing what they've found. The report should focus on the most striking visual features and notable characteristics of the planet, making it feel unique and interesting. Use creative license to make the planet feel alive and mysterious, but keep it grounded in the scientific data available, and don't make it sound too fantastical.
+
+Format your response as a single paragraph with no additional text or formatting. It's a verbal report only moments after the initial scan was completed.`;
+
+        try {
+            await this.textGenerator.generateText(
+                prompt,
+                (text) => { this.description = text; },
+                1.5, // Lower temperature for more focused output
+                2000  // Max tokens
+            );
+            this.description = this.description.trim();
+            console.log('Planet description generated:', this.description);
+        } catch (error) {
+            this.description = null;
+            console.error('Error generating planet description:', error);
+        }
     }
 } 
