@@ -225,7 +225,7 @@ export class MapStar extends MapBody {
         this.sketch.ellipse(this.baseX, this.baseY, this.size);
 
         // Draw anomaly indicator if anomalies are detected
-        if (this.anomaliesDetected) {
+        if (this.anomaliesDetected && !this.systemView) {
             this.sketch.fill(255, 0, 0); // Red color for the indicator
             this.sketch.textSize(12);
             this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
