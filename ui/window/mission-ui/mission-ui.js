@@ -634,7 +634,10 @@ export class MissionUI extends BaseWindowUI {
         // Draw each mission with scroll offset
         let contentY = this.listBuffer.scrollOffset + 30;
 
-        this.missions.forEach((mission, index) => {
+        // Create a reversed copy of missions array to show newest first
+        const reversedMissions = [...this.missions].reverse();
+
+        reversedMissions.forEach((mission, index) => {
             // Draw mission box
             buffer.fill(60);
             buffer.stroke(100);

@@ -162,6 +162,26 @@ export class Mission {
             anomalyReport = `\nThe science officer has reported an anomaly on or near this body:\n${orbitingBody.anomaly.firstReport}\n`;
         }
 
+        // Get recent mission history
+        let recentMissionsSection = '';
+        if (orbitingBody.missions && orbitingBody.missions.length > 0) {
+            const recentMissions = orbitingBody.missions
+                .slice(-10) // Get last 10 missions
+                .map(mission => {
+                    const outcome = mission.completed ? 
+                        (mission.cancelled ? 'cancelled' : 
+                         (mission.outcome ? 'successful' : 'failed')) : 
+                        'in progress';
+                    const steps = mission.steps.map((step, i) => 
+                        `${i + 1}. ${step}${i === mission.currentStep ? ' (current)' : ''}`
+                    ).join('\n');
+                    return `Mission: ${mission.objective}\nOutcome: ${outcome}\nSteps:\n${steps}\n`;
+                })
+                .join('\n');
+            
+            recentMissionsSection = `\nRecent mission history on this body (Oldest to newest):\n${recentMissions}`;
+        }
+
         return `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
 The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
@@ -181,7 +201,7 @@ ${bodyContext}
 
 Here is some information about the body the ship is orbiting:
 
-${orbitingBody.getDescription()}${anomalyReport}`;
+${orbitingBody.getDescription()}${anomalyReport}${recentMissionsSection}`;
     }
 
     async generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody) {
@@ -278,7 +298,7 @@ Format your response exactly like this, with one step per line starting with a n
 2. Second report here
 etc.
 
-Keep steps clear and actionable. Write them in plaintext with no titles or other formatting. The number of steps should reflect task complexity relative to standard operations. Routine tasks like planetary surveys are simpler and have fewer steps. Be realistic about what is possible for the Galileo.`;
+Keep steps clear and actionable. Write them in plaintext with no titles or other formatting. The number of steps should reflect task complexity relative to standard operations. Routine tasks like planetary surveys are simpler and have fewer steps. Be realistic about what is possible for the Galileo. The steps of this mission should be creatively and stylistically distinct from the steps of recent missions on this body.`;
 
         let stepsText = '';
         try {
