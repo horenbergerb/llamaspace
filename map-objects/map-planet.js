@@ -194,6 +194,17 @@ export class MapPlanet extends MapBody {
             this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
             this.sketch.text('A', this.baseX - this.size - 5, this.baseY - this.size - 5);
         }
+
+        // Draw exclamation point indicator for unviewed missions
+        if (this.missions.some(mission => !mission.viewed)) {
+            this.sketch.noStroke();
+            this.sketch.fill(255, 165, 0); // Orange color for the mission indicator
+            this.sketch.textSize(12);
+            this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            // Position the exclamation point to the right of the anomaly indicator if it exists
+            const xOffset = this.anomaly !== null && this.anomaly.firstReport !== null ? 15 : 0;
+            this.sketch.text('!', this.baseX - this.size - 5 + xOffset, this.baseY - this.size - 5);
+        }
         
         if (this.isSelected) {
             this.drawSelector();

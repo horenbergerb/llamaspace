@@ -89,10 +89,6 @@ export class MissionUI extends BaseWindowUI {
             this.currentPage = 'add';
             this.addBuffer.resetScroll();
         });
-        this.eventBus.on('missionUIClosed', () => {
-            this.currentPage = 'list'; // Reset to list page when closing
-            this.closeWindow();
-        });
         this.eventBus.on('shipUIOpened', () => {
             this.closeWindow();
         });
@@ -144,13 +140,15 @@ export class MissionUI extends BaseWindowUI {
     }
 
     closeWindow() {
+        if (this.isWindowVisible) {
+            this.missions.forEach(mission => {
+                mission.viewed = true;
+            });
+        }
+        this.currentPage = 'list';
         this.isWindowVisible = false;
         this.objectiveTextBox.setActive(false);
         this.objectiveTextBox.hideMobileInput();
-
-        this.missions.forEach(mission => {
-            mission.viewed = true;
-        });
     }
 
     updateButtonPosition() {
@@ -286,8 +284,7 @@ export class MissionUI extends BaseWindowUI {
 
             // Check close button
             if (this.isCloseButtonClicked(mouseX, mouseY)) {
-                this.isWindowVisible = false;
-                this.eventBus.emit('missionUIClosed');
+                this.closeWindow();
                 return true;
             }
 
@@ -381,8 +378,7 @@ export class MissionUI extends BaseWindowUI {
 
             // Check close button
             if (this.isCloseButtonClicked(touchX, touchY)) {
-                this.isWindowVisible = false;
-                this.eventBus.emit('missionUIClosed');
+                this.closeWindow();
                 return true;
             }
 

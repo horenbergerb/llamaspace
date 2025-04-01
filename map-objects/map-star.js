@@ -15,7 +15,7 @@ export class MapStar extends MapBody {
         this.isStar = true; // Add flag to identify stars
         this.planets = []; // Array to store planetary bodies
         this.anomaliesDetected = false;
-
+        this.systemView = false;
         this.generateStarProperties(sketch);
 
         // Naming
@@ -230,6 +230,17 @@ export class MapStar extends MapBody {
             this.sketch.textSize(12);
             this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
             this.sketch.text('A', this.baseX - this.size - 5, this.baseY - this.size - 5);
+        }
+
+        // Draw exclamation point indicator if any planet has unviewed missions
+        if (this.planets.some(planet => planet.missions.some(mission => !mission.viewed)) && !this.systemView) {
+            this.sketch.noStroke();
+            this.sketch.fill(255, 165, 0); // Orange color for the mission indicator
+            this.sketch.textSize(12);
+            this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            // Position the exclamation point to the right of the anomaly indicator if it exists
+            const xOffset = this.anomaliesDetected ? 15 : 0;
+            this.sketch.text('!', this.baseX - this.size - 5 + xOffset, this.baseY - this.size - 5);
         }
 
         this.sketch.pop();
