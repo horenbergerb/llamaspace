@@ -62,15 +62,62 @@ export class MapPlanet extends MapBody {
             resources: this.generateResources()
         };
 
-        // Generate random adjectives for the planet
-        const planetAdjectives = [
-            "barren", "volcanic", "frozen", "temperate", "desolate",
-            "lush", "rocky", "gaseous", "stormy", "mysterious"
-        ];
+        const planetAdjectives = {
+            "Rocky": [
+              "cracked", "basaltic", "scarred", "igneous", "shattered", "uplifted", "pockmarked", "granular", "faulted", "brittle",
+              "quarried", "fractured", "cratered", "tumbled", "ridged", "lithified", "angular", "eroded", "porous", "barricaded",
+              "tectonically-stressed", "acid-etched", "veined", "cobbled", "volcanic", "collapsed", "resurfaced", "rubble-strewn",
+              "pulverized", "oxidized", "sulfur-stained", "gravity-twisted", "tidally-heaved", "basin-heavy", "geode-ridden",
+              "layered", "silicate-rich", "weatherblasted", "mined-out", "tremor-prone", "magnetically-chaotic", "ridge-locked",
+              "granitic", "ferrous", "scarlet-hued", "shard-covered", "dust-choked", "tectonic-plateaus", "rind-like", "mineral-laced"
+            ],
+            "Ocean": [
+              "storm-wracked", "tidally-locked", "wave-tossed", "depthless", "hydrothermal", "mineral-rich", "pressure-crushed",
+              "glacier-fed", "plankton-hazed", "algae-choked", "ever-dark", "bioluminescent", "maelstrom-prone", "ice-fringed",
+              "monsoon-drenched", "sediment-swirled", "brine-heavy", "polar-swirled", "kelp-entangled", "subducted", "current-ripped",
+              "eel-infested", "cloud-reflective", "super-saturated", "foam-banded", "vortex-riddled", "underlit", "oxygen-rich",
+              "tsunami-scoured", "salinity-spiked", "whirlpool-ridden", "shallow-shelved", "aquaplaned", "thermal-pool-covered",
+              "abyssal", "crater-lakes-dotted", "blue-shifted", "photic-layered", "tidal-resonant", "cyclonic", "wave-beaten",
+              "oceanic-trench-scarred", "humid", "pressure-bubbled", "mirror-skinned", "undersea-mountainous", "ion-sprayed",
+              "warmwater-veined", "floating-crusts"
+            ],
+            "Gas Giant": [
+              "striped", "swirled", "turbulent", "storm-belted", "radiation-heavy", "ion-rich", "hydrogen-thick", "ammonia-drenched",
+              "magneto-dominant", "aurora-wreathed", "metallic-hydrogen-core", "pressure-stacked", "perpetually-dark", "cloud-mottled",
+              "ring-shadowed", "cyclonic", "red-spotted", "glowing", "jet-stream-layered", "sunless-bright", "storm-eye-pocked",
+              "banded", "plasma-pierced", "helium-crowned", "convection-dominant", "field-raked", "super-rotating", "layer-shifting",
+              "fusion-core-theorized", "ballooned", "gravity-heavy", "phase-transitioned", "inner-core-unknown", "opaque",
+              "storm-walled", "ionized", "hazy", "anti-cyclonic", "methane-colored", "gas-torn", "thunder-laced", "static-storm-prone",
+              "windswept", "belt-encircled", "unstably-zoned", "convection-churned", "deep-atmosphere-dense", "horizonless", "seamless",
+              "vortex-flecked"
+            ],
+            "Ice Giant": [
+              "slate-blue", "methane-rich", "diamond-raining", "frost-veiled", "deep-cooled", "glacial-cored", "cloud-smooth",
+              "methane-hazy", "ice-shelled", "haloed", "rayless", "subzero-windswept", "polar-jetted", "dimly-reflective",
+              "silence-encased", "slow-rotating", "mirror-frosted", "internal-heating", "gaseous-icebound", "ammonia-tinted",
+              "weatherless", "internal-stormed", "exosphere-heavy", "quiet-ringed", "subsurface-churning", "polar-vortex-trapped",
+              "aurora-burned", "sun-far", "diamond-patched", "glowless", "mildly-tilted", "mantle-frozen", "isothermal",
+              "refracted-light-skinned", "icy-gaseous", "moatless", "light-scattering", "deep-shadowed", "stratospheric", "blue-hued",
+              "ammonia-laced", "ice-pelleted", "heat-trapped", "frictionless", "cooled-core", "mantle-opaque", "storm-shrouded",
+              "ice-banded", "neon-ghosted", "plasma-silent"
+            ],
+            "Desert": [
+              "dust-drenched", "heat-blasted", "parched", "horizonless", "mirage-prone", "sand-swept", "iron-rich", "scarred-dunes",
+              "wind-carved", "salt-flaked", "solar-baked", "arid", "sun-cracked", "dry-cored", "dune-migrated", "cinder-flecked",
+              "plateau-laced", "ash-covered", "glassified", "solar-flared", "scorch-shaded", "dry-seabed", "boulder-strewn",
+              "desiccated", "semi-molten", "badland-textured", "slag-stained", "thermal-vented", "flare-blasted", "crust-buckled",
+              "light-scorched", "carbon-scarred", "brimstone-colored", "canyon-choked", "superheated", "mirage-patched", "oxygen-void",
+              "withered", "hyperarid", "alkali-crusted", "obsidian-laced", "crag-ridden", "silica-blasted", "magnesium-pocked",
+              "stonewaved", "subducted-surface", "heat-pulsed", "flash-fried", "sodium-riddled", "light-sheared"
+            ]
+          };
+          
+
+
         
         // Select two random adjectives and join them
-        const firstAdjective = this.randomChoice(planetAdjectives);
-        const secondAdjective = this.randomChoice(planetAdjectives);
+        const firstAdjective = this.randomChoice(planetAdjectives[this.bodyProperties.type]);
+        const secondAdjective = this.randomChoice(planetAdjectives[this.bodyProperties.type]);
         this.adjectives = `${firstAdjective}, ${secondAdjective}`;
 
         // Adjust size based on planet type
@@ -256,6 +303,26 @@ export class MapPlanet extends MapBody {
         return options[Math.floor(Math.random() * options.length)];
     }
 
+    generateWeirdnessLevel() {
+        const rand = Math.random() * 100; // Random number between 0 and 100
+        let level;
+        if (rand < 50) level = 1;      // 50% chance
+        else if (rand < 75) level = 2; // 25% chance
+        else if (rand < 85) level = 3; // 10% chance
+        else if (rand < 95) level = 4; // 10% chance
+        else level = 5;                // 5% chance
+
+        const descriptors = {
+            1: "boring",
+            2: "slightly unusual",
+            3: "notable",
+            4: "strange",
+            5: "bizarre"
+        };
+
+        return `${level}/5 (${descriptors[level]})`;
+    }
+
     async getCommonScenarioPrompt() {
         return `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
@@ -284,6 +351,8 @@ The ship has completed its initial scan of the planet. These are some descriptor
 
 Descriptors: ${this.adjectives}
 
+This planet has a weirdness level of ${this.generateWeirdnessLevel()}
+
 The science officer is preparing their first report about this planet. Write three or four sentences from the science officer to Captain Donald describing what they've found. The report should focus on the most striking visual features and notable characteristics of the planet, making it feel unique and interesting. Use creative license to make the planet feel alive and mysterious, but keep it grounded in the scientific data available, and don't make it sound too fantastical.
 
 Format your response as a single paragraph with no additional text or formatting. It's a verbal report only moments after the initial scan was completed.`;
@@ -292,7 +361,7 @@ Format your response as a single paragraph with no additional text or formatting
             await this.textGenerator.generateText(
                 prompt,
                 (text) => { this.description = text; },
-                1.5, // Lower temperature for more focused output
+                1.3,
                 2000  // Max tokens
             );
             this.description = this.description.trim();
