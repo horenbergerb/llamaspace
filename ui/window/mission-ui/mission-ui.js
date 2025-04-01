@@ -73,8 +73,6 @@ export class MissionUI extends BaseWindowUI {
             if (this.isGeneratingMission) {
                 this.loadingAngle += 10; // Rotate 10 degrees per frame
             }
-            // Update all missions
-            this.missions.forEach(mission => mission.update());
         });
 
         // Subscribe to UI visibility events

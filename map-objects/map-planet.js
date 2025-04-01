@@ -7,6 +7,7 @@ export class MapPlanet extends MapBody {
         this.parentStar = parentStar;
         this.orbitIndex = orbitIndex; // Used to determine orbit radius
         this.isPlanet = true;
+        this.missions = [];
         
         // Orbital properties
         this.orbitRadius = this.calculateOrbitRadius();
@@ -23,6 +24,10 @@ export class MapPlanet extends MapBody {
 
         // Add anomaly with 1/3 chance
         this.anomaly = sketch.random() < 0.33 ? new Anomaly(eventBus) : null;
+
+        this.sketch.registerMethod('pre', () => {
+            this.missions.forEach(mission => mission.update());
+        });
     }
 
     scanForAnomalies(){

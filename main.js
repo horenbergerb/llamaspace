@@ -80,16 +80,15 @@ var mapSketch = function(sketch) {
             globalEventBus.emit('missionsUpdated', missions);
         });
 
-        // Subscribe to setDestination to cancel in-progress missions
-        globalEventBus.on('setDestination', (body) => {
-            // Cancel any in-progress missions
-            missions.forEach(mission => {
-                if (!mission.completed) {
-                    mission.cancel();
-                }
-            });
+
+    // arriving at a planet should emit an event with missions for that planet
+    // Actually, arriving at planet should just update MissionUI with spaceship.orbitBody.missions
+        globalEventBus.on('orbitBodyChanged', (orbitBody) => {
+            missions = orbitBody.isPlanet ? orbitBody.missions : [];
+            uiManager.getUI('mission').missions = missions;
         });
     };
+
 
     sketch.setup = async function() {
         let sketchHolder = document.getElementById('simple-example-holder'); // Get the container
