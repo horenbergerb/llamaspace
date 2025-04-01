@@ -306,11 +306,11 @@ export class MapPlanet extends MapBody {
     generateWeirdnessLevel() {
         const rand = Math.random() * 100; // Random number between 0 and 100
         let level;
-        if (rand < 50) level = 1;      // 50% chance
-        else if (rand < 75) level = 2; // 25% chance
-        else if (rand < 85) level = 3; // 10% chance
-        else if (rand < 95) level = 4; // 10% chance
-        else level = 5;                // 5% chance
+        if (rand < 60) level = 1;      // 60% chance
+        else if (rand < 85) level = 2; // 25% chance
+        else if (rand < 96) level = 3; // 11% chance
+        else if (rand < 99) level = 4; // 3% chance
+        else level = 5;                // 1% chance
 
         const descriptors = {
             1: "boring",
