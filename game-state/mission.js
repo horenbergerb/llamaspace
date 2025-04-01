@@ -20,9 +20,11 @@ export class Mission {
         this.failureConsequences = null; // Store parsed failure consequences
         this.currentInventory = {}; // Store current inventory state
         this.shuttleStatus = []; // Store current shuttle status
+        this.viewed = false;
     }
 
     complete() {
+        this.viewed = false;
         this.completed = true;
         if (this.eventBus) {
             this.eventBus.emit('missionCompleted', this);

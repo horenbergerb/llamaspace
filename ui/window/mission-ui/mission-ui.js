@@ -78,6 +78,7 @@ export class MissionUI extends BaseWindowUI {
         // Subscribe to UI visibility events
         this.eventBus.on('missionUIOpened', () => {
             this.isWindowVisible = true;
+
             this.currentPage = 'list'; // Reset to list page when opening
             this.objectiveTextBox.setActive(false);
             this.objectiveTextBox.setText(''); // Clear text fields when opening
@@ -89,38 +90,26 @@ export class MissionUI extends BaseWindowUI {
             this.addBuffer.resetScroll();
         });
         this.eventBus.on('missionUIClosed', () => {
-            this.isWindowVisible = false;
             this.currentPage = 'list'; // Reset to list page when closing
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
+            this.closeWindow();
         });
         this.eventBus.on('shipUIOpened', () => {
-            this.isWindowVisible = false;
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
+            this.closeWindow();
         });
         this.eventBus.on('settingsUIOpened', () => {
-            this.isWindowVisible = false;
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
+            this.closeWindow();
         });
 
         // Subscribe to scene changes
         this.eventBus.on('sceneChanged', (scene) => {
             this.currentScene = scene;
-            // Close the window when changing scenes
-            this.isWindowVisible = false;
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
+            this.closeWindow();
         });
 
         // Subscribe to orbit body changes
         this.eventBus.on('orbitBodyChanged', (body) => {
             this.orbitingBody = body;
-
-            this.isWindowVisible = false;
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
+            this.closeWindow();
         });
 
         // Subscribe to system enter/exit events
@@ -130,10 +119,7 @@ export class MissionUI extends BaseWindowUI {
 
         this.eventBus.on('returnToGalaxy', () => {
             this.isInSystemScene = false;
-            // Close the window when returning to galaxy
-            this.isWindowVisible = false;
-            this.objectiveTextBox.setActive(false);
-            this.objectiveTextBox.hideMobileInput();
+            this.closeWindow();
         });
 
         // Subscribe to API key updates
@@ -155,6 +141,16 @@ export class MissionUI extends BaseWindowUI {
 
         // Initialize mission button
         this.missionButton = new MissionButton(sketch, eventBus);
+    }
+
+    closeWindow() {
+        this.isWindowVisible = false;
+        this.objectiveTextBox.setActive(false);
+        this.objectiveTextBox.hideMobileInput();
+
+        this.missions.forEach(mission => {
+            mission.viewed = true;
+        });
     }
 
     updateButtonPosition() {
