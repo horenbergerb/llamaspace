@@ -391,7 +391,7 @@ Descriptors: ${this.adjectives}
 
 This planet has a weirdness level of ${this.generateWeirdnessLevel()}
 
-The science officer is preparing their first report about this planet. Write three or four sentences from the science officer to Captain Donald describing what they've found. The report should focus on the most striking visual features and notable characteristics of the planet, making it feel unique and interesting. Use creative license to make the planet feel alive and mysterious, but keep it grounded in the scientific data available, and don't make it sound too fantastical.
+The science officer is preparing their first report about this planet. Write three or four sentences from the science officer describing what they've found. The report should focus on the visual features and notable characteristics of the planet, making it feel unique and interesting. Use creative license to make the planet feel alive and mysterious, but keep it grounded in the scientific data available, and don't make it sound too fantastical.
 
 Format your response as a single paragraph with no additional text or formatting. It's a verbal report only moments after the initial scan was completed.`;
 
