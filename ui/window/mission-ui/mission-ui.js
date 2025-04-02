@@ -42,6 +42,9 @@ export class MissionUI extends BaseWindowUI {
         this.tooltipTimeout = null;
         this.tooltipDuration = 2000; // Duration in milliseconds
 
+        // Hover state
+        this.hoveredMissionIndex = -1;
+
         // Create text boxes
         this.objectiveTextBox = new TextBox(sketch, eventBus, {
             width: 400,
@@ -658,10 +661,18 @@ export class MissionUI extends BaseWindowUI {
         // Create a reversed copy of missions array to show newest first
         const reversedMissions = [...this.missions].reverse();
 
+        // Check for hover state
+        const mouseX = this.sketch.mouseX - (x + 20); // Adjust for window position and margin
+        const mouseY = this.sketch.mouseY - (y + this.contentStartY); // Adjust for window position and content start
+
         reversedMissions.forEach((mission, index) => {
-            // Draw mission box
-            buffer.fill(60);
-            buffer.stroke(100);
+            // Check if mouse is hovering over this mission box
+            const isHovered = mouseX >= 0 && mouseX <= contentWidth &&
+                            mouseY >= contentY && mouseY <= contentY + 80;
+
+            // Draw mission box with hover effect
+            buffer.fill(isHovered ? 70 : 60); // Slightly lighter when hovered
+            buffer.stroke(isHovered ? 120 : 100); // Brighter border when hovered
             buffer.strokeWeight(1);
             buffer.rect(0, contentY, contentWidth, 80, 3);
 
