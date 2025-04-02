@@ -37,6 +37,11 @@ export class MissionUI extends BaseWindowUI {
         this.createButtonHeight = 40;
         this.createButtonWidth = 150;
 
+        // Tooltip properties
+        this.tooltipText = null;
+        this.tooltipTimeout = null;
+        this.tooltipDuration = 2000; // Duration in milliseconds
+
         // Create text boxes
         this.objectiveTextBox = new TextBox(sketch, eventBus, {
             width: 400,
@@ -86,8 +91,13 @@ export class MissionUI extends BaseWindowUI {
             this.addBuffer.resetScroll();
         });
         this.eventBus.on('missionUIAddPage', () => {
-            this.currentPage = 'add';
-            this.addBuffer.resetScroll();
+            if (this.hasMissionInProgress()) {
+                this.showTemporaryTooltip("A mission is already in progress on this planet");
+                this.currentPage = 'list';
+            } else {
+                this.currentPage = 'add';
+                this.addBuffer.resetScroll();
+            }
         });
         this.eventBus.on('shipUIOpened', () => {
             this.closeWindow();
@@ -291,6 +301,10 @@ export class MissionUI extends BaseWindowUI {
             // Handle page-specific button clicks
             if (this.currentPage === 'list') {
                 if (this.isAddButtonClicked(mouseX, mouseY)) {
+                    if (this.hasMissionInProgress()) {
+                        this.showTemporaryTooltip("A mission is already in progress on this planet");
+                        return true;
+                    }
                     this.currentPage = 'add';
                     this.addBuffer.resetScroll();
                     return true;
@@ -385,6 +399,10 @@ export class MissionUI extends BaseWindowUI {
             // Handle page-specific button clicks
             if (this.currentPage === 'list') {
                 if (this.isAddButtonClicked(touchX, touchY)) {
+                    if (this.hasMissionInProgress()) {
+                        this.showTemporaryTooltip("A mission is already in progress on this planet");
+                        return true;
+                    }
                     this.currentPage = 'add';
                     this.addBuffer.resetScroll();
                     return true;
@@ -600,6 +618,9 @@ export class MissionUI extends BaseWindowUI {
         } else {
             this.renderAddMissionPage(x, y, windowWidth, windowHeight);
         }
+
+        // Render temporary tooltip if active
+        this.renderTemporaryTooltip();
     }
 
     renderMissionListPage(x, y, width, height) {
@@ -815,6 +836,58 @@ export class MissionUI extends BaseWindowUI {
         
         return mouseX >= backX && mouseX <= backX + this.backArrowSize &&
                mouseY >= backY && mouseY <= backY + this.backArrowSize;
+    }
+
+    hasMissionInProgress() {
+        if (this.missions.length === 0) return false;
+        const lastMission = this.missions[this.missions.length - 1];
+        return !lastMission.completed;
+    }
+
+    showTemporaryTooltip(text) {
+        this.tooltipText = text;
+        if (this.tooltipTimeout) {
+            clearTimeout(this.tooltipTimeout);
+        }
+        this.tooltipTimeout = setTimeout(() => {
+            this.tooltipText = null;
+        }, this.tooltipDuration);
+    }
+
+    renderTemporaryTooltip() {
+        if (!this.tooltipText) return;
+
+        this.sketch.push();
+        
+        // Draw tooltip background
+        this.sketch.fill(0, 0, 0, 200);
+        this.sketch.noStroke();
+        
+        // Calculate text dimensions
+        this.sketch.textSize(14);
+        const padding = 10;
+        const tooltipWidth = this.sketch.textWidth(this.tooltipText) + (padding * 2);
+        const tooltipHeight = 30;
+        
+        // Position tooltip near the add button
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+        let addX = x + this.addButtonMargin;
+        let addY = y + this.addButtonMargin;
+        
+        const tooltipX = addX + this.addButtonSize + 10;
+        const tooltipY = addY - 5;
+        
+        // Draw tooltip background with rounded corners
+        this.sketch.rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 5);
+        
+        // Draw tooltip text
+        this.sketch.fill(255);
+        this.sketch.textAlign(this.sketch.LEFT, this.sketch.CENTER);
+        this.sketch.text(this.tooltipText, tooltipX + padding, tooltipY + tooltipHeight/2);
+        
+        this.sketch.pop();
     }
 
 } 
