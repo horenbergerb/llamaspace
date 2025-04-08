@@ -63,10 +63,13 @@ export class Anomaly {
             "clouded", "vined", "incised", "auroral"
         ];
 
-        // Select two random adjectives and join them
-        const firstAdjective = this.randomChoice(anomalyAdjectives);
-        const secondAdjective = this.randomChoice(anomalyAdjectives);
-        this.adjectives = `${firstAdjective}, ${secondAdjective}`;
+        // Select one or two random adjectives and join them
+        let numAdjectives = Math.floor(this.random(1, 3));
+        for (let i = 0; i < numAdjectives; i++) {
+            const adjective = this.randomChoice(anomalyAdjectives);
+            this.adjectives += `${adjective}, `;
+        }
+        this.adjectives = this.adjectives.slice(0, -2); // Remove the last comma and space
         
         const reportStyleHints = [
             // 🎭 Style / Voice
