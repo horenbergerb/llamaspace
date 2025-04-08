@@ -64,7 +64,7 @@ export class Anomaly {
         ];
 
         // Select one or two random adjectives and join them
-        let numAdjectives = Math.floor(this.random(1, 3));
+        let numAdjectives = Math.floor((Math.random() * 2) + 1);
         for (let i = 0; i < numAdjectives; i++) {
             const adjective = this.randomChoice(anomalyAdjectives);
             this.adjectives += `${adjective}, `;
