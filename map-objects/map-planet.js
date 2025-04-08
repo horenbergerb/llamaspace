@@ -152,13 +152,74 @@ export class MapPlanet extends MapBody {
                 "core-heavy", "fault-braided", "lava-seamed", "dome-scarred", "spine-crowned", "canyon-cut", "microfractured",
                 "silicified", "geologically-active", "vein-stained", "metamorphic", "tectonically-folded", "sulfur-vented",
                 "shale-layered", "batholithic"
+            ],
+            "Weird": [
+                "pockmarked", "ancient", "hollow", "patchworked", "outgassing", "recently-abandoned", "partially-collapsed",
+                "tidally-scarred", "slowly-rotating", "atmospherically-leaking", "gravitationally-distorted", "orbital-debris-laced",
+                "inverted", "crevasse-laced", "magnetically-polarized", "eclipsed", "impact-scarred", "deeply-eroded",
+                "microfractured", "mantle-thin", "pressure-blistered", "surface-buckled", "mineral-rich", "geologically-dead",
+                "overmined", "tectonically-deaf", "crust-warped", "sun-bleached", "core-unstable", "biofilm-coated", "sensor-resistant",
+                "gravity-warped", "vacuum-venting", "outpost-remnant", "partially-terraformed", "xeno-inscribed", "deep-core-vented",
+                "reactive", "permafrost-locked", "core-resonant", "spectrally-dense", "radiation-banded", "aurora-wrapped",
+                "seismically-muted", "chemically-bleached", "slow-thawing", "geothermal-throbbing", "scar-tissued", "subsidence-prone",
+                "mined-out", "monolith-dotted",
+                "phase-locked", "rift-dominated", "core-venting", "isotope-laced", "thrumming", "surface-broken", "ice-veined",
+                "sonar-disruptive", "ablation-worn", "volcanically-inert", "drainage-carved", "tectonic-remnant", "magma-pocketed",
+                "silt-choked", "deep-sea-ridged", "tidal-locked", "fragment-orbiting", "catalytic", "slurry-covered",
+                "plasma-etched", "desiccated", "borehole-pierced", "stellar-facing", "liminal", "spore-coated", "radio-noisy",
+                "em-field-warped", "atmosphere-torn", "structurally-weakened", "overpressured", "cryogenically-fissured",
+                "superconductive", "networked", "dust-mantled", "artifact-crusted", "data-scarred", "gravity-weighed",
+                "thermal-bloomed", "helium-injected", "fusion-baked", "slush-layered", "impact-hollowed", "rotor-tilted",
+                "pulse-echoed", "chem-reactive", "heavily-tilted", "debris-shadowed", "field-battered", "slow-cooling",
+                "irradiated", "detritus-veined", "mineral-smeared", "crater-laced", "internally-shifting", "light-absorbing",
+                "electromagnetically-warped", "ion-shrouded", "ultraviolet-blasted", "detonated", "hypersensitive",
+                "siphoned", "crystalline-streaked", "sulfur-dusted", "tunneling-colony", "elevator-tethered", "planet-cut",
+                "vortex-breached", "light-splitting", "drone-patrolled", "pulse-stabilized", "atmo-siphoned", "ice-dusted",
+                "methane-seeped", "deep-mined", "lava-drained", "structurally-hollow", "thermal-scarred", "fossil-rich",
+                "sand-choked", "decaying-orbit", "chem-layered", "spectrum-warped", "bacterial-slick", "terrain-scoured",
+                "storm-etched", "stratified", "vibrationally-active", "wind-shaved", "ice-rafted", "magnetic-node-tied",
+                "dead-core", "void-locked", "horizon-stretched", "spiral-fractured", "gravity-churned", "core-shedding",
+                "cave-webbed", "telemetry-blinded", "luminous-flecked", "shard-infested", "collision-burdened", "em-field-jittered",
+                "fractal-ridged", "sun-pulled", "thunder-blasted", "blackened", "sloped-fissured", "sonic-reflective",
+                "tidally-dragged", "dark-core", "glow-bleached", "crust-collapsing", "rim-swept", "energy-buried", "signal-pierced",
+                "heat-wrung", "fusion-vented", "repelling-core", "acid-bathed", "oxygen-purged", "carbon-choked", "flow-channeled",
+                "crystal-perforated", "heavily-banded", "photon-absorbing", "aurora-splashed", "graviton-leaking",
+                "collapsed-mantle", "magnetically-irradiated", "charged-core", "orbitally-chiseled", "shocked", "ring-shadowed",
+                "planar-shifted", "tidal-node-laced", "slow-pulsing", "lava-blistered", "steam-burned", "geode-shelled",
+                "mirror-ridged", "twisted-terrain", "regolith-piled", "lopsided", "cone-pocked", "low-albedo", "phase-wavering",
+                "comet-scoured", "neutrino-stained", "isobar-spiked", "halo-crowned", "core-bloated", "airless-shadowed",
+                "pulse-resonant", "slope-faulted", "glacier-cut", "snow-blasted", "flare-damaged", "phase-seamed", "axial-tilted",
+                "particle-impacted", "cryovolcanic", "static-veined", "silica-drenched", "overvolted", "chasmic", "cradle-shaped",
+                "wind-buried", "pit-latticed", "tidal-crushed", "emission-spiked", "plume-ejected", "refractive", "light-splashed",
+                "hull-sliced", "entropic", "drone-sculpted", "gravimetric", "fracture-networked", "orbiting-husk", "settlement-scrubbed",
+                "nocturnal-facing", "gas-leaking", "fire-veined", "coated-in-slag", "radiant-core", "oscillating", "cored-through",
+                "surface-imploded", "dying-shell", "radially-scored", "gouged", "inward-crumbling", "tidal-constricted", "spin-ejected",
+                "axial-precessing", "static-draped", "shattered-skinned", "rift-collared", "terminator-bound", "hydraulic-split",
+                "oxygen-bleeding", "moon-battered", "sculpted-shell", "bright-albedo", "nested-rings", "rifted-cap", "dust-streaked",
+                "canyon-crumpled", "expansion-cracked", "dimming", "oscillating-brightness", "terminally-cooling", "atmo-hammered",
+                "sensor-ghosting", "artifact-sealed", "low-grav", "overpressured-mantle", "collapsing-subsurface", "ultra-magnetic",
+                "tidally-entrained", "gravity-wrinkled", "brittle-horizon", "insulation-failed", "haze-bled", "sheared-equator",
+                "ionized-stratosphere", "chiral-cracked", "subduction-buried", "impactor-plated", "ghost-ringed", "monochrome-lit"
             ]
         };        
         
         // Select two random adjectives and join them
-        const firstAdjective = this.randomChoice(planetAdjectives[this.bodyProperties.type]);
-        const secondAdjective = this.randomChoice(planetAdjectives[this.bodyProperties.type]);
-        this.adjectives = `${firstAdjective}, ${secondAdjective}`;
+        let numAdjectives = Math.floor(sketch.random(0, 2));
+        if (numAdjectives == 0) {
+            this.adjectives = 'N/A';
+        } else if (this.bodyProperties.type in ['Rocky', 'Ocean', 'Gas Giant', 'Ice Giant', 'Desert']) {
+            for (let i = 0; i < numAdjectives; i++) {
+                const adjective = this.randomChoice(planetAdjectives[this.bodyProperties.type]);
+                this.adjectives += `${adjective}, `;
+            }
+            this.adjectives = this.adjectives.slice(0, -2); // Remove the last comma and space
+        } else {
+            for (let i = 0; i < numAdjectives; i++) {
+                const adjective = this.randomChoice(planetAdjectives['Weird']);
+                this.adjectives += `${adjective}, `;
+            }
+            this.adjectives = this.adjectives.slice(0, -2); // Remove the last comma and space
+        }
 
         // Adjust size based on planet type
         if (this.bodyProperties.type === 'Gas Giant') {
@@ -185,18 +246,94 @@ export class MapPlanet extends MapBody {
     }
 
     getPlanetColor() {
-        const colors = {
+        const knownColors = {
             'Rocky': this.sketch.color(180, 120, 80),
             'Ocean': this.sketch.color(70, 130, 180),
             'Gas Giant': this.sketch.color(230, 180, 70),
             'Ice Giant': this.sketch.color(170, 210, 230),
             'Desert': this.sketch.color(210, 180, 140)
         };
-        return colors[this.bodyProperties.type] || this.sketch.color(200);
+
+        const type = this.bodyProperties.type;
+    
+        // If it's a known type, use the predefined color
+        if (knownColors[type]) {
+            return knownColors[type];
+        }
+    
+        // Otherwise, generate a deterministic fallback color from the planet type string
+        const hash = this.hashString(type);
+        const hue = hash % 360;
+        const saturation = 50 + (hash % 30); // 50–80%
+        const brightness = 60 + (hash % 30); // 60–90%
+    
+        // Use HSB to RGB conversion for varied but pleasant colors
+        this.sketch.colorMode(this.sketch.HSB);
+        const fallbackColor = this.sketch.color(hue, saturation, brightness);
+        this.sketch.colorMode(this.sketch.RGB); // reset to default
+    
+        return fallbackColor;
+    }
+    
+    // Simple hash function for consistent color per type
+    hashString(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = (hash << 5) - hash + str.charCodeAt(i);
+            hash |= 0; // Convert to 32bit integer
+        }
+        return Math.abs(hash);
     }
 
     generatePlanetType() {
         const types = ['Rocky', 'Ocean', 'Gas Giant', 'Ice Giant', 'Desert'];
+
+        const weirdTypes = [
+            "Lava", "Tundra", "Volcanic", "Canyon", "Mountainous",
+            "Magma Seep", "Mud", "Crystal", "Shattered", "Plate", "Fissured", "Cratered", "Obsidian", "Seismic",
+            "Storm", "Cloud", "Ash", "Mist", "Mirror", "Vapor", "Iridescent", "Radiant", "Twilight", "Aurora-drenched",
+            "Hurricane", "Stratospheric", "Dense Atmosphere", "Lightless", "Reflective", "Hazy", "Windswept", "Superheated Air",
+            "Glowing Sky", "Smog-covered",
+            "Swamp", "Algal", "Water Ice", "Subglacial", "Rain", "Saline Ocean", "Tide-locked Ocean", "Shallow Sea",
+            "Steam-covered", "Frozen Archipelago", "Hydrothermal", "Blue Giant", "Deep Ocean", "Brine Pool", "Flooded",
+            "Floating Continent", "Bioluminescent Sea", "Geyser World", "Liquid Methane", "Subaqueous",
+            "Jungle", "Fungal", "Lichenous", "Overgrown", "Xeno-bioforming", "Living Planet", "Coral World", "Bacterial Mat",
+            "Mycelial", "Spore-drifting", "Pollen-dense", "Symbiotic", "Swarming", "Toxic Bloom", "Predatory Flora",
+            "Sentient Ecosystem", "Terraforming-in-progress", "Rotting Jungle", "Carnivorous Forest", "Photosynthetic Plain",
+            "Artificial", "Construct", "Computronium", "Machine", "Shellworld", "Orbital Ring", "Megastructure Core",
+            "Dyson Husk", "Nanite Surface", "Clockwork", "Self-repairing", "Repurposed Moon", "City-Planet",
+            "Sensor Array", "Satellite Swarm", "Decoy World", "Faked Surface", "Simulated Terrain", "Generator World",
+            "Data Archive",
+            "Tidally Locked", "Inverted", "Fractal", "Temporal Echo", "Haunted", "Echo World", "Dreamscape",
+            "Phase-shifted", "Non-euclidean", "Event Horizon Edge", "Dimensionally Anchored", "Looped Time", "Soft Geometry",
+            "Gravitation Lens", "Reverse Physics", "Whispering", "Cursed", "Isolated Pocket", "Paradoxical", "Hidden in Plain Sight",
+            "Crystalline Shell", "Molten Mantle", "Floating Islands", "Crackled Surface", "Silicate Rain", "Obsidian Fields",
+            "Permafrost Core", "Supercritical Oceans", "Glass Dunes", "Gemstone Plains", "Salt Flats", "Sulfur Plains",
+            "Carbon Plateau", "Ionic Storm Region", "Magnetite Spires", "Frozen Core", "Compressed Core", "Mirror Dunes",
+            "Fungal Forests", "Gas Ice Fields",
+            "Forest Desert", "Ocean Crater", "Lava Jungle", "Ash Swamp", "Glacier Jungle", "Rain Crystal World",
+            "Swarming Tundra", "Blooming Wastes", "Choked Wetlands", "Twilight Savanna", "Silent Ocean", "Hollow Jungle",
+            "Night Vine Planet", "Whispering Rainforest", "Photosynthetic Desert", "Algae Mountains", "Cactus Basin",
+            "Steam Caves", "Fossil Fields", "Buried Jungle",
+            "Ruined World", "Godworld", "Worship Site Planet", "Sacrificial Moon", "Signal Shrine", "Ancient Lab World",
+            "Cradle Planet", "Pilgrimage World", "Abandoned Dyson Node", "Buried Library", "Cursed Archive",
+            "Ceremonial Ring World", "Planet of Statues", "Solar Monolith", "Colony Graveyard", "Memory Orbital",
+            "Frozen Temple", "Timeworn Edifice", "Lost Relay", "Echoing Bridge World",
+            "Causality-Broken", "Time-Stretched", "Gravitational Anomaly", "Space-Folded", "Stasis-Locked", "Echo Core Planet",
+            "Phase-Mirrored", "Anomaly Attractor", "Dimensional Spillover", "Cosmic Ripple Planet", "Inertial-Suspended",
+            "Event Layered", "Tachyon Fielded", "Chrono-Lagged", "Void-Bleed Surface", "Warp-Veined", "Slipstream-Cut Planet",
+            "Entangled Matter World", "Quantum Shard", "Reality-Thinned",
+            "Simulation Buffer", "AI Training Ground", "Substrate World", "Signal Processing Planet", "Power Bank Planet",
+            "Terraforming Drone Hub", "Disguised Wreckage", "Orbital Cannon Shell", "Factory Core", "Blacksite Planet",
+            "Decaying Network Node", "Autonomous Depot", "Drone Cloud World", "Data Farm Shell", "Failing Dyson Cap",
+            "Thermal Battery Planet", "Listening Post Remnant", "Bio-Lab Core", "Archive Shard", "Lost Experiment Planet"
+          ];
+
+        let isWeird = Math.random() < 0.2;
+        if (isWeird) {
+            return this.randomChoice(weirdTypes);
+        }
+          
         const weights = [0.4, 0.1, 0.2, 0.2, 0.1];
         let rand = Math.random();
         let sum = 0;
