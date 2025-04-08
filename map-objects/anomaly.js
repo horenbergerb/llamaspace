@@ -71,6 +71,16 @@ export class Anomaly {
         }
         this.adjectives = this.adjectives.slice(0, -2); // Remove the last comma and space
         
+        const locations = [
+            "on the surface",
+            "in the atmosphere",
+            "in the subsurface",
+            "deep within the planet",
+            "in orbit"
+        ];
+
+        this.location = this.randomChoice(locations);
+
         const reportStyleHints = [
             // 🎭 Style / Voice
             "The science officer has a flair for metaphor and rarely speaks in plain terms.",
@@ -245,9 +255,9 @@ The ship has become aware of an anomaly on or near the body. These are some of t
 
 Severity: ${this.severity}
 Descriptors: ${this.adjectives}
-
+Location: ${this.location}
 ${reportStyleContext.length > 0 ? `Additional Context:\n${reportStyleContext.join('\n')}\n` : ''}
-The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write two or three sentences from the science officer to Captain Donald describing what they've found. The report should focus on what they can see and, optionally, a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable. This report should be totally distinct from the recent reports on other anomalies.
+The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write two or three sentences from the science officer to Captain Donald describing what they've found. The report should focus on what they can see and, optionally, a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable. This report should be totally distinct from the recent reports on other anomalies, and the delivery should be unique.
 
 ${this.reportStyleHint}
 

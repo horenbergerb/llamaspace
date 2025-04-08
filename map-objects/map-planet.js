@@ -463,7 +463,7 @@ export class MapPlanet extends MapBody {
         this.updatePosition(); // Update orbital position
     }
 
-    getDescription() {
+    getDescription(includeResources = true) {
         return `Planet Name: ${this.name}\n` +
                `Type: ${this.bodyProperties.type}\n` +
                `Mass: ${this.bodyProperties.mass.toFixed(2)} Earth masses\n` +
@@ -473,7 +473,7 @@ export class MapPlanet extends MapBody {
                `Moons: ${this.bodyProperties.hasMoons ? this.bodyProperties.numberOfMoons : "None"}\n` +
                `Rings: ${this.bodyProperties.hasRings ? "Yes" : "No"}\n` +
                `Habitability: ${this.bodyProperties.habitability}\n` +
-               `Resources: ${this.bodyProperties.resources.join(", ")}\n`;
+               `${includeResources ? `Resources: ${this.bodyProperties.resources.join(", ")}\n` : ""}`;
     }
 
     randomChoice(options) {
@@ -488,6 +488,9 @@ export class MapPlanet extends MapBody {
         else if (rand < 96) level = 3; // 11% chance
         else if (rand < 99) level = 4; // 3% chance
         else level = 5;                // 1% chance
+
+        if (!(this.bodyProperties.type in ['Rocky', 'Ocean', 'Gas Giant', 'Ice Giant', 'Desert']))
+            level = Math.max(level, 3);
 
         const descriptors = {
             1: "boring",
@@ -522,7 +525,7 @@ The ship is orbiting a planet named ${this.name} in the ${this.parentStar.name} 
 
 Here is some information about the planet:
 
-${this.getDescription()}`;
+${this.getDescription(false)}`;
     }
 
     async generateDescription() {
