@@ -17,6 +17,7 @@ import { Mission } from './game-state/mission.js';
 import { Shuttlecraft } from './game-state/shuttlecraft.js';
 import { TextGeneratorOpenRouter } from './text-gen-openrouter.js';
 import { GameEventBus } from './utils/game-events.js';
+import { MissionInfoUI } from './ui/window/mission-ui/mission-info-ui.js';
 
 // Create global event bus
 const globalEventBus = new GameEventBus();
@@ -98,6 +99,7 @@ var mapSketch = function(sketch) {
         // Initialize UI components
         uiManager.addUI('ship', new ShipUI(sketch, globalEventBus, galaxyMapScene, crewMembers));
         uiManager.addUI('mission', new MissionUI(sketch, globalEventBus, galaxyMapScene, missions));
+        uiManager.addUI('missionInfo', new MissionInfoUI(sketch, globalEventBus, galaxyMapScene));
         uiManager.addUI('settings', new SettingsUI(sketch, globalEventBus));
         uiManager.addUI('scan', new ScanUI(sketch, globalEventBus, galaxyMapScene));
         uiManager.addUI('confirmTravel', new ConfirmTravelUI(sketch, globalEventBus));

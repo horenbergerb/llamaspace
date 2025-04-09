@@ -7,6 +7,7 @@ import { MissionButton } from './mission-button.js';
 import { ScrollableGraphicsBuffer } from '../components/scrollable-graphics-buffer.js';
 import { Dropdown } from '../components/dropdown.js';
 import { wrapText } from '../../../utils/text-utils.js';
+import { MissionInfoUI } from './mission-info-ui.js';
 
 export class MissionUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, missions) {
@@ -311,6 +312,38 @@ export class MissionUI extends BaseWindowUI {
                     this.currentPage = 'add';
                     this.addBuffer.resetScroll();
                     return true;
+                }
+
+                // Check if click is within the content area for mission list
+                const contentX = x + 20;
+                const contentY = y + this.contentStartY;
+                const contentWidth = windowWidth - 40;
+                const contentHeight = windowHeight - this.contentStartY - 20;
+
+                if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
+                    mouseY >= contentY && mouseY <= contentY + contentHeight) {
+                    
+                    // Calculate mission positions including scroll offset
+                    const missionHeight = 90; // Height of each mission box
+                    const mouseYRelativeToContent = mouseY - contentY;
+                    const mouseYWithScroll = mouseYRelativeToContent + this.listBuffer.scrollOffset;
+                    
+                    // Skip the title area
+                    if (mouseYWithScroll < 30) return true;
+                    
+                    // Calculate which mission was clicked
+                    const missionIndex = Math.floor((mouseYWithScroll - 30) / missionHeight);
+                    
+                    // Check if a valid mission was clicked
+                    if (missionIndex >= 0 && missionIndex < this.missions.length) {
+                        // Get the mission in reverse order (newest first)
+                        const clickedMission = this.missions[this.missions.length - 1 - missionIndex];
+                        
+                        // Open the mission info UI
+                        this.closeWindow();
+                        this.eventBus.emit('missionInfoUIOpened', clickedMission);
+                        return true;
+                    }
                 }
             } else {
                 if (this.isBackButtonClicked(mouseX, mouseY)) {
