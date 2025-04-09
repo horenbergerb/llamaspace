@@ -4,7 +4,7 @@ export class TextGeneratorOpenRouter {
     //anthropic/claude-3.7-sonnet
     //deepseek/deepseek-chat-v3-0324 DeepSeek
 
-    constructor(apiKey, model = "deepseek/deepseek-chat-v3-0324") {
+    constructor(apiKey, model = "anthropic/claude-3.7-sonnet") {
         this.stopGeneration = false;
         this.apiKey = apiKey;
         this.model = model;
@@ -29,7 +29,7 @@ export class TextGeneratorOpenRouter {
             },
             body: JSON.stringify({
                 model: this.model,
-                "provider": {"order": ["DeepSeek"],
+                "provider": {"order": ["DeepSeek", "Anthropic"],
                     "allow_fallbacks": false},
                 messages: [
                     {
