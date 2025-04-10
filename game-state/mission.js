@@ -310,7 +310,7 @@ Be realistic about what is possible for the Galileo and its crew.`;
             await textGenerator.generateText(
                 prompt,
                 (text) => { difficultyText = text; },
-                1.0, // Lower temperature for more focused output
+                0.6, // Lower temperature for more focused output
                 1000  // Max tokens
             );
             console.log(difficultyText);
@@ -401,6 +401,9 @@ Donald assigned a research mission to a bridge crew member named ${this.assigned
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
 
 ${difficultyDescription} The research mission was a ${this.outcome ? 'success' : 'failure'}.
+
+Approved resource allocations for the mission:
+${Object.entries(this.requirements).map(([item, quantity]) => `- ${quantity} ${item}`).join('\n')}
 
 ${!this.outcome ? `During the mission, the following losses were incurred:
 ${Object.entries(this.failureConsequences.inventoryLosses).map(([item, amount]) => `- Lost ${amount} ${item}`).join('\n')}
@@ -498,5 +501,7 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
         if (Object.keys(this.failureConsequences.shuttleDamage).length === 0) {
             this.failureConsequences.shuttleDamage = {};
         }
+
+        console.log(this.failureConsequences);
     }
 } 
