@@ -225,6 +225,21 @@ export class MissionInfoUI extends BaseWindowUI {
         totalContentHeight += this.lineHeight; // Status
         if (this.mission.assignedCrew) totalContentHeight += this.lineHeight; // Crew
         if (this.mission.orbitingBody) totalContentHeight += this.lineHeight; // Location
+        
+        // Add height for failure consequences section if mission failed
+        if (this.mission.completed && !this.mission.cancelled && !this.mission.outcome && this.mission.failureConsequences) {
+            totalContentHeight += this.sectionSpacing;
+            totalContentHeight += this.lineHeight; // Title
+            // Add height for inventory losses
+            if (Object.keys(this.mission.failureConsequences.inventoryLosses).length > 0) {
+                totalContentHeight += Object.entries(this.mission.failureConsequences.inventoryLosses).length * this.lineHeight;
+            }
+            // Add height for shuttle damage
+            if (Object.keys(this.mission.failureConsequences.shuttleDamage).length > 0) {
+                totalContentHeight += Object.entries(this.mission.failureConsequences.shuttleDamage).length * this.lineHeight;
+            }
+        }
+        
         totalContentHeight += this.sectionSpacing;
         
         // Mission steps section
@@ -328,6 +343,39 @@ export class MissionInfoUI extends BaseWindowUI {
         if (this.mission.orbitingBody) {
             buffer.text(`Location: ${this.mission.orbitingBody.name}`, 10, contentY);
             contentY += this.lineHeight;
+        }
+        
+        // Draw failure consequences section if mission failed
+        if (this.mission.completed && !this.mission.cancelled && !this.mission.outcome && this.mission.failureConsequences) {
+            contentY += this.sectionSpacing;
+            const hasInventoryLosses = Object.keys(this.mission.failureConsequences.inventoryLosses).length > 0;
+            const hasShuttleDamage = Object.keys(this.mission.failureConsequences.shuttleDamage).length > 0;
+            
+            if (hasInventoryLosses || hasShuttleDamage) {
+                buffer.textSize(16);
+                buffer.text('Mission Losses:', 0, contentY);
+                contentY += this.lineHeight;
+                
+                buffer.textSize(14);
+                
+                // Draw inventory losses
+                if (hasInventoryLosses) {
+                    Object.entries(this.mission.failureConsequences.inventoryLosses).forEach(([item, amount]) => {
+                        buffer.text(`- Lost ${amount} ${item}`, 10, contentY);
+                        contentY += this.lineHeight;
+                    });
+                }
+                
+                // Draw shuttle damage
+                if (hasShuttleDamage) {
+                    Object.entries(this.mission.failureConsequences.shuttleDamage).forEach(([shuttleId, damage]) => {
+                        const shuttle = this.mission.shuttleStatus.find(s => s.id === parseInt(shuttleId));
+                        const isDestroyed = shuttle && damage >= shuttle.health;
+                        buffer.text(`- Shuttle ${shuttleId} sustained ${damage} damage${isDestroyed ? ' and was destroyed' : ''}`, 10, contentY);
+                        contentY += this.lineHeight;
+                    });
+                }
+            }
         }
         
         contentY += this.sectionSpacing;
