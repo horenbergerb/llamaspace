@@ -208,7 +208,7 @@ export class MapPlanet extends MapBody {
         let numAdjectives = Math.random() < 0.9 ? 1 : 2;
         if (numAdjectives == 0) {
             this.adjectives = 'N/A';
-        } else if (this.bodyProperties.type in ['Rocky', 'Ocean', 'Gas Giant', 'Ice Giant', 'Desert']) {
+        } else if (['Rocky', 'Ocean', 'Gas Giant', 'Ice Giant', 'Desert'].includes(this.bodyProperties.type)) {
             for (let i = 0; i < numAdjectives; i++) {
                 const adjective = this.randomChoice(planetAdjectives[this.bodyProperties.type]);
                 this.adjectives += `${adjective}, `;
@@ -502,7 +502,7 @@ export class MapPlanet extends MapBody {
         else if (rand < 99) level = 4; // 3% chance
         else level = 5;                // 1% chance
 
-        if (!(this.bodyProperties.type in ['Rocky', 'Ocean', 'Gas Giant', 'Ice Giant', 'Desert']))
+        if (!['Rocky', 'Ocean', 'Gas Giant', 'Ice Giant', 'Desert'].includes(this.bodyProperties.type))
             level = Math.max(level, 3);
 
         const descriptors = {
