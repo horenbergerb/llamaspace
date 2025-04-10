@@ -725,11 +725,13 @@ export class MissionUI extends BaseWindowUI {
             buffer.fill(mission.completed ? 
                        (mission.cancelled ? '#808080' : // Grey for cancelled
                         mission.outcome ? '#4CAF50' : '#FFA500') : // Green for success, Orange for failure
-                       '#FFA500'); // Orange for in progress
+                       (mission.requirements && Object.keys(mission.requirements).length > 0 && !mission.approved ? '#2196F3' : // Blue for pending approval
+                        '#FFA500')); // Orange for in progress
             buffer.text(mission.completed ? 
                        (mission.cancelled ? 'Cancelled' :
                         mission.outcome ? `Completed (Reputation: +${mission.quality})` : 'Failure') : 
-                       (mission.steps.length === 0 ? 'Preparing...' : `Step ${mission.currentStep + 1}/${mission.steps.length}`), 
+                       (mission.requirements && Object.keys(mission.requirements).length > 0 && !mission.approved ? 'Pending Approval' :
+                        mission.steps.length === 0 ? 'Preparing...' : `Step ${mission.currentStep + 1}/${mission.steps.length}`), 
                        contentWidth - 10, contentY + 10);
 
             // Draw assigned crew member
