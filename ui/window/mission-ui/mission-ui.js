@@ -174,7 +174,23 @@ export class MissionUI extends BaseWindowUI {
     renderMissionButton() {
         // Don't render the button if we're not in a system scene
         if (!this.isInSystemScene || !this.orbitingBody || !this.orbitingBody.isPlanet) return;
+        
+        // Render the mission button
         this.missionButton.render();
+        
+        // Check if there are any unviewed missions for this body
+        if (this.orbitingBody.missions && this.orbitingBody.missions.some(mission => !mission.viewed)) {
+            // Draw exclamation point indicator
+            this.sketch.noStroke();
+            this.sketch.fill(255, 165, 0); // Orange color for the mission indicator
+            this.sketch.textSize(16);
+            this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            
+            // Position the exclamation point to the right of the mission button
+            const buttonX = this.missionButton.x;
+            const buttonY = this.missionButton.y;
+            this.sketch.text('!', buttonX + this.missionButton.width + 5, buttonY - 5);
+        }
     }
 
     renderAddMissionPage(x, y, width, height) {
