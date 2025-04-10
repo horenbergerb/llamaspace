@@ -43,7 +43,7 @@ export class MapPlanet extends MapBody {
     }
 
     scanForAnomalies(){
-        if (this.anomaly !== null && this.anomaly.firstReport === null){
+        if (this.anomaly !== null && !this.anomaly.detected){
             this.parentStar.anomaliesDetected = true;
             this.anomaly.generateFirstReport(this);
         }
@@ -460,7 +460,7 @@ export class MapPlanet extends MapBody {
             this.sketch.textSize(12);
             this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
             // Position the exclamation point to the right of the anomaly indicator if it exists
-            const xOffset = this.anomaly !== null && this.anomaly.firstReport !== null ? 15 : 0;
+            const xOffset = this.anomaly !== null && this.anomaly.detected ? 15 : 0;
             this.sketch.text('!', this.baseX - this.size - 5 + xOffset, this.baseY - this.size - 5);
         }
         
