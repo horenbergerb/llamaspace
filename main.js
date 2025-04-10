@@ -90,7 +90,7 @@ var mapSketch = function(sketch) {
 
         // Add event listener for finding nearby anomalies
         globalEventBus.on('requestNearbyAnomalies', () => {
-            if (!spaceship.inSystemMap) {
+            if (spaceship.inSystemMap) {
                 globalEventBus.emit('nearbyAnomaliesChanged', []);
                 return;
             }
@@ -118,7 +118,6 @@ var mapSketch = function(sketch) {
                     }
                 }
             }
-
             globalEventBus.emit('nearbyAnomaliesChanged', nearbyAnomalies);
         });
     };

@@ -35,8 +35,6 @@ export class ScanUI extends BaseWindowUI {
         // Anomaly properties
         this.anomaly = null;
         this.anomalyChance = 0.001; // Chance per frame to spawn an anomaly
-        this.anomalyLifetime = 0;
-        this.anomalyMaxLifetime = 30; // Seconds
         this.anomalyWidth = 5;
         this.anomalyHeight = 16;
         this.anomalyBaseVelocity = 100; // Base velocity for anomaly
@@ -344,7 +342,6 @@ export class ScanUI extends BaseWindowUI {
         if (!this.anomaly && Math.random() < this.anomalyChance) {
             this.anomaly = {
                 x: Math.random() * this.barWidth,
-                lifetime: 0,
                 velocity: 0,
                 direction: Math.random() > 0.5 ? 1 : -1,
                 isPaused: false,
@@ -356,13 +353,10 @@ export class ScanUI extends BaseWindowUI {
 
         // Update existing anomaly
         if (this.anomaly) {
-            // Update lifetime
-            this.anomaly.lifetime += deltaTime;
-            
             // Update tune percent based on slider position
             const distanceToAnomaly = Math.abs(this.sliderX - this.anomaly.x);
             const tuningThreshold = 60; // Increased from 20 to 60 (3x wider threshold)
-            const tuningRate = 5.0; // Rate of tuning change per second
+            const tuningRate = 10.0; // Rate of tuning change per second
             
             if (distanceToAnomaly < tuningThreshold) {
                 // Increase tune percent when close to anomaly
@@ -370,6 +364,32 @@ export class ScanUI extends BaseWindowUI {
             } else {
                 // Decrease tune percent when far from anomaly
                 this.tunePercent = Math.max(0, this.tunePercent - tuningRate * deltaTime);
+            }
+
+            // Check if tuning is complete
+            if (this.tunePercent >= 100) {
+                // Select a random planet from nearby anomalies
+                if (this.nearbyAnomalies.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * this.nearbyAnomalies.length);
+                    const detectedPlanet = this.nearbyAnomalies[randomIndex];
+                    
+                    // Mark the anomaly as detected
+                    detectedPlanet.anomaly.detected = true;
+                    detectedPlanet.parentStar.anomaliesDetected = true;
+                    
+                    // Remove the detected planet from nearby anomalies
+                    this.nearbyAnomalies.splice(randomIndex, 1);
+                }
+
+                // Clear the anomaly
+                this.anomaly = null;
+                this.tunePercent = 0;
+                return;
+            }
+            else if (this.tunePercent <= 0){
+                this.anomaly = null;
+                this.tunePercent = 0;
+                return;
             }
             
             // Handle pausing
@@ -420,11 +440,6 @@ export class ScanUI extends BaseWindowUI {
                         this.anomaly.velocity *= 0.5; // Reduce velocity on bounce
                     }
                 }
-            }
-            
-            // Remove if lifetime exceeded
-            if (this.anomaly.lifetime > this.anomalyMaxLifetime) {
-                this.anomaly = null;
             }
         }
     }
