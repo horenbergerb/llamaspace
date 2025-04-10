@@ -23,6 +23,7 @@ export class TutorialUI extends BaseWindowUI {
 
         this.viewed = false;
 
+        this.viewingStep = 0;
         this.tutorialStep = 0;
         this.tutorialContent = [`Transmission from Admiral Bofa:
 Good to hear from you, Captain Wobbleton. The committee was pleased to hear that the Gallileo has finally arrived in sector D-124. We have our scientists looking into the time dilation phenomenon you reported. Thank you for the various theories. If you had not noticed the discrepancy, we would have thought you were simply 2 months behind schedule.
@@ -55,6 +56,7 @@ Objective:
         this.eventBus.on('tutorialUIOpened', () => {
             this.isWindowVisible = true;
             this.viewed = true;
+            this.viewingStep = this.tutorialStep;
         });
         this.eventBus.on('tutorialUIClosed', () => {
             this.isWindowVisible = false;
@@ -168,7 +170,7 @@ Objective:
         buffer.textSize(this.textSize);
 
         // Split content into paragraphs and handle each one
-        const paragraphs = this.tutorialContent[this.tutorialStep].split('\n\n');
+        const paragraphs = this.tutorialContent[this.viewingStep].split('\n\n');
         let contentY = this.graphicsBuffer.scrollOffset;
         let totalHeight = 0;
         const lineSpacing = 5; // Space between lines within a paragraph
