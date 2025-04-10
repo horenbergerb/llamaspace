@@ -112,7 +112,7 @@ var mapSketch = function(sketch) {
                 // Check each planet in the star's system
                 if (star.planets) {
                     for (const planet of star.planets) {
-                        if (planet.anomaly && planet.anomaly.firstReport === null) {
+                        if (planet.anomaly && !planet.anomaly.detected) {
                             nearbyAnomalies.push(planet);
                         }
                     }

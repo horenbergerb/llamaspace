@@ -445,7 +445,7 @@ export class MapPlanet extends MapBody {
         }
 
         // Draw anomaly indicator if planet has an anomaly and it has been reported
-        if (this.anomaly !== null && this.anomaly.firstReport !== null) {
+        if (this.anomaly !== null && this.anomaly.detected) {
             this.sketch.noStroke();
             this.sketch.fill(255, 0, 0); // Red color for the indicator
             this.sketch.textSize(12);

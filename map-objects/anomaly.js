@@ -10,6 +10,7 @@ export class Anomaly {
         this.severity = null;
         this.adjectives = null;
         this.reportStyle = {};
+        this.detected = false;
 
         const severities = ["minor (interesting but not substantial, research is optional)", "standard (quite unusual; clearly merits research)", "major (totally unprecedented; could have major implications. Research is required.)"];
         const severityWeights = [0.7, 0.2, 0.1]; // 70% minor, 20% standard, 10% major
@@ -223,6 +224,7 @@ ${orbitingBody.description ? `Planet Description:\n${orbitingBody.description}` 
 
     async generateFirstReport(orbitingBody) {
         await orbitingBody.generateDescription();
+        this.detected = true;
 
         this.firstReport = "Scanning anomaly...";
         const commonPrompt = await this.getCommonScenarioPrompt(orbitingBody);
