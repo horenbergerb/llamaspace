@@ -2,11 +2,11 @@ export class Mission {
     constructor(objective, assignedCrew = null) {
         this.objective = objective;
         this.steps = [];
+        this.approved = false;
         this.completed = false;
         this.cancelled = false;
         this.requirements = null;
         this.difficulty = null;
-        this.createdAt = new Date();
         this.assignedCrew = assignedCrew;
         this.currentStep = 0;
         this.lastStepTime = Date.now();
@@ -63,7 +63,7 @@ export class Mission {
     }
 
     update() {
-        if (this.completed) return;
+        if (this.completed || !this.approved) return;
 
         // Calculate delta time in seconds
         const now = Date.now();
