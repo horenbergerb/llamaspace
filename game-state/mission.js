@@ -393,8 +393,22 @@ Be realistic about what is possible for the Galileo and its crew.`;
     async generateSteps(textGenerator, currentScene, orbitingBody) {
         await this.preapprovalGeneration(textGenerator, currentScene, orbitingBody);
 
-        let successProbability = 100 - this.difficulty * 10;
-        this.outcome = Math.random() < successProbability / 100;
+        // Map difficulty (1-10) to success probability
+        const difficultyToSuccess = {
+            1: 100,
+            2: 95,
+            3: 90,
+            4: 85,
+            5: 80,
+            6: 70,
+            7: 50,
+            8: 20,
+            9: 5,
+            10: 1
+        };
+        
+        const successProbability = difficultyToSuccess[this.difficulty] || 50;
+        this.outcome = Math.random() * 100 < successProbability;
 
         if (!this.outcome) {
             this.generateFailureConsequences(textGenerator);
