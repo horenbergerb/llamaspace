@@ -4,6 +4,8 @@ export class Mission {
         this.steps = [];
         this.completed = false;
         this.cancelled = false;
+        this.requirements = null;
+        this.difficulty = null;
         this.createdAt = new Date();
         this.assignedCrew = assignedCrew;
         this.currentStep = 0;
@@ -190,10 +192,10 @@ The Galileo is equipped with standard research equipment and meagre weaponry. It
 
 Current Ship Status:
 Inventory:
-${Object.entries(this.currentInventory).map(([item, amount]) => `- ${item}: ${amount} available`).join('\n')}
+${Object.entries(this.currentInventory).map(([item, amount]) => `- ${item}`).join('\n')}
 
 Shuttlecraft:
-${this.shuttleStatus.map(shuttle => `- ${shuttle.name}: ${shuttle.health} health`).join('\n')}
+${this.shuttleStatus.map(shuttle => `- ${shuttle.name}`).join('\n')}
 
 Donald, his ship, and his crew are all nobodies. Donald's promotion to captain was something of a nepotism scandal. His crew is composed of misfits and those with complicated pasts in the service. The ship itself is old and worn out, but everyone on board is used to getting the short end of the stick. This research mission to the D-124 star system is an exile, but it's also a chance for the entire crew to redeem themselves.
 
@@ -202,6 +204,68 @@ ${bodyContext}
 Here is some information about the body the ship is orbiting:
 
 ${orbitingBody.getDescription()}${anomalyReport}${recentMissionsSection}`;
+    }
+
+    async generateMissionRequirements(textGenerator, currentScene, orbitingBody) {
+        if (this.difficulty === null) {
+            await this.generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody);
+        }
+        const commonPrompt = await this.getCommonScenarioPrompt(orbitingBody);
+        const prompt = `${commonPrompt}
+Donald has just assigned a research mission to a bridge crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
+
+${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
+
+Objective: ${this.objective}
+Difficulty: ${this.difficulty}
+
+Given the inventory of the ship, the objective, and the difficulty, list the mission requirements. Respond in exactly the following format, using the item names as they were provided. For shuttlecraft, just write "shuttlecraft". If no items are necessary, only include the reasoning and do not list any items.
+
+Considerations: *Reason about the needs of the mission*
+Item 1: Quantity 1
+Item 2: Quantity 2
+etc.`;
+
+        let requirementsText = '';
+        try {
+            await textGenerator.generateText(
+                prompt,
+                (text) => { requirementsText = text; },
+                0.6, // Lower temperature for more focused output
+                1000  // Max tokens
+            );
+            console.log(requirementsText);
+            
+            // Parse requirements into a dictionary
+            this.requirements = {};
+            const lines = requirementsText.split('\n');
+            
+            // Skip the considerations section and look for item lines
+            let foundItems = false;
+            for (const line of lines) {
+                // Skip empty lines
+                if (!line.trim()) continue;
+                
+                // Look for lines that contain item names and quantities
+                const match = line.match(/^([^:]+):\s*(\d+)$/);
+                if (match) {
+                    const itemName = match[1].trim();
+                    const amount = parseInt(match[2]);
+                    this.requirements[itemName] = amount;
+                    foundItems = true;
+                } else if (foundItems) {
+                    // If we've found items before and this line doesn't match the format,
+                    // we've reached the end of the items section
+                    break;
+                }
+            }
+            console.log(this.requirements);
+
+        } catch (error) {
+            console.error('Error parsing requirements:', error);
+            // Set a default step if generation fails
+            this.requirements = {};
+        }
     }
 
     async generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody) {
@@ -262,8 +326,12 @@ Be realistic about what is possible for the Galileo and its crew.`;
     }
 
     async generateSteps(textGenerator, currentScene, orbitingBody) {
-        await this.generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody);
-
+        if (this.difficulty === null) {
+            await this.generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody);
+        }
+        if (this.requirements === null) {
+            await this.generateMissionRequirements(textGenerator, currentScene, orbitingBody);
+        }
         let successProbability = 100 - this.difficulty * 10;
         this.outcome = Math.random() < successProbability / 100;
 

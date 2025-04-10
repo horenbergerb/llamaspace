@@ -203,6 +203,7 @@ export class MapPlanet extends MapBody {
             ]
         };        
         
+        this.adjectives = '';
         // Select two random adjectives and join them
         let numAdjectives = Math.floor(sketch.random(0, 2));
         if (numAdjectives == 0) {

@@ -63,6 +63,7 @@ export class Anomaly {
             "clouded", "vined", "incised", "auroral"
         ];
 
+        this.adjectives = '';
         // Select one or two random adjectives and join them
         let numAdjectives = Math.floor((Math.random() * 2) + 1);
         for (let i = 0; i < numAdjectives; i++) {
