@@ -120,6 +120,11 @@ var mapSketch = function(sketch) {
             }
             globalEventBus.emit('nearbyAnomaliesChanged', nearbyAnomalies);
         });
+
+        // Add event listener for setting auto camera to a specific star
+        globalEventBus.on('setAutoCameraToGalaxyStar', (star) => {
+            camera.setAutoCamera(star.baseX, star.baseY, 1.0);
+        });
     };
 
 

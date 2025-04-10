@@ -379,6 +379,10 @@ export class ScanUI extends BaseWindowUI {
                     
                     // Remove the detected planet from nearby anomalies
                     this.nearbyAnomalies.splice(randomIndex, 1);
+
+                    // Emit events to center camera on the star and close the scan UI
+                    this.eventBus.emit('setAutoCameraToGalaxyStar', detectedPlanet.parentStar);
+                    this.eventBus.emit('scanUIClosed');
                 }
 
                 // Clear the anomaly
