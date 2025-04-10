@@ -169,10 +169,15 @@ Objective:
         buffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
         buffer.textSize(this.textSize);
 
+        // Add spacing after the graph
+        let contentY = this.graphicsBuffer.scrollOffset + 40;
+
+        // Reset text color to white for tutorial content
+        buffer.fill(255);
+
         // Split content into paragraphs and handle each one
         const paragraphs = this.tutorialContent[this.viewingStep].split('\n\n');
-        let contentY = this.graphicsBuffer.scrollOffset;
-        let totalHeight = 0;
+        let totalHeight = 40; // Start with the graph spacing
         const lineSpacing = 5; // Space between lines within a paragraph
 
         paragraphs.forEach(paragraph => {
@@ -213,6 +218,49 @@ Objective:
 
         // Set max scroll offset based on total content height
         this.graphicsBuffer.setMaxScrollOffset(totalHeight);
+
+        // Draw step graph at the top
+        const graphStartX = 10;
+        const graphY = this.graphicsBuffer.scrollOffset + 10;
+        const nodeSpacing = Math.min(30, (contentWidth - 20) / this.tutorialContent.length);
+        const baseNodeRadius = 6;
+
+        // Calculate visible steps (completed and current)
+        const visibleSteps = this.tutorialContent.filter((_, index) => index <= this.tutorialStep);
+        const nodeSpacingVisible = Math.min(30, (contentWidth - 20) / visibleSteps.length);
+
+        // Get mouse position relative to the graphics buffer
+        const mouseX = this.sketch.mouseX - (x + 20);
+        const mouseY = this.sketch.mouseY - (y + this.contentStartY);
+
+        visibleSteps.forEach((_, stepIndex) => {
+            const nodeX = graphStartX + (stepIndex * nodeSpacingVisible);
+            const isHovered = this.sketch.dist(mouseX, mouseY, nodeX, graphY) <= baseNodeRadius * 2;
+            const nodeRadius = baseNodeRadius * (isHovered ? 1.2 : 1.0);
+
+            // Draw connecting line to next node
+            if (stepIndex < visibleSteps.length - 1) {
+                buffer.stroke(100);
+                buffer.strokeWeight(1);
+                buffer.line(nodeX + nodeRadius, graphY, 
+                           nodeX + nodeSpacingVisible - nodeRadius, graphY);
+            }
+
+            // Draw node
+            buffer.noStroke();
+            buffer.fill(stepIndex < this.tutorialStep ? '#4CAF50' : 
+                       stepIndex === this.tutorialStep ? '#FFA500' : '#FFA500');
+            buffer.circle(nodeX, graphY, nodeRadius * 2);
+
+            // Store node position for tooltip handling
+            if (isHovered && stepIndex <= this.tutorialStep) {
+                this.hoveredStep = {
+                    x: nodeX,
+                    y: graphY,
+                    index: stepIndex
+                };
+            }
+        });
 
         // Render the graphics buffer
         this.graphicsBuffer.render(x + 20, y + this.contentStartY);
@@ -320,5 +368,13 @@ Objective:
         
         return mouseX >= x && mouseX <= x + this.buttonWidth &&
                mouseY >= y && mouseY <= y + this.buttonHeight;
+    }
+
+    checkStepNodeHover(nodeX, nodeY, nodeRadius, stepIndex) {
+        // This method is no longer needed as we handle hover in the render loop
+    }
+
+    isNodeHovered(nodeX, nodeY, nodeRadius) {
+        // This method is no longer needed as we handle hover in the render loop
     }
 } 
