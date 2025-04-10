@@ -533,7 +533,7 @@ ${this.getDescription(false)}`;
         if (this.description) return this.description;
         
         this.description = "Scanning planet...";
-        const commonPrompt = await this.getCommonScenarioPrompt();
+        const commonPrompt = await this.getCommonScenarioPrompt(false);
 
         const prompt = `${commonPrompt}
 
