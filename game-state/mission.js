@@ -367,6 +367,21 @@ Be realistic about what is possible for the Galileo and its crew.`;
         let successProbability = 100 - this.difficulty * 10;
         this.outcome = Math.random() < successProbability / 100;
 
+        if (!this.outcome) {
+            this.generateFailureConsequences(textGenerator);
+        }
+
+        // Check shuttle health and determine if any were destroyed
+        const destroyedShuttles = [];
+        if (this.failureConsequences?.shuttleDamage) {
+            Object.entries(this.failureConsequences.shuttleDamage).forEach(([shuttleId, damage]) => {
+                const shuttle = this.shuttleStatus.find(s => s.id === parseInt(shuttleId));
+                if (shuttle && damage >= shuttle.health) {
+                    destroyedShuttles.push(shuttleId);
+                }
+            });
+        }
+
         // Generate difficulty description
         let difficultyDescription;
         if (this.difficulty <= 3) {
@@ -385,7 +400,16 @@ Donald assigned a research mission to a bridge crew member named ${this.assigned
 
 ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.join(", ")}.
 
-${difficultyDescription} The research mission was a ${this.outcome ? 'success' : 'failure'}. Here was the mission objective:
+${difficultyDescription} The research mission was a ${this.outcome ? 'success' : 'failure'}.
+
+${!this.outcome ? `During the mission, the following losses were incurred:
+${Object.entries(this.failureConsequences.inventoryLosses).map(([item, amount]) => `- Lost ${amount} ${item}`).join('\n')}
+${Object.entries(this.failureConsequences.shuttleDamage).map(([shuttleId, damage]) => {
+    const isDestroyed = destroyedShuttles.includes(shuttleId);
+    return `- Shuttle ${shuttleId} sustained ${damage} damage${isDestroyed ? ' and was destroyed' : ''}`;
+}).join('\n')}
+` : ''}
+Here was the mission objective:
 
 Objective: ${this.objective}
 
@@ -418,10 +442,6 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
                     return match ? match[1].trim() : null;
                 })
                 .filter(step => step !== null); // Remove any non-matching lines
-            // If mission will fail, generate failure consequences after steps are generated
-            if (!this.outcome) {
-                await this.generateFailureConsequences(textGenerator);
-            }
 
         } catch (error) {
             console.error('Error generating steps:', error);
@@ -430,121 +450,53 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
         }
     }
 
-    async generateFailureConsequences(textGenerator) {
-        const commonPrompt = await this.getCommonScenarioPrompt(this.orbitingBody);
-
-        // Format the mission steps for display
-        const formattedSteps = this.steps.map((step, index) => `${index + 1}. ${step}`).join('\n');
-
-        const prompt = `${commonPrompt}
-
-The mission "${this.objective}" has failed. The mission attempt proceeded as follows:
-
-${formattedSteps}
-
-What equipment was lost and what damage occurred to the shuttlecraft during this failed mission?
-
-Consider the difficulty (${this.difficulty}/10) when determining losses. More difficult missions should have more severe consequences.
-Consider the current inventory levels when determining losses - you cannot lose more items than are available.
-Consider current shuttle health when determining damage - total health cannot go below 0.
-
-Format your response EXACTLY like this with NO additional text or explanations:
-
-Inventory Losses:
-- Item Name: X
-(where X is a plain number with no symbols, commas, or text)
-
-Shuttle Damage Received:
-- Shuttle N: X
-(where N is the shuttle number and X is a plain number with no symbols, commas, or text)
-
-Only include items that were actually lost or shuttles that were actually damaged. If nothing was lost or damaged, leave that section empty but keep the header.`;
-
-        let consequencesText = '';
-        try {
-            await textGenerator.generateText(
-                prompt,
-                (text) => { consequencesText = text; },
-                0.7, // Lower temperature for more consistent output
-                1000  // Max tokens
-            );
-            console.log('Raw consequences text:', consequencesText);
-
+    generateFailureConsequences() {
             // Initialize consequences object
             this.failureConsequences = {
                 inventoryLosses: {},
                 shuttleDamage: {}
             };
 
-            // Parse inventory losses and validate against current inventory
-            const inventorySection = consequencesText.split('Inventory Losses:')[1]?.split('Shuttle Damage:')[0];
-            console.log('Inventory section:', inventorySection);
-            
-            if (inventorySection) {
-                const inventoryLines = inventorySection.split('\n').filter(line => line.trim().startsWith('-'));
-                console.log('Inventory lines:', inventoryLines);
-                
-                inventoryLines.forEach(line => {
-                    console.log('Processing inventory line:', line);
-                    // More robust pattern matching - capture item name and number separately
-                    const match = line.match(/^-\s*([^:]+):\s*(\d+)\s*$/);
-                    console.log('Inventory match:', match);
-                    
-                    if (match) {
-                        const itemName = match[1].trim();
-                        const lossAmount = parseInt(match[2]);
-                        console.log('Parsed item:', itemName, 'amount:', lossAmount);
-                        console.log('Current inventory for item:', this.currentInventory[itemName]);
-                        
-                        // Only include loss if item exists and loss amount is valid
-                        if (this.currentInventory[itemName] && lossAmount <= this.currentInventory[itemName] && lossAmount > 0) {
-                            console.log('Adding inventory loss:', itemName, lossAmount);
-                            this.failureConsequences.inventoryLosses[itemName] = lossAmount;
-                        } else {
-                            console.log('Skipping invalid inventory loss:', itemName, lossAmount);
-                        }
-                    }
-                });
+        // If no requirements, nothing to lose
+        if (!this.requirements || Object.keys(this.requirements).length === 0) {
+            return;
+        }
+
+        // Base chance of losing an item is danger/10
+        const baseLossChance = this.danger / 10;
+        
+        // For each required item, determine if it's lost and how much
+        Object.entries(this.requirements).forEach(([item, quantity]) => {
+            // Skip if no quantity
+            if (quantity <= 0) return;
+
+            // Special handling for shuttlecraft
+            if (item.toLowerCase() === 'shuttlecraft') {
+                // Higher chance of damage for more dangerous missions
+                const damageChance = baseLossChance * 0.8; // 80% of base chance
+                if (Math.random() < damageChance) {
+                    // Damage amount is random between 1 and danger level * 3
+                    const damage = Math.floor(Math.random() * this.danger * 3) + 1;
+                    this.failureConsequences.shuttleDamage[1] = damage; // Assuming shuttle ID 1 for now
+                }
+                return;
             }
 
-            // Parse shuttle damage and validate against current health
-            const shuttleSection = consequencesText.split('Shuttle Damage Received:')[1];
-            console.log('Shuttle section:', shuttleSection);
-            
-            if (shuttleSection) {
-                const shuttleLines = shuttleSection.split('\n').filter(line => line.trim().startsWith('-'));
-                console.log('Shuttle lines:', shuttleLines);
-                
-                shuttleLines.forEach(line => {
-                    console.log('Processing shuttle line:', line);
-                    // More robust pattern matching - capture shuttle number and damage separately
-                    const match = line.match(/^-\s*Shuttle\s+(\d+):\s*(\d+)\s*$/);
-                    console.log('Shuttle match:', match);
-                    
-                    if (match) {
-                        const shuttleId = parseInt(match[1]);
-                        const damageAmount = parseInt(match[2]);
-                        console.log('Parsed shuttle:', shuttleId, 'damage:', damageAmount);
-                        
-                        const shuttle = this.shuttleStatus.find(s => s.id === shuttleId);
-                        console.log('Found shuttle:', shuttle);
-                        
-                        // Only include damage if shuttle exists, damage is valid, and wouldn't reduce health below 0
-                        if (shuttle && damageAmount <= shuttle.health && damageAmount > 0) {
-                            console.log('Adding shuttle damage:', shuttleId, damageAmount);
-                            this.failureConsequences.shuttleDamage[shuttleId] = damageAmount;
-                        } else {
-                            console.log('Skipping invalid shuttle damage:', shuttleId, damageAmount);
-                        }
-                    }
-                });
+            // For regular items, determine if they're lost
+            if (Math.random() < baseLossChance) {
+                // Amount lost is random between 1 and min(quantity, danger)
+                const maxLoss = Math.min(quantity, this.danger);
+                const amountLost = Math.floor(Math.random() * maxLoss) + 1;
+                this.failureConsequences.inventoryLosses[item] = amountLost;
             }
+        });
 
-            console.log('Final failure consequences:', this.failureConsequences);
-
-        } catch (error) {
-            console.error('Error generating failure consequences:', error);
-            this.failureConsequences = null;
+        // If no losses occurred, ensure the structure is still valid
+        if (Object.keys(this.failureConsequences.inventoryLosses).length === 0) {
+            this.failureConsequences.inventoryLosses = {};
+        }
+        if (Object.keys(this.failureConsequences.shuttleDamage).length === 0) {
+            this.failureConsequences.shuttleDamage = {};
         }
     }
 } 
