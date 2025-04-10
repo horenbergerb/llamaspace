@@ -65,8 +65,8 @@ export class Anomaly {
         ];
 
         this.adjectives = '';
-        // Select one or two random adjectives and join them
-        let numAdjectives = Math.floor((Math.random() * 2) + 1);
+        // Select random adjectives with 90% chance of 1, 10% chance of 2
+        let numAdjectives = Math.random() < 0.9 ? 1 : 2;
         for (let i = 0; i < numAdjectives; i++) {
             const adjective = this.randomChoice(anomalyAdjectives);
             this.adjectives += `${adjective}, `;
@@ -254,7 +254,7 @@ ${orbitingBody.description ? `Planet Description:\n${orbitingBody.description}` 
         }
 
         const prompt = `${commonPrompt}
-The ship has become aware of an anomaly on or near the body. These are some of the properties of the anomaly:
+The ship has become aware of an anomaly on or near the body. Anomalies can be natural phenomena, artificial structures, a ship in distress, or anything else of note. The term encapsulates any encounter beyond the norm, of which there are many in this part of the galaxy. These are some of the properties of the anomaly:
 
 Severity: ${this.severity}
 Descriptors: ${this.adjectives}

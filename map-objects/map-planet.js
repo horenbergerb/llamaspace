@@ -204,8 +204,8 @@ export class MapPlanet extends MapBody {
         };        
         
         this.adjectives = '';
-        // Select two random adjectives and join them
-        let numAdjectives = Math.floor(sketch.random(0, 2));
+        // Select random adjectives with 90% chance of 1, 10% chance of 2
+        let numAdjectives = Math.random() < 0.9 ? 1 : 2;
         if (numAdjectives == 0) {
             this.adjectives = 'N/A';
         } else if (this.bodyProperties.type in ['Rocky', 'Ocean', 'Gas Giant', 'Ice Giant', 'Desert']) {
