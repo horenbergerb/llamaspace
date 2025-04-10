@@ -339,7 +339,7 @@ export class ScanUI extends BaseWindowUI {
 
     updateAnomaly(deltaTime) {
         // Randomly spawn anomaly if none exists
-        if (!this.anomaly && Math.random() < this.anomalyChance) {
+        if (!this.anomaly && this.nearbyAnomalies.length > 0 && Math.random() < this.anomalyChance) {
             this.anomaly = {
                 x: Math.random() * this.barWidth,
                 velocity: 0,
