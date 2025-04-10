@@ -21,54 +21,15 @@ export class TutorialUI extends BaseWindowUI {
         this.lineHeight = 20;
         this.paragraphSpacing = 30;
 
-        // Tutorial content
-        this.tutorialContent = `
-Welcome to LlamaSpace!
+        this.viewed = false;
 
-In this game, you'll explore a vast galaxy, complete missions, and manage your ship and crew. Here's what you need to know:
-
-Basic Controls:
-- Use WASD to move your ship
-- Click on stars and planets to interact with them
-- Use the mouse wheel to zoom in and out
-- Press ESC to open the menu
-
-Ship Management:
-Your ship is your home in space. You can:
-- View your ship's status and inventory
-- Assign crew members to missions
-- Manage your shuttlecraft
-- Track your reputation
-
-Missions:
-Missions are the main way to progress in the game. You can:
-- Accept missions from planets and space stations
-- Assign crew members to complete them
-- Earn rewards and reputation
-- Face consequences for failure
-
-Crew Management:
-Your crew is essential for completing missions. You can:
-- View crew member stats and skills
-- Assign them to missions
-- Track their performance
-- Manage their equipment
-
-Inventory:
-Keep track of your resources:
-- Research Probes for scanning
-- Redshirts for dangerous missions
-- EVA Suits for spacewalks
-- Repair Drones for fixing damage
-
-Tips:
-- Always check mission requirements before accepting
-- Keep an eye on your shuttlecraft's health
-- Build up your reputation to unlock better missions
-- Manage your resources carefully
-
-Good luck, Captain! The galaxy awaits your exploration.
-`;
+        this.tutorialStep = 0;
+        this.tutorialContent = [`Transmission from Admiral Bofa:
+Good to hear from you, Captain Wobbleton. The committee was pleased to hear that the Gallileo has finally arrived in sector D-124. We have our scientists looking into the time dilation phenomenon you reported. Thank you for the various theories. If you had not noticed the discrepancy, we would have thought you were simply 2 months behind schedule.
+It seems your journey is already yielding interesting results. Nonetheless, please remember that your primary objective is a planetary survey. Now that you are in the correct sector, your next course of action should be dropping out of warp space and entering a local star system.
+Objective:
+- Left-click a nearby star in the galaxy map to travel to it.
+- Right-click the star you are orbiting. Press "Enter System" to enter the system.`];
 
         // Initialize scrollable graphics buffer
         this.graphicsBuffer = new ScrollableGraphicsBuffer(sketch);
@@ -167,7 +128,7 @@ Good luck, Captain! The galaxy awaits your exploration.
         buffer.textSize(this.textSize);
 
         // Split content into paragraphs and handle each one
-        const paragraphs = this.tutorialContent.split('\n\n');
+        const paragraphs = this.tutorialContent[this.tutorialStep].split('\n\n');
         let contentY = this.graphicsBuffer.scrollOffset;
         let totalHeight = 0;
         const lineSpacing = 5; // Space between lines within a paragraph

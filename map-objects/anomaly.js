@@ -200,7 +200,7 @@ export class Anomaly {
 
         return `This is for a roleplaying game focused on space exploration. The game is serious with hints of humor in the vein of Douglas Adams's "The Hitchhiker's Guide to the Galaxy."
 
-The player is Donald, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
+The player is Donald Wobbleton, captain of a small starship known as the Galileo. The Galileo is on a research mission in a remote part of the galaxy. The starship is similar in capabilities to the Federation starship Enterprise from Star Trek, albeit smaller and lower quality (it's one of the oldest ships in the fleet). It was designed for a crew of 15.
 
 The Galileo is equipped with standard research equipment and meagre weaponry. It has a small replicator and two shuttlecraft. It has most of the resources needed to sustain a crew of 15 for a year.
 
@@ -260,7 +260,7 @@ Severity: ${this.severity}
 Descriptors: ${this.adjectives}
 Location: ${this.location}
 ${reportStyleContext.length > 0 ? `Additional Context:\n${reportStyleContext.join('\n')}\n` : ''}
-The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write two or three sentences from the science officer to Captain Donald describing what they've found. The report should focus on what they can see and, optionally, a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable. This report should be totally distinct from the recent reports on other anomalies, and the delivery should be unique.
+The crew of the Galileo does not necessarily know all of this. The bridge crew is completing preliminary scans of the anomaly. Write two or three sentences from the science officer to Captain Wobbleton describing what they've found. The report should focus on what they can see and, optionally, a few key measurements made by the science officer, focusing on the most significant and concerning aspects of the anomaly. Use creative license to make the anomaly interesting and mysterious, but make it tangible and believable. This report should be totally distinct from the recent reports on other anomalies, and the delivery should be unique.
 
 ${this.reportStyleHint}
 
