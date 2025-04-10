@@ -386,8 +386,8 @@ Be realistic about what is possible for the Galileo and its crew.`;
         }
         if (this.requirements === null) {
             await this.generateMissionRequirements(textGenerator, currentScene, orbitingBody);
+            this.viewed = false;
         }
-        this.viewed = false;
     }
 
     async generateSteps(textGenerator, currentScene, orbitingBody) {
