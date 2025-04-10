@@ -267,7 +267,7 @@ etc.`;
                     break;
                 }
             }
-            if (this.requirements.length === 0)
+            if (Object.keys(this.requirements).length === 0)
                 this.approve();
 
         } catch (error) {
