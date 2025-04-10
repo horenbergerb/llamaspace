@@ -81,12 +81,45 @@ var mapSketch = function(sketch) {
             globalEventBus.emit('missionsUpdated', missions);
         });
 
-
-    // arriving at a planet should emit an event with missions for that planet
-    // Actually, arriving at planet should just update MissionUI with spaceship.orbitBody.missions
+        // arriving at a planet should emit an event with missions for that planet
+        // Actually, arriving at planet should just update MissionUI with spaceship.orbitBody.missions
         globalEventBus.on('orbitBodyChanged', (orbitBody) => {
             missions = orbitBody.isPlanet ? orbitBody.missions : [];
             uiManager.getUI('mission').missions = missions;
+        });
+
+        // Add event listener for finding nearby anomalies
+        globalEventBus.on('requestNearbyAnomalies', () => {
+            if (!spaceship.inSystemMap) {
+                globalEventBus.emit('nearbyAnomaliesChanged', []);
+                return;
+            }
+
+            const nearbyAnomalies = [];
+            const currentOrbitBody = spaceship.orbitBody;
+
+            // Iterate over stars in the galaxy
+            for (const star of galaxyMapScene.mapBodies) {
+                // Skip if star is outside travel range
+                const distance = Math.hypot(
+                    star.baseX - currentOrbitBody.baseX,
+                    star.baseY - currentOrbitBody.baseY
+                );
+                if (distance > Spaceship.MAX_ORBIT_CHANGE_DISTANCE) {
+                    continue;
+                }
+
+                // Check each planet in the star's system
+                if (star.planets) {
+                    for (const planet of star.planets) {
+                        if (planet.anomaly && planet.anomaly.firstReport === null) {
+                            nearbyAnomalies.push(planet);
+                        }
+                    }
+                }
+            }
+
+            globalEventBus.emit('nearbyAnomaliesChanged', nearbyAnomalies);
         });
     };
 

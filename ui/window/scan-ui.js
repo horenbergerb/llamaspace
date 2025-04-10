@@ -46,6 +46,7 @@ export class ScanUI extends BaseWindowUI {
         this.anomalyDirectionChangeChance = 0.5; // Chance to change direction per frame
         this.anomalyPauseDuration = 0; // Current pause duration
         this.tunePercent = 0; // Tuning progress percentage
+        this.nearbyAnomalies = []; // Store nearby anomalies found during scan
 
         // Time tracking for frame-rate independence
         this.lastFrameTime = 0;
@@ -63,10 +64,26 @@ export class ScanUI extends BaseWindowUI {
         );
 
         // Subscribe to UI visibility events
-        this.eventBus.on('scanUIOpened', () => {
+        this.eventBus.on('scanUIOpened', async () => {
             this.isWindowVisible = true;
             this.generateRandomWaves();
             this.anomaly = null; // Reset anomaly when opening UI
+            
+            // Create promise to wait for nearby anomalies response
+            const anomaliesPromise = new Promise(resolve => {
+                const anomaliesHandler = (anomalies) => {
+                    this.nearbyAnomalies = anomalies;
+                    this.eventBus.off('nearbyAnomaliesChanged', anomaliesHandler);
+                    resolve();
+                };
+                this.eventBus.on('nearbyAnomaliesChanged', anomaliesHandler);
+            });
+            
+            // Request nearby anomalies
+            this.eventBus.emit('requestNearbyAnomalies');
+            
+            // Wait for response
+            await anomaliesPromise;
         });
         this.eventBus.on('scanUIClosed', () => {
             this.isWindowVisible = false;
