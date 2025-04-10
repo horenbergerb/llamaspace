@@ -45,6 +45,7 @@ export class ScanUI extends BaseWindowUI {
         this.anomalyPauseChance = 0.3; // Chance to pause per frame
         this.anomalyDirectionChangeChance = 0.5; // Chance to change direction per frame
         this.anomalyPauseDuration = 0; // Current pause duration
+        this.tunePercent = 0; // Tuning progress percentage
 
         // Time tracking for frame-rate independence
         this.lastFrameTime = 0;
@@ -333,12 +334,26 @@ export class ScanUI extends BaseWindowUI {
                 pauseTime: 0,
                 nextDirectionChange: 0.5 + Math.random() * 2 // Random time until first direction change
             };
+            this.tunePercent = 20; // Initialize tune percent to 20 when anomaly appears
         }
 
         // Update existing anomaly
         if (this.anomaly) {
             // Update lifetime
             this.anomaly.lifetime += deltaTime;
+            
+            // Update tune percent based on slider position
+            const distanceToAnomaly = Math.abs(this.sliderX - this.anomaly.x);
+            const tuningThreshold = 20; // Distance threshold for tuning
+            const tuningRate = 5.0; // Rate of tuning change per second
+            
+            if (distanceToAnomaly < tuningThreshold) {
+                // Increase tune percent when close to anomaly
+                this.tunePercent = Math.min(100, this.tunePercent + tuningRate * deltaTime);
+            } else {
+                // Decrease tune percent when far from anomaly
+                this.tunePercent = Math.max(0, this.tunePercent - tuningRate * deltaTime);
+            }
             
             // Handle pausing
             if (this.anomaly.isPaused) {
@@ -443,6 +458,27 @@ export class ScanUI extends BaseWindowUI {
         this.sketch.fill(255);
         this.sketch.noStroke();
         this.sketch.rect(x + 50 + this.sliderX, this.sliderY, this.sliderWidth, this.sliderHeight);
+
+        // Draw tuning progress bar if anomaly exists
+        if (this.anomaly) {
+            const progressBarY = barY + 20; // Position below the frequency slider
+            const progressBarHeight = 8;
+            
+            // Draw background
+            this.sketch.fill(60);
+            this.sketch.noStroke();
+            this.sketch.rect(x + 50, progressBarY, this.barWidth, progressBarHeight);
+            
+            // Draw progress
+            this.sketch.fill(0, 255, 0); // Green color for progress
+            this.sketch.rect(x + 50, progressBarY, this.barWidth * (this.tunePercent / 100), progressBarHeight);
+            
+            // Draw label
+            this.sketch.fill(255);
+            this.sketch.textSize(12);
+            this.sketch.textAlign(this.sketch.LEFT, this.sketch.CENTER);
+            this.sketch.text('Tuning Progress:', x + 50, progressBarY - 15);
+        }
 
         // Calculate signal height based on window height
         this.signalHeight = Math.min(60, windowHeight * 0.15); // 15% of window height, max 60px
