@@ -35,8 +35,8 @@ Captain Wobbleton, this is to inform you that the matter of ship's inventory has
 It appears that Technician Bartu and several Ensigns appropriated the items for some kind of cultural performance, which, unfortunately, deteriorated into a substantial brawl. Both suits were damaged beyond repair. He has expressed what I believe to be remorse. I have chosen to delay punitive response until a more culturally appropriate time.
 You may now access the ship's inventory to confirm our current stock. Many items are required for research procedures, and the nature of research is such that it is not uncommon to lose items. Please keep this in mind when planning missions.
 Objective:
-- Click the “Ship” button to review your inventory
-- Note that items may be lost during failed missions. Difficult missions are more likely to lose items.`,
+- Click the "Ship" button to review your inventory
+- Note that items may be lost during failed missions. Difficult or dangerous missions are more likely to lose items.`,
 `Report from Chief Science Officer Lieutenant Thompson:
 Hey Captain, we're all good to go down here. We got the probes polished, and Bartu fixed that weird grinding noise the scanner was making.
 Once we're in orbit around a planet, the scanner should give us an idea of what's down there. Thompson is very excited to write up reports for every single planet, and again, he's also very sorry about the whole coffee debacle. The replicator really should not let it get that hot.
@@ -54,6 +54,7 @@ Objective:
         // Subscribe to UI visibility events
         this.eventBus.on('tutorialUIOpened', () => {
             this.isWindowVisible = true;
+            this.viewed = true;
         });
         this.eventBus.on('tutorialUIClosed', () => {
             this.isWindowVisible = false;
@@ -126,6 +127,15 @@ Objective:
         this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
         this.sketch.textSize(24);
         this.sketch.text('?', x + this.buttonWidth/2, y + this.buttonHeight/2);
+
+        // Draw exclamation point if not viewed
+        if (!this.viewed) {
+            this.sketch.noStroke();
+            this.sketch.fill(255, 165, 0); // Orange color for the tutorial indicator
+            this.sketch.textSize(24);
+            this.sketch.textAlign(this.sketch.RIGHT, this.sketch.TOP);
+            this.sketch.text('!', x - 5, y - 5);
+        }
 
         this.sketch.pop();
     }
