@@ -26,6 +26,11 @@ export class MissionInfoUI extends BaseWindowUI {
         this.lineHeight = 18;
         this.sectionSpacing = 20;
 
+        // Tooltip properties
+        this.tooltipText = null;
+        this.tooltipTimeout = null;
+        this.tooltipDuration = 2000; // Duration in milliseconds
+
         // Subscribe to UI visibility events
         this.eventBus.on('missionInfoUIOpened', (mission) => {
             this.mission = mission;
@@ -94,7 +99,13 @@ export class MissionInfoUI extends BaseWindowUI {
                     // Approve button
                     if (mouseX >= contentX + 10 && mouseX <= contentX + 10 + buttonWidth &&
                         mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
-                        this.mission.approve();
+                        this.mission.approve().then(approved => {
+                            if (!approved) {
+                                this.showTemporaryTooltip("You do not have the required resources");
+                            }
+                        }).catch(error => {
+                            console.error('Error approving mission:', error);
+                        });
                         return true;
                     }
                     
@@ -347,11 +358,73 @@ export class MissionInfoUI extends BaseWindowUI {
 
         // Render the graphics buffer
         this.contentBuffer.render(x + 20, y + this.contentStartY);
+
+        // Render temporary tooltip if active
+        this.renderTemporaryTooltip();
     }
     
     calculateWrappedTextHeight(buffer, text, maxWidth) {
         const wrappedText = wrapText(buffer, text, maxWidth);
         const lines = wrappedText.split('\n');
         return lines.length * this.lineHeight; // 18 pixels per line
+    }
+
+    showTemporaryTooltip(text) {
+        this.tooltipText = text;
+        if (this.tooltipTimeout) {
+            clearTimeout(this.tooltipTimeout);
+        }
+        this.tooltipTimeout = setTimeout(() => {
+            this.tooltipText = null;
+        }, this.tooltipDuration);
+    }
+
+    renderTemporaryTooltip() {
+        if (!this.tooltipText) {
+            return;
+        }
+
+        this.sketch.push();
+        
+        // Draw tooltip background
+        this.sketch.fill(0, 0, 0, 200);
+        this.sketch.noStroke();
+        
+        // Calculate text dimensions
+        this.sketch.textSize(14);
+        const padding = 10;
+        const tooltipWidth = this.sketch.textWidth(this.tooltipText) + (padding * 2);
+        const tooltipHeight = 30;
+        
+        // Position tooltip near the approve button
+        const { width: windowWidth, height: windowHeight } = this.getWindowDimensions();
+        let x = (this.sketch.width - windowWidth) / 2;
+        let y = (this.sketch.height - windowHeight) / 2;
+        
+        // Calculate approve button position
+        const buttonWidth = 80;
+        const buttonHeight = 30;
+        const buttonSpacing = 10;
+        
+        // Calculate requirements section height
+        const requirementsHeight = this.lineHeight + // Title
+            (Object.entries(this.mission.requirements).length * this.lineHeight); // Requirements
+        
+        // Calculate button Y position relative to window, accounting for scroll
+        const buttonY = y + this.contentStartY + requirementsHeight - this.contentBuffer.scrollOffset;
+        
+        // Position tooltip to the right of the approve button
+        const tooltipX = x + 20 + 10 + buttonWidth + 10; // x + margin + button left margin + button width + spacing
+        const tooltipY = buttonY - 5;
+        
+        // Draw tooltip background with rounded corners
+        this.sketch.rect(tooltipX, tooltipY, tooltipWidth, tooltipHeight, 5);
+        
+        // Draw tooltip text
+        this.sketch.fill(255);
+        this.sketch.textAlign(this.sketch.LEFT, this.sketch.CENTER);
+        this.sketch.text(this.tooltipText, tooltipX + padding, tooltipY + tooltipHeight/2);
+        
+        this.sketch.pop();
     }
 } 

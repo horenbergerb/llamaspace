@@ -63,11 +63,65 @@ export class Mission {
         this.assignedCrew = crewMember;
     }
 
-    approve() {
+    async updateInventoryAndShuttleStatus() {
+        // Create promise to wait for inventory response
+        const inventoryPromise = new Promise(resolve => {
+            const inventoryHandler = (inventory) => {
+                this.currentInventory = inventory;
+                this.eventBus.off('inventoryChanged', inventoryHandler);
+                resolve();
+            };
+            this.eventBus.on('inventoryChanged', inventoryHandler);
+        });
+        
+        // Create promise to wait for shuttlecraft response
+        const shuttlePromise = new Promise(resolve => {
+            const shuttleHandler = (shuttles) => {
+                this.shuttleStatus = shuttles;
+                this.eventBus.off('shuttlecraftChanged', shuttleHandler);
+                resolve();
+            };
+            this.eventBus.on('shuttlecraftChanged', shuttleHandler);
+        });
+        
+        // Request current state
+        this.eventBus.emit('requestInventoryState');
+        this.eventBus.emit('requestShuttlecraftState');
+        
+        // Wait for both responses
+        await Promise.all([inventoryPromise, shuttlePromise]);
+    }
+
+    async approve() {
+        // Update inventory and shuttle status before checking requirements
+        await this.updateInventoryAndShuttleStatus();
+
+        // Check if we have all required items
+        if (this.requirements) {
+            for (const [item, quantity] of Object.entries(this.requirements)) {
+                // Special handling for shuttlecraft
+                if (item.toLowerCase() === 'shuttlecraft') {
+                    // Check if we have an operational shuttle
+                    const hasOperationalShuttle = this.shuttleStatus.some(shuttle => shuttle.isOperational());
+                    if (!hasOperationalShuttle) {
+                        console.log(`Cannot approve mission: No operational shuttlecraft available`);
+                        return false;
+                    }
+                } else {
+                    // Check regular inventory items
+                    if (!this.currentInventory[item] || this.currentInventory[item] < quantity) {
+                        console.log(`Cannot approve mission: Not enough ${item} (need ${quantity}, have ${this.currentInventory[item] || 0})`);
+                        return false;
+                    }
+                }
+            }
+        }
+
         this.generateSteps(this.textGenerator, this.currentScene, this.orbitingBody);
         this.approved = true;
         this.currentStep = 0;
         this.lastStepTime = Date.now();
+        return true;
     }
 
     update() {
@@ -138,33 +192,8 @@ export class Mission {
             bodyContext = `The ship is orbiting a planet named ${orbitingBody.name} in the ${orbitingBody.parentStar.name} system. `;
         }
 
-        // Get current inventory and shuttle status through event bus
-        // Create promise to wait for inventory response
-        const inventoryPromise = new Promise(resolve => {
-            const inventoryHandler = (inventory) => {
-                this.currentInventory = inventory;
-                this.eventBus.off('inventoryChanged', inventoryHandler);
-                resolve();
-            };
-            this.eventBus.on('inventoryChanged', inventoryHandler);
-        });
-        
-        // Create promise to wait for shuttlecraft response
-        const shuttlePromise = new Promise(resolve => {
-            const shuttleHandler = (shuttles) => {
-                this.shuttleStatus = shuttles;
-                this.eventBus.off('shuttlecraftChanged', shuttleHandler);
-                resolve();
-            };
-            this.eventBus.on('shuttlecraftChanged', shuttleHandler);
-        });
-        
-        // Request current state
-        this.eventBus.emit('requestInventoryState');
-        this.eventBus.emit('requestShuttlecraftState');
-        
-        // Wait for both responses
-        await Promise.all([inventoryPromise, shuttlePromise]);
+        // Get current inventory and shuttle status
+        await this.updateInventoryAndShuttleStatus();
 
         // Check for anomaly report
         let anomalyReport = '';
