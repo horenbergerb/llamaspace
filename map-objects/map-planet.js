@@ -432,6 +432,18 @@ export class MapPlanet extends MapBody {
             this.sketch.ellipse(this.baseX, this.baseY, this.size * 2.5, this.size * 0.6); // Adjusted ring proportions
         }
 
+        // Draw planet with glow effect if there are unviewed missions
+        if (this.missions.some(mission => !mission.viewed)) {
+            this.sketch.noStroke();
+            this.sketch.colorMode(this.sketch.RGB); // Ensure we're in RGB mode
+            // Draw glow layers from largest to smallest
+            for (let i = 5; i > 0; i--) {
+                let alpha = 60 - i * 12; // Increased opacity for better visibility
+                this.sketch.fill(255, 165, 0, alpha); // Orange glow color
+                this.sketch.ellipse(this.baseX, this.baseY, this.size + i * 2);
+            }
+        }
+
         // Draw anomaly indicator if planet has an anomaly and it has been reported
         if (this.anomaly !== null && this.anomaly.firstReport !== null) {
             this.sketch.noStroke();
