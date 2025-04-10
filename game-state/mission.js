@@ -7,6 +7,7 @@ export class Mission {
         this.cancelled = false;
         this.requirements = null;
         this.difficulty = null;
+        this.danger = null;
         this.assignedCrew = assignedCrew;
         this.currentStep = 0;
         this.lastStepTime = Date.now();
@@ -215,7 +216,7 @@ ${orbitingBody.getDescription()}${anomalyReport}${recentMissionsSection}`;
 
     async generateMissionRequirements(textGenerator, currentScene, orbitingBody) {
         if (this.difficulty === null) {
-            await this.generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody);
+            await this.generateDifficultyQualityDanger(textGenerator, currentScene, orbitingBody);
         }
         const commonPrompt = await this.getCommonScenarioPrompt(orbitingBody);
         const prompt = `${commonPrompt}
@@ -276,7 +277,7 @@ etc.`;
         }
     }
 
-    async generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody) {
+    async generateDifficultyQualityDanger(textGenerator, currentScene, orbitingBody) {
         const commonPrompt = await this.getCommonScenarioPrompt(orbitingBody);
         const prompt = `${commonPrompt}
 Donald has just assigned a research mission to a bridge crew member named ${this.assignedCrew.name}. ${this.assignedCrew.name} is a ${this.assignedCrew.race}. ${this.assignedCrew.races[this.assignedCrew.race].description}
@@ -285,9 +286,11 @@ ${this.assignedCrew.name} is often described as ${this.assignedCrew.demeanor.joi
 
 Objective: ${this.objective}
 
-Rate the difficulty from 1 to 10. 10 is impossible, 5 is harder than average, 1 is a trivial task.
+Rate the difficulty from 1 to 10. This represents the likelihood of failure. 10 indicates an impossible task, 5 is harder than average, 1 is a trivial task.
 
 Additionally, rate the quality of the mission from 1 to 10. High-quality missions ask interesting questions regarding the body that the Galileo is orbiting. Low-quality missions are irrelevant to the body, trivial, or uninteresting.
+
+Finally, rate the danger of the mission from 1 to 10. This is the likelihood of consequences such as loss of equipment, injury, or death. 1 indicates no danger, 10 indicates catastrophic losses, and 5 is a moderate level of danger.
 
 Format your response exactly like this:
 
@@ -296,6 +299,9 @@ Difficulty: X
 
 Considerations: *Reason about the quality of the mission*
 Quality: Y
+
+Considerations: *Reason about the danger of the mission*
+Danger: Z
 
 Be realistic about what is possible for the Galileo and its crew.`;
 
@@ -325,11 +331,20 @@ Be realistic about what is possible for the Galileo and its crew.`;
                 this.quality = 5;
                 console.warn('Could not parse quality from response, defaulting to 5');
             }
+            const dangerMatch = difficultyText.match(/Danger:\s*\**(\d+)\**/);
+            if (dangerMatch) {
+                this.danger = parseInt(dangerMatch[1]);
+            } else {
+                // Default to medium danger if parsing fails
+                this.danger = 5;
+                console.warn('Could not parse danger from response, defaulting to 5');
+            }
         } catch (error) {
-            console.error('Error parsing difficulty and quality:', error);
+            console.error('Error parsing difficulty, quality, and danger:', error);
             // Set a default step if generation fails
             this.difficulty = 5;
             this.quality = 5;
+            this.danger = 5;
         }
     }
 
@@ -338,7 +353,7 @@ Be realistic about what is possible for the Galileo and its crew.`;
         this.currentScene = currentScene;
         this.orbitingBody = orbitingBody;
         if (this.difficulty === null) {
-            await this.generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody);
+            await this.generateDifficultyQualityDanger(textGenerator, currentScene, orbitingBody);
         }
         if (this.requirements === null) {
             await this.generateMissionRequirements(textGenerator, currentScene, orbitingBody);
