@@ -1,5 +1,6 @@
 import { BaseWindowUI } from './base-window-ui.js';
 import { ScrollableGraphicsBuffer } from './components/scrollable-graphics-buffer.js';
+import { wrapText } from '../../utils/text-utils.js';
 
 export class TutorialUI extends BaseWindowUI {
     constructor(sketch, eventBus) {
@@ -19,6 +20,55 @@ export class TutorialUI extends BaseWindowUI {
         this.textSize = 14;
         this.lineHeight = 20;
         this.paragraphSpacing = 30;
+
+        // Tutorial content
+        this.tutorialContent = `
+Welcome to LlamaSpace!
+
+In this game, you'll explore a vast galaxy, complete missions, and manage your ship and crew. Here's what you need to know:
+
+Basic Controls:
+- Use WASD to move your ship
+- Click on stars and planets to interact with them
+- Use the mouse wheel to zoom in and out
+- Press ESC to open the menu
+
+Ship Management:
+Your ship is your home in space. You can:
+- View your ship's status and inventory
+- Assign crew members to missions
+- Manage your shuttlecraft
+- Track your reputation
+
+Missions:
+Missions are the main way to progress in the game. You can:
+- Accept missions from planets and space stations
+- Assign crew members to complete them
+- Earn rewards and reputation
+- Face consequences for failure
+
+Crew Management:
+Your crew is essential for completing missions. You can:
+- View crew member stats and skills
+- Assign them to missions
+- Track their performance
+- Manage their equipment
+
+Inventory:
+Keep track of your resources:
+- Research Probes for scanning
+- Redshirts for dangerous missions
+- EVA Suits for spacewalks
+- Repair Drones for fixing damage
+
+Tips:
+- Always check mission requirements before accepting
+- Keep an eye on your shuttlecraft's health
+- Build up your reputation to unlock better missions
+- Manage your resources carefully
+
+Good luck, Captain! The galaxy awaits your exploration.
+`;
 
         // Initialize scrollable graphics buffer
         this.graphicsBuffer = new ScrollableGraphicsBuffer(sketch);
@@ -116,53 +166,47 @@ export class TutorialUI extends BaseWindowUI {
         buffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
         buffer.textSize(this.textSize);
 
-        // Sample tutorial content
-        const tutorialContent = [
-            "Welcome to the Tutorial!",
-            "This is a sample tutorial section that will help you get started with the game.",
-            "Here are some basic controls:",
-            "- Use WASD to move your character",
-            "- Click on objects to interact with them",
-            "- Press ESC to open the menu",
-            "Game Features:",
-            "1. Character Customization",
-            "2. Mission System",
-            "3. Inventory Management",
-            "4. Crafting System",
-            "5. Multiplayer Support",
-            "Tips and Tricks:",
-            "- Always keep an eye on your health bar",
-            "- Collect resources whenever possible",
-            "- Complete missions to earn rewards",
-            "- Upgrade your equipment regularly",
-            "Advanced Features:",
-            "The game includes a complex crafting system that allows you to create various items.",
-            "You can trade with other players in the multiplayer mode.",
-            "Complete achievements to unlock special rewards.",
-            "Join guilds to participate in group activities."
-        ];
-
-        // Calculate total content height
+        // Split content into paragraphs and handle each one
+        const paragraphs = this.tutorialContent.split('\n\n');
         let contentY = this.graphicsBuffer.scrollOffset;
         let totalHeight = 0;
+        const lineSpacing = 5; // Space between lines within a paragraph
 
-        // Draw content with scroll offset
-        for (let i = 0; i < tutorialContent.length; i++) {
-            const text = tutorialContent[i];
-            if (text.startsWith("-") || text.match(/^\d+\./)) {
-                buffer.text("  " + text, 0, contentY);
+        paragraphs.forEach(paragraph => {
+            // Handle bullet points and numbered lists
+            if (paragraph.startsWith('-') || paragraph.match(/^\d+\./)) {
+                // For bullet points and numbered lists, wrap the entire line
+                const wrappedLine = wrapText(buffer, paragraph, contentWidth - 20);
+                const lines = wrappedLine.split('\n');
+                lines.forEach(line => {
+                    buffer.text(line, 10, contentY);
+                    contentY += this.lineHeight + lineSpacing;
+                    totalHeight += this.lineHeight + lineSpacing;
+                });
             } else {
-                buffer.text(text, 0, contentY);
+                // For regular paragraphs, wrap each line individually
+                const lines = paragraph.split('\n');
+                lines.forEach(line => {
+                    if (line.trim() === '') {
+                        // Empty line, just add spacing
+                        contentY += this.lineHeight;
+                        totalHeight += this.lineHeight;
+                    } else {
+                        // Wrap the line and draw each wrapped segment
+                        const wrappedLine = wrapText(buffer, line, contentWidth - 20);
+                        const wrappedSegments = wrappedLine.split('\n');
+                        wrappedSegments.forEach(segment => {
+                            buffer.text(segment, 10, contentY);
+                            contentY += this.lineHeight + lineSpacing;
+                            totalHeight += this.lineHeight + lineSpacing;
+                        });
+                    }
+                });
             }
-            contentY += this.lineHeight;
-            totalHeight += this.lineHeight;
-            
-            // Add extra spacing for section headers
-            if (text.endsWith(":")) {
-                contentY += this.paragraphSpacing;
-                totalHeight += this.paragraphSpacing;
-            }
-        }
+            // Add extra spacing between paragraphs
+            contentY += this.paragraphSpacing;
+            totalHeight += this.paragraphSpacing;
+        });
 
         // Set max scroll offset based on total content height
         this.graphicsBuffer.setMaxScrollOffset(totalHeight);
