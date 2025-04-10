@@ -47,7 +47,14 @@ Objective:
 - Right-click visited planets to read the planetary report
 - Click the "Mission" button to see missions for the current planet
 - Press the "+" button to create a new mission
-  - Try something like "Send down a research probe to investigate"`];
+  - Try something like "Send down a research probe to investigate"`,
+`Message from Chief Science Officer Lieutenant Thompson:
+We received that mission briefing you sent. Very clever, Captain. Really. We're all thrilled to see how it goes.
+I put together a requisition for some things that we'll need. You mind giving it a look for me?
+Objective:
+- Click the "Mission" button while orbiting the planet with an active mission
+- Click on the pending mission
+- Approve the requisition`];
 
         // Initialize scrollable graphics buffer
         this.graphicsBuffer = new ScrollableGraphicsBuffer(sketch);
@@ -75,7 +82,13 @@ Objective:
             }
             this.isWindowVisible = false;
         });
-
+        this.eventBus.on('missionCreated', () => {
+            if (this.tutorialStep === 2) {
+                this.tutorialStep = 3;
+                this.viewed = false;
+            }
+            this.isWindowVisible = false;
+        });
         // Subscribe to close all UIs event
         this.eventBus.on('closeAllInfoUIs', () => {
             this.isWindowVisible = false;

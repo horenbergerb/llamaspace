@@ -259,8 +259,8 @@ Difficulty: ${this.difficulty}
 Given the inventory of the ship, the objective, and the difficulty, list the mission requirements. Respond in exactly the following format, using the item names as they were provided. For shuttlecraft, just write "shuttlecraft". If no items are necessary, only include the reasoning and do not list any items.
 
 Considerations: *Reason about the needs of the mission*
-Item 1: Quantity 1
-Item 2: Quantity 2
+{Item Name 1}: X
+{Item Name 2}: Y
 etc.`;
 
         let requirementsText = '';
@@ -454,7 +454,8 @@ ${Object.entries(this.failureConsequences.shuttleDamage).map(([shuttleId, damage
     const isDestroyed = destroyedShuttles.includes(shuttleId);
     return `- Shuttle ${shuttleId} sustained ${damage} damage${isDestroyed ? ' and was destroyed' : ''}`;
 }).join('\n')}
-` : ''}
+` : 'None of the allocated resources were lost.'}
+
 Here was the mission objective:
 
 Objective: ${this.objective}

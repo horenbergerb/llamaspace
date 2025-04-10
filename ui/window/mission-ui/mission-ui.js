@@ -621,6 +621,9 @@ export class MissionUI extends BaseWindowUI {
         // Add mission to list immediately
         this.missions.push(mission);
 
+        // Emit mission created event
+        this.eventBus.emit('missionCreated', mission);
+
         // Clear input fields and return to list
         this.objectiveTextBox.setText('');
         this.crewDropdown.setSelectedIndex(-1);
