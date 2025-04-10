@@ -236,7 +236,8 @@ Objective:
         visibleSteps.forEach((_, stepIndex) => {
             const nodeX = graphStartX + (stepIndex * nodeSpacingVisible);
             const isHovered = this.sketch.dist(mouseX, mouseY, nodeX, graphY) <= baseNodeRadius * 2;
-            const nodeRadius = baseNodeRadius * (isHovered ? 1.2 : 1.0);
+            const isViewing = stepIndex === this.viewingStep;
+            const nodeRadius = baseNodeRadius * (isHovered || isViewing ? 1.3 : 1.0);
 
             // Draw connecting line to next node
             if (stepIndex < visibleSteps.length - 1) {
@@ -289,6 +290,33 @@ Objective:
                 this.isWindowVisible = false;
                 this.eventBus.emit('tutorialUIClosed');
                 return true;
+            }
+
+            // Check if click is within the content area
+            if (mouseX >= x + 20 && mouseX <= x + windowWidth - 20 &&
+                mouseY >= y + this.contentStartY && mouseY <= y + windowHeight - 20) {
+                
+                // Convert mouse coordinates to graphics buffer coordinates
+                const bufferX = mouseX - (x + 20);
+                const bufferY = mouseY - (y + this.contentStartY);
+                
+                // Check if click is on a node
+                const graphStartX = 10;
+                const graphY = this.graphicsBuffer.scrollOffset + 10;
+                const nodeSpacing = Math.min(30, (windowWidth - 40) / this.tutorialContent.length);
+                const baseNodeRadius = 4;
+                
+                const visibleSteps = this.tutorialContent.filter((_, index) => index <= this.tutorialStep);
+                const nodeSpacingVisible = Math.min(30, (windowWidth - 40) / visibleSteps.length);
+                
+                visibleSteps.forEach((_, stepIndex) => {
+                    const nodeX = graphStartX + (stepIndex * nodeSpacingVisible);
+                    const dist = this.sketch.dist(bufferX, bufferY, nodeX, graphY);
+                    if (dist <= baseNodeRadius * 2 && stepIndex <= this.tutorialStep) {
+                        this.viewingStep = stepIndex;
+                        return true;
+                    }
+                });
             }
 
             // Return true for any click within the window bounds
