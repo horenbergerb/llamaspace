@@ -505,8 +505,20 @@ export class ScanUI extends BaseWindowUI {
             this.sketch.noStroke();
             this.sketch.rect(x + 50, progressBarY, this.barWidth, progressBarHeight);
             
+            // Calculate distance to anomaly
+            const distanceToAnomaly = Math.abs(this.sliderX - this.anomaly.x);
+            const tuningThreshold = 60;
+            
+            // Set color based on distance
+            if (distanceToAnomaly > tuningThreshold) {
+                // Pulsing yellow effect
+                const pulseIntensity = (Math.sin(this.time * 4) + 1) / 2; // 0 to 1
+                this.sketch.fill(255, 255 * (0.5 + pulseIntensity * 0.5), 0); // Yellow with pulsing intensity
+            } else {
+                this.sketch.fill(0, 255, 0); // Green when close
+            }
+            
             // Draw progress
-            this.sketch.fill(0, 255, 0); // Green color for progress
             this.sketch.rect(x + 50, progressBarY, this.barWidth * (this.tunePercent / 100), progressBarHeight);
         }
 
