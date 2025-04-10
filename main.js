@@ -53,6 +53,49 @@ let shipInventory = {
 
 var mapSketch = function(sketch) {
     sketch.preload = function() {
+        // Check if device is mobile
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            // Create a simple message display
+            sketch.setup = function() {
+                let sketchHolder = document.getElementById('simple-example-holder');
+                let w = sketchHolder.clientWidth;
+                sketch.createCanvas(w, sketch.windowHeight*0.7);
+                sketch.background(0);
+                sketch.fill(255);
+                sketch.textAlign(sketch.CENTER, sketch.CENTER);
+                sketch.textSize(24);
+                
+                // Calculate text width and wrap if needed
+                const message = "Sorry, LlamaSpace doesn't currently support mobile devices :(";
+                const maxWidth = sketch.width * 0.8; // Use 80% of canvas width
+                const words = message.split(' ');
+                let lines = [];
+                let currentLine = words[0];
+                
+                for (let i = 1; i < words.length; i++) {
+                    const word = words[i];
+                    const width = sketch.textWidth(currentLine + ' ' + word);
+                    if (width < maxWidth) {
+                        currentLine += ' ' + word;
+                    } else {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    }
+                }
+                lines.push(currentLine);
+                
+                // Draw each line
+                const lineHeight = 30;
+                const startY = (sketch.height - (lines.length * lineHeight)) / 2;
+                lines.forEach((line, i) => {
+                    sketch.text(line, sketch.width/2, startY + (i * lineHeight));
+                });
+            };
+            sketch.draw = function() {}; // Empty draw function since we just want to show the message
+            return;
+        }
+
         backgroundRenderer = new MapBackgroundRenderer(sketch);
         Spaceship.preload(sketch);
         spaceship = new Spaceship(sketch, globalEventBus);
