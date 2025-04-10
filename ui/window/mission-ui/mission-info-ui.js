@@ -22,6 +22,10 @@ export class MissionInfoUI extends BaseWindowUI {
         // Create graphics buffer for content
         this.contentBuffer = new ScrollableGraphicsBuffer(sketch);
 
+        // Constants for layout
+        this.lineHeight = 18;
+        this.sectionSpacing = 20;
+
         // Subscribe to UI visibility events
         this.eventBus.on('missionInfoUIOpened', (mission) => {
             this.mission = mission;
@@ -75,6 +79,33 @@ export class MissionInfoUI extends BaseWindowUI {
 
             if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
                 mouseY >= contentY && mouseY <= contentY + contentHeight) {
+                
+                // Check approve/deny buttons if mission is not approved
+                if (!this.mission.approved && this.mission.requirements && !this.mission.cancelled) {
+                    const buttonWidth = 80;
+                    const buttonHeight = 30;
+                    const buttonSpacing = 10;
+                    
+                    // Calculate button positions relative to window
+                    const requirementsHeight = this.lineHeight + // Title
+                        (Object.entries(this.mission.requirements).length * this.lineHeight); // Requirements
+                    const buttonY = contentY + requirementsHeight - this.contentBuffer.scrollOffset;
+                    
+                    // Approve button
+                    if (mouseX >= contentX + 10 && mouseX <= contentX + 10 + buttonWidth &&
+                        mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+                        this.mission.approve();
+                        return true;
+                    }
+                    
+                    // Deny button
+                    if (mouseX >= contentX + 10 + buttonWidth + buttonSpacing && 
+                        mouseX <= contentX + 10 + buttonWidth + buttonSpacing + buttonWidth &&
+                        mouseY >= buttonY && mouseY <= buttonY + buttonHeight) {
+                        this.mission.cancel();
+                        return true;
+                    }
+                }
                 
                 // Handle scrolling
                 return this.contentBuffer.handleMouseWheel({
@@ -162,28 +193,34 @@ export class MissionInfoUI extends BaseWindowUI {
 
         // Calculate total content height
         let totalContentHeight = 0;
-        const sectionSpacing = 20;
-        const lineHeight = 18;
+        
+        // Add height for requirements section if needed
+        if (!this.mission.approved && this.mission.requirements) {
+            totalContentHeight += this.lineHeight; // Title
+            totalContentHeight += Object.entries(this.mission.requirements).length * this.lineHeight; // Each requirement
+            totalContentHeight += this.lineHeight * 2; // Buttons
+            totalContentHeight += this.sectionSpacing;
+        }
         
         // Mission objective section
-        totalContentHeight += lineHeight; // Title
+        totalContentHeight += this.lineHeight; // Title
         totalContentHeight += this.calculateWrappedTextHeight(buffer, this.mission.objective, contentWidth - 20);
-        totalContentHeight += sectionSpacing;
+        totalContentHeight += this.sectionSpacing;
         
         // Mission status section
-        totalContentHeight += lineHeight; // Title
-        totalContentHeight += lineHeight; // Status
-        if (this.mission.assignedCrew) totalContentHeight += lineHeight; // Crew
-        if (this.mission.orbitingBody) totalContentHeight += lineHeight; // Location
-        totalContentHeight += sectionSpacing;
+        totalContentHeight += this.lineHeight; // Title
+        totalContentHeight += this.lineHeight; // Status
+        if (this.mission.assignedCrew) totalContentHeight += this.lineHeight; // Crew
+        if (this.mission.orbitingBody) totalContentHeight += this.lineHeight; // Location
+        totalContentHeight += this.sectionSpacing;
         
         // Mission steps section
-        totalContentHeight += lineHeight; // Title
+        totalContentHeight += this.lineHeight; // Title
         
         // Calculate height for each step
         const visibleSteps = this.mission.steps.filter((_, index) => index <= this.mission.currentStep);
         visibleSteps.forEach(step => {
-            totalContentHeight += lineHeight; // Step number and status
+            totalContentHeight += this.lineHeight; // Step number and status
             totalContentHeight += this.calculateWrappedTextHeight(buffer, step, contentWidth - 40);
             totalContentHeight += 5; // Small spacing between steps
         });
@@ -197,24 +234,63 @@ export class MissionInfoUI extends BaseWindowUI {
         // Draw content with scroll offset
         let contentY = this.contentBuffer.scrollOffset;
 
+        // Draw requirements section if needed
+        if (!this.mission.approved && this.mission.requirements) {
+            buffer.textSize(16);
+            buffer.text('Requirements:', 0, contentY);
+            contentY += this.lineHeight;
+            
+            buffer.textSize(14);
+            Object.entries(this.mission.requirements).forEach(([item, amount]) => {
+                buffer.text(`- ${item}: ${amount}`, 10, contentY);
+                contentY += this.lineHeight;
+            });
+            
+            // Draw approve/deny buttons
+            const buttonWidth = 80;
+            const buttonHeight = 30;
+            const buttonSpacing = 10;
+            
+            // Calculate button positions relative to window
+            const requirementsHeight = this.lineHeight + // Title
+                (Object.entries(this.mission.requirements).length * this.lineHeight); // Requirements
+            const buttonY = contentY + requirementsHeight - this.contentBuffer.scrollOffset;
+            
+            // Approve button
+            buffer.fill(0, 150, 0);
+            buffer.rect(10, contentY, buttonWidth, buttonHeight);
+            buffer.fill(255);
+            buffer.textAlign(this.sketch.CENTER, this.sketch.CENTER);
+            buffer.text('Approve', 10 + buttonWidth/2, contentY + buttonHeight/2);
+            
+            // Deny button
+            buffer.fill(150, 0, 0);
+            buffer.rect(10 + buttonWidth + buttonSpacing, contentY, buttonWidth, buttonHeight);
+            buffer.fill(255);
+            buffer.text('Deny', 10 + buttonWidth + buttonSpacing + buttonWidth/2, contentY + buttonHeight/2);
+            
+            buffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
+            contentY += buttonHeight + this.sectionSpacing;
+        }
+
         // Draw Mission Objective section
         buffer.fill(255);
         buffer.noStroke();
         buffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
         buffer.textSize(16);
         buffer.text('Objective:', 0, contentY);
-        contentY += lineHeight;
+        contentY += this.lineHeight;
         
         buffer.textSize(14);
         const wrappedObjective = wrapText(buffer, this.mission.objective, contentWidth - 20);
         buffer.text(wrappedObjective, 10, contentY);
         contentY += this.calculateWrappedTextHeight(buffer, this.mission.objective, contentWidth - 20);
-        contentY += sectionSpacing;
+        contentY += this.sectionSpacing;
 
         // Draw Mission Status section
         buffer.textSize(16);
         buffer.text('Status:', 0, contentY);
-        contentY += lineHeight;
+        contentY += this.lineHeight;
         
         buffer.textSize(14);
         // Status
@@ -223,26 +299,26 @@ export class MissionInfoUI extends BaseWindowUI {
                     (this.mission.cancelled ? 'Cancelled' : 
                      this.mission.outcome ? 'Completed Successfully' : 'Failed') : 
                     'In Progress'}`, 10, contentY);
-        contentY += lineHeight;
+        contentY += this.lineHeight;
         
         // Crew
         if (this.mission.assignedCrew) {
             buffer.text(`Assigned to: ${this.mission.assignedCrew.name}`, 10, contentY);
-            contentY += lineHeight;
+            contentY += this.lineHeight;
         }
         
         // Location
         if (this.mission.orbitingBody) {
             buffer.text(`Location: ${this.mission.orbitingBody.name}`, 10, contentY);
-            contentY += lineHeight;
+            contentY += this.lineHeight;
         }
         
-        contentY += sectionSpacing;
+        contentY += this.sectionSpacing;
 
         // Draw Mission Steps section
         buffer.textSize(16);
         buffer.text('Steps:', 0, contentY);
-        contentY += lineHeight;
+        contentY += this.lineHeight;
         
         buffer.textSize(14);
         
@@ -254,7 +330,7 @@ export class MissionInfoUI extends BaseWindowUI {
             
             buffer.fill(255);
             buffer.text(`Step ${index + 1}: ${stepStatus}`, 10, contentY);
-            contentY += lineHeight;
+            contentY += this.lineHeight;
             
             // Step description
             const wrappedStep = wrapText(buffer, step, contentWidth - 40);
@@ -270,6 +346,6 @@ export class MissionInfoUI extends BaseWindowUI {
     calculateWrappedTextHeight(buffer, text, maxWidth) {
         const wrappedText = wrapText(buffer, text, maxWidth);
         const lines = wrappedText.split('\n');
-        return lines.length * 18; // 18 pixels per line
+        return lines.length * this.lineHeight; // 18 pixels per line
     }
 } 

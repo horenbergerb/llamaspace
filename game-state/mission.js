@@ -63,6 +63,7 @@ export class Mission {
     }
 
     approve() {
+        this.generateSteps(this.textGenerator, this.currentScene, this.orbitingBody);
         this.approved = true;
         this.currentStep = 0;
         this.lastStepTime = Date.now();
@@ -265,7 +266,8 @@ etc.`;
                     break;
                 }
             }
-            console.log(this.requirements);
+            if (this.requirements.length === 0)
+                this.approve();
 
         } catch (error) {
             console.error('Error parsing requirements:', error);
@@ -332,6 +334,9 @@ Be realistic about what is possible for the Galileo and its crew.`;
     }
 
     async preapprovalGeneration(textGenerator, currentScene, orbitingBody) {
+        this.textGenerator = textGenerator;
+        this.currentScene = currentScene;
+        this.orbitingBody = orbitingBody;
         if (this.difficulty === null) {
             await this.generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody);
         }
