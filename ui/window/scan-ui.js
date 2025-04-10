@@ -19,7 +19,7 @@ export class ScanUI extends BaseWindowUI {
         // Frequency Slider properties
         this.sliderX = 0;
         this.sliderY = 0;
-        this.sliderWidth = 20;
+        this.sliderWidth = 60;
         this.sliderHeight = 20;
         this.velocity = 0;
         this.baseGravity = 2000; // Base gravity value
@@ -344,7 +344,7 @@ export class ScanUI extends BaseWindowUI {
             
             // Update tune percent based on slider position
             const distanceToAnomaly = Math.abs(this.sliderX - this.anomaly.x);
-            const tuningThreshold = 20; // Distance threshold for tuning
+            const tuningThreshold = 60; // Increased from 20 to 60 (3x wider threshold)
             const tuningRate = 5.0; // Rate of tuning change per second
             
             if (distanceToAnomaly < tuningThreshold) {
@@ -472,12 +472,6 @@ export class ScanUI extends BaseWindowUI {
             // Draw progress
             this.sketch.fill(0, 255, 0); // Green color for progress
             this.sketch.rect(x + 50, progressBarY, this.barWidth * (this.tunePercent / 100), progressBarHeight);
-            
-            // Draw label
-            this.sketch.fill(255);
-            this.sketch.textSize(12);
-            this.sketch.textAlign(this.sketch.LEFT, this.sketch.CENTER);
-            this.sketch.text('Tuning Progress:', x + 50, progressBarY - 15);
         }
 
         // Calculate signal height based on window height
