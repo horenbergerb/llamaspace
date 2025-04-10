@@ -80,7 +80,7 @@ export class MissionInfoUI extends BaseWindowUI {
             if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
                 mouseY >= contentY && mouseY <= contentY + contentHeight) {
                 
-                // Check approve/deny buttons if mission is not approved
+                // Check approve/deny buttons if mission is not approved and not cancelled
                 if (!this.mission.approved && this.mission.requirements && !this.mission.cancelled) {
                     const buttonWidth = 80;
                     const buttonHeight = 30;
@@ -195,10 +195,12 @@ export class MissionInfoUI extends BaseWindowUI {
         let totalContentHeight = 0;
         
         // Add height for requirements section if needed
-        if (!this.mission.approved && this.mission.requirements) {
+        if (this.mission.requirements) {
             totalContentHeight += this.lineHeight; // Title
             totalContentHeight += Object.entries(this.mission.requirements).length * this.lineHeight; // Each requirement
-            totalContentHeight += this.lineHeight * 2; // Buttons
+            if (!this.mission.approved && !this.mission.cancelled) {
+                totalContentHeight += this.lineHeight * 2; // Buttons
+            }
             totalContentHeight += this.sectionSpacing;
         }
         
@@ -235,7 +237,7 @@ export class MissionInfoUI extends BaseWindowUI {
         let contentY = this.contentBuffer.scrollOffset;
 
         // Draw requirements section if needed
-        if (!this.mission.approved && this.mission.requirements) {
+        if (this.mission.requirements) {
             buffer.textSize(16);
             buffer.text('Requirements:', 0, contentY);
             contentY += this.lineHeight;
@@ -246,31 +248,35 @@ export class MissionInfoUI extends BaseWindowUI {
                 contentY += this.lineHeight;
             });
             
-            // Draw approve/deny buttons
-            const buttonWidth = 80;
-            const buttonHeight = 30;
-            const buttonSpacing = 10;
-            
-            // Calculate button positions relative to window
-            const requirementsHeight = this.lineHeight + // Title
-                (Object.entries(this.mission.requirements).length * this.lineHeight); // Requirements
-            const buttonY = contentY + requirementsHeight - this.contentBuffer.scrollOffset;
-            
-            // Approve button
-            buffer.fill(0, 150, 0);
-            buffer.rect(10, contentY, buttonWidth, buttonHeight);
-            buffer.fill(255);
-            buffer.textAlign(this.sketch.CENTER, this.sketch.CENTER);
-            buffer.text('Approve', 10 + buttonWidth/2, contentY + buttonHeight/2);
-            
-            // Deny button
-            buffer.fill(150, 0, 0);
-            buffer.rect(10 + buttonWidth + buttonSpacing, contentY, buttonWidth, buttonHeight);
-            buffer.fill(255);
-            buffer.text('Deny', 10 + buttonWidth + buttonSpacing + buttonWidth/2, contentY + buttonHeight/2);
-            
-            buffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
-            contentY += buttonHeight + this.sectionSpacing;
+            // Draw approve/deny buttons only if mission is not approved and not cancelled
+            if (!this.mission.approved && !this.mission.cancelled) {
+                const buttonWidth = 80;
+                const buttonHeight = 30;
+                const buttonSpacing = 10;
+                
+                // Calculate button positions relative to window
+                const requirementsHeight = this.lineHeight + // Title
+                    (Object.entries(this.mission.requirements).length * this.lineHeight); // Requirements
+                const buttonY = contentY + requirementsHeight - this.contentBuffer.scrollOffset;
+                
+                // Approve button
+                buffer.fill(0, 150, 0);
+                buffer.rect(10, contentY, buttonWidth, buttonHeight);
+                buffer.fill(255);
+                buffer.textAlign(this.sketch.CENTER, this.sketch.CENTER);
+                buffer.text('Approve', 10 + buttonWidth/2, contentY + buttonHeight/2);
+                
+                // Deny button
+                buffer.fill(150, 0, 0);
+                buffer.rect(10 + buttonWidth + buttonSpacing, contentY, buttonWidth, buttonHeight);
+                buffer.fill(255);
+                buffer.text('Deny', 10 + buttonWidth + buttonSpacing + buttonWidth/2, contentY + buttonHeight/2);
+                
+                buffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
+                contentY += buttonHeight + this.sectionSpacing;
+            } else {
+                contentY += this.sectionSpacing;
+            }
         }
 
         // Draw Mission Objective section
