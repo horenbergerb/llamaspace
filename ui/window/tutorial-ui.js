@@ -29,7 +29,24 @@ Good to hear from you, Captain Wobbleton. The committee was pleased to hear that
 It seems your journey is already yielding interesting results. Nonetheless, please remember that your primary objective is a planetary survey. Now that you are in the correct sector, your next course of action should be dropping out of warp space and entering a local star system.
 Objective:
 - Left-click a nearby star in the galaxy map to travel to it.
-- Right-click the star you are orbiting. Press "Enter System" to enter the system.`];
+- Right-click the star you are orbiting. Press "Enter System" to enter the system.`,
+`Report from Quartermaster Xri:
+Captain Wobbleton, this is to inform you that the matter of ship's inventory has reached a state of provisional resolution. A number of essential units—Most notably two EVA suits—were discovered to be missing from their designated compartments. I have performed a full recount and an investigation into the matter.
+It appears that Technician Bartu and several Ensigns appropriated the items for some kind of cultural performance, which, unfortunately, deteriorated into a substantial brawl. Both suits were damaged beyond repair. He has expressed what I believe to be remorse. I have chosen to delay punitive response until a more culturally appropriate time.
+You may now access the ship's inventory to confirm our current stock. Many items are required for research procedures, and the nature of research is such that it is not uncommon to lose items. Please keep this in mind when planning missions.
+Objective:
+- Click the “Ship” button to review your inventory
+- Note that items may be lost during failed missions. Difficult missions are more likely to lose items.`,
+`Report from Chief Science Officer Lieutenant Thompson:
+Hey Captain, we're all good to go down here. We got the probes polished, and Bartu fixed that weird grinding noise the scanner was making.
+Once we're in orbit around a planet, the scanner should give us an idea of what's down there. Thompson is very excited to write up reports for every single planet, and again, he's also very sorry about the whole coffee debacle. The replicator really should not let it get that hot.
+If you see anything interesting in the reports, ask us to investigate. That's what we're all here for, isn't it?
+Objective:
+- Left-click planets to fly to them
+- Right-click visited planets to read the planetary report
+- Click the "Mission" button to see missions for the current planet
+- Press the "+" button to create a new mission
+  - Try something like "Send down a research probe to investigate"`];
 
         // Initialize scrollable graphics buffer
         this.graphicsBuffer = new ScrollableGraphicsBuffer(sketch);
@@ -40,6 +57,7 @@ Objective:
         });
         this.eventBus.on('tutorialUIClosed', () => {
             this.isWindowVisible = false;
+            this.graphicsBuffer.scrollOffset = 0;
         });
         this.eventBus.on('settingsUIOpened', () => {
             this.isWindowVisible = false;
@@ -48,12 +66,24 @@ Objective:
             this.isWindowVisible = false;
         });
         this.eventBus.on('shipUIOpened', () => {
+            if (this.tutorialStep === 1) {
+                this.tutorialStep = 2;
+                this.viewed = false;
+            }
             this.isWindowVisible = false;
         });
 
         // Subscribe to close all UIs event
         this.eventBus.on('closeAllInfoUIs', () => {
             this.isWindowVisible = false;
+        });
+
+        // Add event listener for scene changes
+        this.eventBus.on('sceneChanged', (scene) => {
+            if (scene.systemView && this.tutorialStep === 0) {
+                this.tutorialStep = 1;
+                this.viewed = false;
+            }
         });
     }
 

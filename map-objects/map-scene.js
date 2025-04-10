@@ -11,6 +11,7 @@ export class MapScene {
         this.mapBodies = []; // Array for navigable bodies
         this.pressStartTime = null;
         this.eventBus = eventBus; // Use provided event bus
+        this.systemView = false;
         
         // Create UI with event bus
         this.starInfoUI = new StarInfoUI(sketch, this.eventBus);
@@ -56,6 +57,7 @@ export class MapScene {
     setInSystemView(isInSystem) {
         this.starInfoUI.inSystemMap = isInSystem;
         this.planetInfoUI.inSystemMap = isInSystem;
+        this.systemView = isInSystem;
     }
 
     handleMousePressedMapScene() {
