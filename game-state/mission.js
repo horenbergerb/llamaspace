@@ -459,7 +459,7 @@ Here was the mission objective:
 
 Objective: ${this.objective}
 
-The research mission was documented in ${this.difficulty} phases.
+The research mission was documented in ${Math.max(1, this.difficulty + Math.floor(Math.random() * 6) - 2)} phases.
 
 Each phase should be phrased as a progress report from ${this.assignedCrew.name} written in their log. It should be a single sentence or two.
 Format your response exactly like this, with one step per line starting with a number and period:
