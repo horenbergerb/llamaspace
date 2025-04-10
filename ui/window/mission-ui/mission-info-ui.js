@@ -1,5 +1,7 @@
 import { BaseWindowUI } from '../base-window-ui.js';
 import { Mission } from '../../../game-state/mission.js';
+import { ScrollableGraphicsBuffer } from '../components/scrollable-graphics-buffer.js';
+import { wrapText } from '../../../utils/text-utils.js';
 
 export class MissionInfoUI extends BaseWindowUI {
     constructor(sketch, eventBus, initialScene, mission) {
@@ -17,10 +19,14 @@ export class MissionInfoUI extends BaseWindowUI {
         // Content start Y position
         this.contentStartY = 60; // Start below top buttons
 
+        // Create graphics buffer for content
+        this.contentBuffer = new ScrollableGraphicsBuffer(sketch);
+
         // Subscribe to UI visibility events
         this.eventBus.on('missionInfoUIOpened', (mission) => {
             this.mission = mission;
             this.isWindowVisible = true;
+            this.contentBuffer.resetScroll();
         });
         
         this.eventBus.on('shipUIOpened', () => {
@@ -61,9 +67,35 @@ export class MissionInfoUI extends BaseWindowUI {
                 return true;
             }
 
+            // Check if click is within the content area
+            const contentX = x + 20;
+            const contentY = y + this.contentStartY;
+            const contentWidth = windowWidth - 40;
+            const contentHeight = windowHeight - this.contentStartY - 20;
+
+            if (mouseX >= contentX && mouseX <= contentX + contentWidth &&
+                mouseY >= contentY && mouseY <= contentY + contentHeight) {
+                
+                // Handle scrolling
+                return this.contentBuffer.handleMouseWheel({
+                    deltaY: 0,
+                    preventDefault: () => {}
+                });
+            }
+
             return true;
         }
 
+        return false;
+    }
+
+    handleMouseWheel(event) {
+        if (!this.isWindowVisible) return false;
+        
+        if (super.handleMouseWheel(event)) {
+            return this.contentBuffer.handleMouseWheel(event);
+        }
+        
         return false;
     }
 
@@ -116,5 +148,128 @@ export class MissionInfoUI extends BaseWindowUI {
         this.sketch.textAlign(this.sketch.LEFT, this.sketch.TOP);
         this.sketch.textSize(16);
         this.sketch.text('Mission Details:', x + 20, y + 20);
+
+        // Initialize graphics buffer if needed
+        const contentWidth = windowWidth - 40; // Account for margins
+        const contentHeight = windowHeight - this.contentStartY - 20; // Leave some bottom padding
+        this.contentBuffer.initialize(contentWidth, contentHeight);
+        
+        // Set up the graphics context
+        const buffer = this.contentBuffer.getBuffer();
+        buffer.fill(255);
+        buffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
+        buffer.textSize(14);
+
+        // Calculate total content height
+        let totalContentHeight = 0;
+        const sectionSpacing = 20;
+        const lineHeight = 18;
+        
+        // Mission objective section
+        totalContentHeight += lineHeight; // Title
+        totalContentHeight += this.calculateWrappedTextHeight(buffer, this.mission.objective, contentWidth - 20);
+        totalContentHeight += sectionSpacing;
+        
+        // Mission status section
+        totalContentHeight += lineHeight; // Title
+        totalContentHeight += lineHeight; // Status
+        if (this.mission.assignedCrew) totalContentHeight += lineHeight; // Crew
+        if (this.mission.orbitingBody) totalContentHeight += lineHeight; // Location
+        totalContentHeight += sectionSpacing;
+        
+        // Mission steps section
+        totalContentHeight += lineHeight; // Title
+        
+        // Calculate height for each step
+        const visibleSteps = this.mission.steps.filter((_, index) => index <= this.mission.currentStep);
+        visibleSteps.forEach(step => {
+            totalContentHeight += lineHeight; // Step number and status
+            totalContentHeight += this.calculateWrappedTextHeight(buffer, step, contentWidth - 40);
+            totalContentHeight += 5; // Small spacing between steps
+        });
+        
+        // Add some padding at the bottom
+        totalContentHeight += 10;
+
+        // Set max scroll offset based on total content height
+        this.contentBuffer.setMaxScrollOffset(totalContentHeight);
+
+        // Draw content with scroll offset
+        let contentY = this.contentBuffer.scrollOffset;
+
+        // Draw Mission Objective section
+        buffer.fill(255);
+        buffer.noStroke();
+        buffer.textAlign(this.sketch.LEFT, this.sketch.TOP);
+        buffer.textSize(16);
+        buffer.text('Objective:', 0, contentY);
+        contentY += lineHeight;
+        
+        buffer.textSize(14);
+        const wrappedObjective = wrapText(buffer, this.mission.objective, contentWidth - 20);
+        buffer.text(wrappedObjective, 10, contentY);
+        contentY += this.calculateWrappedTextHeight(buffer, this.mission.objective, contentWidth - 20);
+        contentY += sectionSpacing;
+
+        // Draw Mission Status section
+        buffer.textSize(16);
+        buffer.text('Status:', 0, contentY);
+        contentY += lineHeight;
+        
+        buffer.textSize(14);
+        // Status
+        buffer.fill(255);
+        buffer.text(`Status: ${this.mission.completed ? 
+                    (this.mission.cancelled ? 'Cancelled' : 
+                     this.mission.outcome ? 'Completed Successfully' : 'Failed') : 
+                    'In Progress'}`, 10, contentY);
+        contentY += lineHeight;
+        
+        // Crew
+        if (this.mission.assignedCrew) {
+            buffer.text(`Assigned to: ${this.mission.assignedCrew.name}`, 10, contentY);
+            contentY += lineHeight;
+        }
+        
+        // Location
+        if (this.mission.orbitingBody) {
+            buffer.text(`Location: ${this.mission.orbitingBody.name}`, 10, contentY);
+            contentY += lineHeight;
+        }
+        
+        contentY += sectionSpacing;
+
+        // Draw Mission Steps section
+        buffer.textSize(16);
+        buffer.text('Steps:', 0, contentY);
+        contentY += lineHeight;
+        
+        buffer.textSize(14);
+        
+        // Draw each step
+        visibleSteps.forEach((step, index) => {
+            // Step number and status
+            const stepStatus = index < this.mission.currentStep ? 'Completed' : 
+                             index === this.mission.currentStep ? 'In Progress' : 'Pending';
+            
+            buffer.fill(255);
+            buffer.text(`Step ${index + 1}: ${stepStatus}`, 10, contentY);
+            contentY += lineHeight;
+            
+            // Step description
+            const wrappedStep = wrapText(buffer, step, contentWidth - 40);
+            buffer.text(wrappedStep, 20, contentY);
+            contentY += this.calculateWrappedTextHeight(buffer, step, contentWidth - 40);
+            contentY += 5; // Small spacing between steps
+        });
+
+        // Render the graphics buffer
+        this.contentBuffer.render(x + 20, y + this.contentStartY);
+    }
+    
+    calculateWrappedTextHeight(buffer, text, maxWidth) {
+        const wrappedText = wrapText(buffer, text, maxWidth);
+        const lines = wrappedText.split('\n');
+        return lines.length * 18; // 18 pixels per line
     }
 } 
