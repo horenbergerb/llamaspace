@@ -614,9 +614,9 @@ export class MissionUI extends BaseWindowUI {
         // Generate steps in the background if text generator is available
         if (this.textGenerator) {
             try {
-                await mission.generateSteps(this.textGenerator, this.currentScene, this.orbitingBody);
+                await mission.preapprovalGeneration(this.textGenerator, this.currentScene, this.orbitingBody);
             } catch (error) {
-                console.error('Failed to generate mission steps:', error);
+                console.error('Failed to generate mission preapproval:', error);
             }
         }
     }

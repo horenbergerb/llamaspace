@@ -62,6 +62,12 @@ export class Mission {
         this.assignedCrew = crewMember;
     }
 
+    approve() {
+        this.approved = true;
+        this.currentStep = 0;
+        this.lastStepTime = Date.now();
+    }
+
     update() {
         if (this.completed || !this.approved) return;
 
@@ -325,13 +331,19 @@ Be realistic about what is possible for the Galileo and its crew.`;
         }
     }
 
-    async generateSteps(textGenerator, currentScene, orbitingBody) {
+    async preapprovalGeneration(textGenerator, currentScene, orbitingBody) {
         if (this.difficulty === null) {
             await this.generateDifficultyAndQuality(textGenerator, currentScene, orbitingBody);
         }
         if (this.requirements === null) {
             await this.generateMissionRequirements(textGenerator, currentScene, orbitingBody);
         }
+        this.viewed = false;
+    }
+
+    async generateSteps(textGenerator, currentScene, orbitingBody) {
+        await this.preapprovalGeneration(textGenerator, currentScene, orbitingBody);
+
         let successProbability = 100 - this.difficulty * 10;
         this.outcome = Math.random() < successProbability / 100;
 
@@ -386,10 +398,6 @@ Keep steps clear and actionable. Write them in plaintext with no titles or other
                     return match ? match[1].trim() : null;
                 })
                 .filter(step => step !== null); // Remove any non-matching lines
-                
-            this.lastStepTime = Date.now();
-            this.currentStep = 0;
-
             // If mission will fail, generate failure consequences after steps are generated
             if (!this.outcome) {
                 await this.generateFailureConsequences(textGenerator);
