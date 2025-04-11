@@ -54,7 +54,16 @@ I put together a requisition for some things that we'll need. You mind giving it
 Objective:
 - Click the "Mission" button while orbiting the planet with an active mission
 - Click on the pending mission
-- Approve the requisition`];
+- Approve the requisition`,
+`Transmission from Admiral Bofa:
+Our labs are processing the data from your first mission. It's interesting, I will admit. Certainly not what we expected. Keep up the good work.
+The Galilleo should be equipped with a DABLON frequency scanner that can detect nearby anomalies. It's a little dated, so keeping it tuned might be challenging.
+We're approving use of the DABLON and giving you free reign to travel the sector. I suggest you seek out some more interesting targets to occupy your crew.
+Objective:
+- Right click the sun in the system map and select "Return to Galaxy"
+- Left click the "Scan" button in the Galaxy map.
+- Wait for an anomaly to be detected
+- Use the button to keep the DABLON tuned to the anomaly until its location can be determined.`];
 
         // Initialize scrollable graphics buffer
         this.graphicsBuffer = new ScrollableGraphicsBuffer(sketch);
