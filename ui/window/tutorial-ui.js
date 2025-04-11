@@ -63,6 +63,7 @@ Objective:
 - Right click the sun in the system map and select "Return to Galaxy."
 - Left click the "Scan" button in the Galaxy map.
 - Wait for an anomaly to be detected.
+  - If nothing pops up, you may want to try a different location with more stars.
 - Use the button to keep the DABLON slider aligned with the anomaly until its location can be determined.
 - Travel to the anomaly and create a mission to investigate.`];
 

@@ -29,8 +29,8 @@ export class MapPlanet extends MapBody {
         this.generatePlanetProperties(sketch);
         this.updatePosition(); // Initial position
 
-        // Add anomaly with 1/3 chance
-        this.anomaly = sketch.random() < 0.33 ? new Anomaly(eventBus) : null;
+        // Add anomaly with 1/20 chance
+        this.anomaly = sketch.random() < 0.05 ? new Anomaly(eventBus) : null;
 
         this.sketch.registerMethod('pre', () => {
             this.missions.forEach(mission => mission.update());
@@ -330,7 +330,7 @@ export class MapPlanet extends MapBody {
             "Thermal Battery Planet", "Listening Post Remnant", "Bio-Lab Core", "Archive Shard", "Lost Experiment Planet"
           ];
 
-        let isWeird = Math.random() < 0.2;
+        let isWeird = Math.random() < 0.05;
         if (isWeird) {
             return this.randomChoice(weirdTypes);
         }
