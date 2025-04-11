@@ -314,30 +314,33 @@ export class ScanUI extends BaseWindowUI {
         // Update anomaly if it exists
         this.updateAnomaly(deltaTime);
 
-        // Calculate scaled physics values based on bar width
-        // Reference width is 800px, so we scale relative to that
-        const widthScale = this.barWidth / 800;
-        const gravity = this.baseGravity * widthScale;
-        const thrust = this.baseThrust * widthScale;
-        
-        // Apply gravity (scaled by deltaTime and width)
-        this.velocity -= gravity * deltaTime;
-        
-        // Apply thrust if pressed (scaled by deltaTime and width)
-        if (this.isPressed) {
-            this.velocity += thrust * deltaTime;
-        }
-        
-        // Update position (scaled by deltaTime)
-        this.sliderX += this.velocity * deltaTime;
-        
-        // Handle collisions with slider boundaries
-        if (this.sliderX <= 0) {
-            this.sliderX = 0;
-            this.velocity = 0;
-        } else if (this.sliderX >= this.barWidth - this.sliderWidth) {
-            this.sliderX = this.barWidth - this.sliderWidth;
-            this.velocity = 0;
+        // Only update slider physics if not in success state
+        if (!this.successState) {
+            // Calculate scaled physics values based on bar width
+            // Reference width is 800px, so we scale relative to that
+            const widthScale = this.barWidth / 800;
+            const gravity = this.baseGravity * widthScale;
+            const thrust = this.baseThrust * widthScale;
+            
+            // Apply gravity (scaled by deltaTime and width)
+            this.velocity -= gravity * deltaTime;
+            
+            // Apply thrust if pressed (scaled by deltaTime and width)
+            if (this.isPressed) {
+                this.velocity += thrust * deltaTime;
+            }
+            
+            // Update position (scaled by deltaTime)
+            this.sliderX += this.velocity * deltaTime;
+            
+            // Handle collisions with slider boundaries
+            if (this.sliderX <= 0) {
+                this.sliderX = 0;
+                this.velocity = 0;
+            } else if (this.sliderX >= this.barWidth - this.sliderWidth) {
+                this.sliderX = this.barWidth - this.sliderWidth;
+                this.velocity = 0;
+            }
         }
     }
 
