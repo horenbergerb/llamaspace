@@ -19,7 +19,8 @@ export class ScanUI extends BaseWindowUI {
         // Frequency Slider properties
         this.sliderX = 0;
         this.sliderY = 0;
-        this.sliderWidth = 60;
+        this.sliderWidth = 0; // Will be calculated based on barWidth
+        this.sliderWidthProportion = 0.13; // 7.5% of barWidth
         this.sliderHeight = 20;
         this.velocity = 0;
         this.baseGravity = 2000; // Base gravity value
@@ -45,6 +46,9 @@ export class ScanUI extends BaseWindowUI {
         this.anomalyPauseDuration = 0; // Current pause duration
         this.tunePercent = 0; // Tuning progress percentage
         this.nearbyAnomalies = []; // Store nearby anomalies found during scan
+        this.successState = false; // Track if we're in success state
+        this.successTimer = 0; // Timer for success state
+        this.successDuration = 2; // Duration of success state in seconds
 
         // Time tracking for frame-rate independence
         this.lastFrameTime = 0;
@@ -355,7 +359,7 @@ export class ScanUI extends BaseWindowUI {
         if (this.anomaly) {
             // Update tune percent based on slider position
             const distanceToAnomaly = Math.abs(this.sliderX - this.anomaly.x);
-            const tuningThreshold = 60; // Increased from 20 to 60 (3x wider threshold)
+            const tuningThreshold = this.sliderWidth; // Increased from 20 to 60 (3x wider threshold)
             const tuningRate = 10.0; // Rate of tuning change per second
             
             if (distanceToAnomaly < tuningThreshold) {
@@ -367,28 +371,38 @@ export class ScanUI extends BaseWindowUI {
             }
 
             // Check if tuning is complete
-            if (this.tunePercent >= 100) {
-                // Select a random planet from nearby anomalies
-                if (this.nearbyAnomalies.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * this.nearbyAnomalies.length);
-                    const detectedPlanet = this.nearbyAnomalies[randomIndex];
-                    
-                    // Mark the anomaly as detected
-                    detectedPlanet.anomaly.detected = true;
-                    detectedPlanet.parentStar.anomaliesDetected = true;
-                    
-                    // Remove the detected planet from nearby anomalies
-                    this.nearbyAnomalies.splice(randomIndex, 1);
+            if (this.tunePercent >= 100 && !this.successState) {
+                this.successState = true;
+                this.successTimer = 0;
+            }
 
-                    // Emit events to center camera on the star and close the scan UI
-                    this.eventBus.emit('setAutoCameraToGalaxyStar', detectedPlanet.parentStar);
-                    this.eventBus.emit('scanUIClosed');
+            // Handle success state
+            if (this.successState) {
+                this.successTimer += deltaTime;
+                if (this.successTimer >= this.successDuration) {
+                    // Select a random planet from nearby anomalies
+                    if (this.nearbyAnomalies.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * this.nearbyAnomalies.length);
+                        const detectedPlanet = this.nearbyAnomalies[randomIndex];
+                        
+                        // Mark the anomaly as detected
+                        detectedPlanet.anomaly.detected = true;
+                        detectedPlanet.parentStar.anomaliesDetected = true;
+                        
+                        // Remove the detected planet from nearby anomalies
+                        this.nearbyAnomalies.splice(randomIndex, 1);
+
+                        // Emit events to center camera on the star and close the scan UI
+                        this.eventBus.emit('setAutoCameraToGalaxyStar', detectedPlanet.parentStar);
+                        this.eventBus.emit('scanUIClosed');
+                    }
+
+                    // Clear the anomaly and success state
+                    this.anomaly = null;
+                    this.tunePercent = 0;
+                    this.successState = false;
+                    return;
                 }
-
-                // Clear the anomaly
-                this.anomaly = null;
-                this.tunePercent = 0;
-                return;
             }
             else if (this.tunePercent <= 0){
                 this.anomaly = null;
@@ -488,6 +502,9 @@ export class ScanUI extends BaseWindowUI {
         this.sketch.strokeWeight(1);
         this.sketch.rect(x + 50, barY, this.barWidth, 10);
         
+        // Calculate slider width based on bar width
+        this.sliderWidth = this.barWidth * this.sliderWidthProportion;
+        
         // Update and draw the slider with delta time
         this.updatePhysics(deltaTime);
         this.sliderY = barY - 5; // Center vertically in the bar
@@ -509,17 +526,29 @@ export class ScanUI extends BaseWindowUI {
             const distanceToAnomaly = Math.abs(this.sliderX - this.anomaly.x);
             const tuningThreshold = 60;
             
-            // Set color based on distance
-            if (distanceToAnomaly > tuningThreshold) {
+            // Set color based on distance and success state
+            if (this.successState) {
+                // Success state - pulsing green
+                const pulseIntensity = (Math.sin(this.time * 8) + 1) / 2; // Faster pulse
+                this.sketch.fill(0, 255 * (0.7 + pulseIntensity * 0.3), 0);
+            } else if (distanceToAnomaly > tuningThreshold) {
                 // Pulsing yellow effect
-                const pulseIntensity = (Math.sin(this.time * 4) + 1) / 2; // 0 to 1
-                this.sketch.fill(255, 255 * (0.5 + pulseIntensity * 0.5), 0); // Yellow with pulsing intensity
+                const pulseIntensity = (Math.sin(this.time * 4) + 1) / 2;
+                this.sketch.fill(255, 255 * (0.5 + pulseIntensity * 0.5), 0);
             } else {
                 this.sketch.fill(0, 255, 0); // Green when close
             }
             
             // Draw progress
             this.sketch.rect(x + 50, progressBarY, this.barWidth * (this.tunePercent / 100), progressBarHeight);
+
+            // Draw success message if in success state
+            if (this.successState) {
+                this.sketch.fill(255);
+                this.sketch.textAlign(this.sketch.CENTER, this.sketch.CENTER);
+                this.sketch.textSize(24);
+                this.sketch.text('Signal Locked!', x + windowWidth/2, y + windowHeight/2);
+            }
         }
 
         // Calculate signal height based on window height
