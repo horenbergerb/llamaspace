@@ -43,6 +43,10 @@ export class SettingsUI extends BaseWindowUI {
             this.apiKeyTextBox.setText(savedApiKey);
             // Emit the API key event on startup if we have a saved key
             this.eventBus.emit('apiKeyUpdated', savedApiKey);
+        } else {
+            // If no API key exists, open the settings window
+            this.isWindowVisible = true;
+            this.eventBus.emit('settingsUIOpened');
         }
 
         // Subscribe to API key updates to test connection
@@ -206,7 +210,7 @@ export class SettingsUI extends BaseWindowUI {
         let contentY = this.scrollOffset;
 
         // Draw API Key field
-        pg.text('OpenRouter API Key:', 0, contentY);
+        pg.text('OpenRouter API Key (Required):', 0, contentY);
         contentY += this.labelHeight;
         
         // Draw API key text box
