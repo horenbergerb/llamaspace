@@ -43,7 +43,7 @@ export class MapPlanet extends MapBody {
     }
 
     scanForAnomalies(){
-        if (this.anomaly !== null && !this.anomaly.detected){
+        if (this.anomaly !== null){
             this.parentStar.anomaliesDetected = true;
             this.anomaly.generateFirstReport(this);
         }
