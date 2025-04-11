@@ -36,34 +36,34 @@ Captain Wobbleton, this is to inform you that the matter of ship's inventory has
 It appears that Technician Bartu and several Ensigns appropriated the items for some kind of cultural performance, which, unfortunately, deteriorated into a substantial brawl. Both suits were damaged beyond repair. He has expressed what I believe to be remorse. I have chosen to delay punitive response until a more culturally appropriate time.
 You may now access the ship's inventory to confirm our current stock. Many items are required for research procedures, and the nature of research is such that it is not uncommon to lose items. Please keep this in mind when planning missions.
 Objective:
-- Click the "Ship" button to review your inventory
+- Click the "Ship" button to review your inventory.
 - Note that items may be lost during failed missions. Difficult or dangerous missions are more likely to lose items.`,
 `Report from Chief Science Officer Lieutenant Thompson:
 Hey Captain, we're all good to go down here. We got the probes polished, and Bartu fixed that weird grinding noise the scanner was making.
 Once we're in orbit around a planet, the scanner should give us an idea of what's down there. Thompson is very excited to write up reports for every single planet, and again, he's also very sorry about the whole coffee debacle. The replicator really should not let it get that hot.
 If you see anything interesting in the reports, ask us to investigate. That's what we're all here for, isn't it?
 Objective:
-- Left-click planets to fly to them
-- Right-click visited planets to read the planetary report
-- Click the "Mission" button to see missions for the current planet
-- Press the "+" button to create a new mission
-  - Try something like "Send down a research probe to investigate"`,
+- Left-click planets to fly to them.
+- Right-click visited planets to read the planetary report.
+- Click the "Mission" button to see missions for the current planet.
+- Press the "+" button to create a new mission.
+  - Try something like "Send down a research probe to investigate."`,
 `Message from Chief Science Officer Lieutenant Thompson:
 We received that mission briefing you sent. Very clever, Captain. Really. We're all thrilled to see how it goes.
 I put together a requisition for some things that we'll need. You mind giving it a look for me?
 Objective:
-- Click the "Mission" button while orbiting the planet with an active mission
-- Click on the pending mission
-- Approve the requisition`,
+- Click the "Mission" button while orbiting the planet with an active mission.
+- Click on the pending mission.
+- Approve the requisition.`,
 `Transmission from Admiral Bofa:
-Our labs are processing the data from your first mission. It's interesting, I will admit. Certainly not what we expected. Keep up the good work.
+Our labs are processing the data from your first mission. It's interesting. Certainly not what we expected.
 The Galilleo should be equipped with a DABLON frequency scanner that can detect nearby anomalies. It's a little dated, so keeping it tuned might be challenging.
-We're approving use of the DABLON and giving you free reign to travel the sector. I suggest you seek out some more interesting targets to occupy your crew.
+We're approving use of the DABLON and giving you free reign to travel the sector. I suggest you seek out some more interesting research opportunities to occupy your crew.
 Objective:
-- Right click the sun in the system map and select "Return to Galaxy"
+- Right click the sun in the system map and select "Return to Galaxy."
 - Left click the "Scan" button in the Galaxy map.
-- Wait for an anomaly to be detected
-- Use the button to keep the DABLON tuned to the anomaly until its location can be determined.`];
+- Wait for an anomaly to be detected.
+- Use the button to keep the DABLON slider aligned with the anomaly until its location can be determined.`];
 
         // Initialize scrollable graphics buffer
         this.graphicsBuffer = new ScrollableGraphicsBuffer(sketch);
@@ -96,7 +96,12 @@ Objective:
                 this.tutorialStep = 3;
                 this.viewed = false;
             }
-            this.isWindowVisible = false;
+        });
+        this.eventBus.on('missionCompleted', () => {
+            if (this.tutorialStep === 3) {
+                this.tutorialStep = 4;
+                this.viewed = false;
+            }
         });
         // Subscribe to close all UIs event
         this.eventBus.on('closeAllInfoUIs', () => {
