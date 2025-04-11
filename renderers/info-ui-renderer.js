@@ -27,7 +27,7 @@ export class UIRenderer {
 
         // Draw background panel
         this.sketch.fill(0, 0, 0, 180);
-        this.sketch.stroke(255);
+        this.sketch.stroke(100);
         this.sketch.rect(starUI.uiX, starUI.uiY, starUI.uiWidth, starUI.uiHeight, 10);
 
         // Draw name
@@ -70,7 +70,7 @@ export class UIRenderer {
 
         // Draw background panel
         this.sketch.fill(0, 0, 0, 180);
-        this.sketch.stroke(255);
+        this.sketch.stroke(100);
         this.sketch.rect(planetUI.uiX, planetUI.uiY, planetUI.uiWidth, planetUI.uiHeight, 10);
 
         // Draw name
