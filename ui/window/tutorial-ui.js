@@ -21,24 +21,33 @@ export class TutorialUI extends BaseWindowUI {
         this.lineHeight = 20;
         this.paragraphSpacing = 30;
 
+        this.detectedAnomalies = [];
+        this.studiedAnomaly = null;
+
         this.viewed = false;
 
         this.viewingStep = 0;
         this.tutorialStep = 0;
-        this.tutorialContent = [`Transmission from Admiral Bofa:
+        this.tutorialContent = [
+            //0
+            `Transmission from Admiral Bofa:
 Good to hear from you, Captain Wobbleton. The committee was pleased to hear that the Gallileo has finally arrived in sector D-124. We have our scientists looking into the time dilation phenomenon you reported. Thank you for the various theories. If you had not noticed the discrepancy, we would have thought you were simply 2 months behind schedule.
 It seems your journey is already yielding interesting results. Nonetheless, please remember that your primary objective is a planetary survey. Now that you are in the correct sector, your next course of action should be dropping out of warp space and entering a local star system.
 Objective:
 - Left-click a nearby star in the galaxy map to travel to it.
 - Right-click the star you are orbiting. Press "Enter System" to enter the system.`,
-`Report from Quartermaster Xri:
+
+            //1
+            `Report from Quartermaster Xri:
 Captain Wobbleton, this is to inform you that the matter of ship's inventory has reached a state of provisional resolution. A number of essential units—Most notably two EVA suits—were discovered to be missing from their designated compartments. I have performed a full recount and an investigation into the matter.
 It appears that Technician Bartu and several Ensigns appropriated the items for some kind of cultural performance, which, unfortunately, deteriorated into a substantial brawl. Both suits were damaged beyond repair. He has expressed what I believe to be remorse. I have chosen to delay punitive response until a more culturally appropriate time.
 You may now access the ship's inventory to confirm our current stock. Many items are required for research procedures, and the nature of research is such that it is not uncommon to lose items. Please keep this in mind when planning missions.
 Objective:
 - Click the "Ship" button to review your inventory.
 - Note that items may be lost during failed missions. Difficult or dangerous missions are more likely to lose items.`,
-`Report from Chief Science Officer Lieutenant Thompson:
+
+            //2
+            `Report from Chief Science Officer Lieutenant Thompson:
 Hey Captain, we're all good to go down here. We got the probes polished, and Bartu fixed that weird grinding noise the scanner was making.
 Once we're in orbit around a planet, the scanner should give us an idea of what's down there. Thompson is very excited to write up reports for every single planet, and again, he's also very sorry about the whole coffee debacle. The replicator really should not let it get that hot.
 If you see anything interesting in the reports, ask us to investigate. That's what we're all here for, isn't it?
@@ -48,13 +57,17 @@ Objective:
 - Click the "Mission" button to see missions for the current planet.
 - Press the "+" button to create a new mission.
   - Try something like "Send down a research probe to investigate."`,
-`Message from Chief Science Officer Lieutenant Thompson:
+
+            //3
+            `Message from Chief Science Officer Lieutenant Thompson:
 We received that mission briefing you sent. Very clever, Captain. Really. We're all thrilled to see how it goes.
 I put together a requisition for some things that we'll need. You mind giving it a look for me?
 Objective:
 - Click the "Mission" button while orbiting the planet with an active mission.
 - Click on the pending mission.
 - Approve the requisition.`,
+
+            //4
 `Transmission from Admiral Bofa:
 Our labs are processing the data from your first mission. It's interesting. Certainly not what we expected.
 The Galilleo should be equipped with a DABLON frequency scanner that can detect nearby anomalies. It's a little dated, so keeping it tuned might be challenging.
@@ -65,7 +78,14 @@ Objective:
 - Wait for an anomaly to be detected.
   - If nothing pops up, you may want to try a different location with more stars.
 - Use the button to keep the DABLON slider aligned with the anomaly until its location can be determined.
-- Travel to the anomaly and create a mission to investigate.`];
+- Travel to the anomaly and create a mission to investigate.`,
+
+            //5
+            () => `Transmission from Admiral Bofa:
+This anomaly you've discovered is of substantial interest to the Federation. We recommend you continue your research here and build upon your previous experiments. We await your next transmission eagerly.
+Objectives:
+- Follow up with another mission to investigate the same anomaly at ${this.studiedAnomaly ? this.studiedAnomaly.name : "the anomaly"}.
+  - Missions at a body will compound; your results from the previous missions will affect future missions.`];
 
         // Initialize scrollable graphics buffer
         this.graphicsBuffer = new ScrollableGraphicsBuffer(sketch);
@@ -99,10 +119,25 @@ Objective:
                 this.viewed = false;
             }
         });
-        this.eventBus.on('missionCompleted', () => {
+        this.eventBus.on('anomalyDetected', (detectedPlanet) => {
+            if (this.tutorialStep === 4) {
+                this.detectedAnomalies.push(detectedPlanet);
+            }
+        });
+        this.eventBus.on('missionCompleted', (mission) => {
             if (this.tutorialStep === 3) {
                 this.tutorialStep = 4;
                 this.viewed = false;
+            }
+            if (this.tutorialStep === 4) {
+                const matchingAnomaly = this.detectedAnomalies.find(planet => 
+                    planet.name === mission.orbitingBody.name
+                );
+                if (matchingAnomaly) {
+                    this.studiedAnomaly = matchingAnomaly;
+                    this.tutorialStep = 5;
+                    this.viewed = false;
+                }
             }
         });
         // Subscribe to close all UIs event
@@ -204,8 +239,13 @@ Objective:
         // Reset text color to white for tutorial content
         buffer.fill(255);
 
+        // Get the current tutorial content, evaluating any functions
+        const currentContent = typeof this.tutorialContent[this.viewingStep] === 'function' 
+            ? this.tutorialContent[this.viewingStep]() 
+            : this.tutorialContent[this.viewingStep];
+
         // Split content into paragraphs and handle each one
-        const paragraphs = this.tutorialContent[this.viewingStep].split('\n\n');
+        const paragraphs = currentContent.split('\n\n');
         let totalHeight = 40; // Start with the graph spacing
         const lineSpacing = 5; // Space between lines within a paragraph
 

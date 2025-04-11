@@ -387,7 +387,7 @@ export class ScanUI extends BaseWindowUI {
                     if (this.nearbyAnomalies.length > 0) {
                         const randomIndex = Math.floor(Math.random() * this.nearbyAnomalies.length);
                         const detectedPlanet = this.nearbyAnomalies[randomIndex];
-                        
+                        this.eventBus.emit('anomalyDetected', detectedPlanet);
                         // Mark the anomaly as detected
                         detectedPlanet.anomaly.detected = true;
                         detectedPlanet.parentStar.anomaliesDetected = true;
