@@ -63,7 +63,8 @@ Objective:
 - Right click the sun in the system map and select "Return to Galaxy."
 - Left click the "Scan" button in the Galaxy map.
 - Wait for an anomaly to be detected.
-- Use the button to keep the DABLON slider aligned with the anomaly until its location can be determined.`];
+- Use the button to keep the DABLON slider aligned with the anomaly until its location can be determined.
+- Travel to the anomaly and create a mission to investigate.`];
 
         // Initialize scrollable graphics buffer
         this.graphicsBuffer = new ScrollableGraphicsBuffer(sketch);
